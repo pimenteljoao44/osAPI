@@ -62,7 +62,7 @@ public class UsuarioService {
 		newObj.setNome(obj.getNome());
 		newObj.setLogin(obj.getLogin());
 		newObj.setSenha(obj.getSenha());
-		newObj.setNivelAcesso(NivelAcesso.toEnum(obj.getNivelAcesso()));
+		newObj.setNivelAcesso(NivelAcesso.toEnum(obj.getNivelAcesso().getCod()));
 
 		return repository.save(newObj);
 	}

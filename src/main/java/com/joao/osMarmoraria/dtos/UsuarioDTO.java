@@ -73,8 +73,8 @@ public class UsuarioDTO implements Serializable {
 		this.senha = senha;
 	}
 
-	public Integer getNivelAcesso() {
-		return nivelAcesso;
+	public NivelAcesso getNivelAcesso() {
+		return NivelAcesso.toEnum(this.nivelAcesso);
 	}
 
 	public void setNivelAcesso(Integer nivelAcesso) {
