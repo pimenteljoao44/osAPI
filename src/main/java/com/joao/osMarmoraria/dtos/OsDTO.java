@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.joao.osMarmoraria.domain.OrdemDeServico;
+import com.joao.osMarmoraria.domain.enums.Prioridade;
+import com.joao.osMarmoraria.domain.enums.Status;
 
 import jakarta.validation.constraints.NotEmpty;
 
@@ -76,8 +78,8 @@ private Integer id;
 	}
 
 
-	public Integer getPrioridade() {
-		return prioridade;
+	public Prioridade getPrioridade() {
+		return Prioridade.toEnum(this.prioridade);
 	}
 
 
@@ -86,8 +88,8 @@ private Integer id;
 	}
 
 
-	public Integer getStatus() {
-		return status;
+	public Status getStatus() {
+		return Status.toEnum(this.status);
 	}
 
 
