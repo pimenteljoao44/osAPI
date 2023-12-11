@@ -56,7 +56,7 @@ public class UsuarioController {
 	}
 	
 	@PutMapping(value ="/{id}")
-	public ResponseEntity<UsuarioDTO> update(@Valid @RequestBody UsuarioDTO obj){
+	public ResponseEntity<UsuarioDTO> update(@PathVariable Integer id,@Valid @RequestBody UsuarioDTO obj){
 		obj = new UsuarioDTO(service.update(obj));
 		return ResponseEntity.ok().body(obj);
 	}
