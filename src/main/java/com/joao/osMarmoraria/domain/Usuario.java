@@ -24,7 +24,7 @@ public class Usuario implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-	@NotEmpty(message = "Campo Nome é requerido")
+	
 	private String nome;
 
 	@NotEmpty(message = "Campo Login é requerido")
