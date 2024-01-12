@@ -17,7 +17,6 @@ public class UsuarioDTO implements Serializable {
 
 	private Integer id;
 
-	@NotEmpty(message = "Campo Nome é requerido")
 	private String nome;
 
 	@NotEmpty(message = "Campo Login é requerido")
