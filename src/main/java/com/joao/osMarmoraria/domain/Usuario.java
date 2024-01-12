@@ -6,6 +6,7 @@ import java.util.Objects;
 import com.joao.osMarmoraria.domain.enums.NivelAcesso;
 import com.joao.osMarmoraria.domain.enums.Status;
 
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotEmpty;
 
 @Entity
+@Cacheable(false)
 public class Usuario implements Serializable {
 
 	private static final long serialVersionUID = 1L;
