@@ -19,7 +19,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.joao.osMarmoraria.dtos.OsDTO;
 import com.joao.osMarmoraria.services.OsService;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/os")

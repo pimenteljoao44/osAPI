@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.joao.osMarmoraria.domain.Cliente;
@@ -15,9 +16,12 @@ import com.joao.osMarmoraria.repository.UsuarioRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 
-import jakarta.validation.Valid;
+
+import javax.transaction.Transactional;
+import javax.validation.Valid;
 
 @Service
+@Transactional
 public class UsuarioService {
 
 	@Autowired
@@ -57,11 +61,12 @@ public class UsuarioService {
 	}
 
 	private Usuario fromDTO(UsuarioDTO obj) {
+		String encryptedPassword = new BCryptPasswordEncoder().encode(obj.getSenha());
 		Usuario newObj = new Usuario();
 		newObj.setId(obj.getId());
 		newObj.setNome(obj.getNome());
 		newObj.setLogin(obj.getLogin());
-		newObj.setSenha(obj.getSenha());
+		newObj.setSenha(encryptedPassword);
 		newObj.setNivelAcesso(NivelAcesso.toEnum(obj.getNivelAcesso().getCod()));
 
 		return repository.save(newObj);

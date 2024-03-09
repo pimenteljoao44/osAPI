@@ -21,7 +21,8 @@ import com.joao.osMarmoraria.domain.Usuario;
 import com.joao.osMarmoraria.dtos.UsuarioDTO;
 import com.joao.osMarmoraria.services.UsuarioService;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/usuarios")

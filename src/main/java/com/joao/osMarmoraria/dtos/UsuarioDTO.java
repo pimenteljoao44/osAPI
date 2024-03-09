@@ -5,11 +5,8 @@ import java.io.Serializable;
 import com.joao.osMarmoraria.domain.Usuario;
 import com.joao.osMarmoraria.domain.enums.NivelAcesso;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
+
 
 public class UsuarioDTO implements Serializable {
 

@@ -6,13 +6,14 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+
 
 @Entity
 public class Funcionario extends Pessoa implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	@JsonIgnore
 	@OneToMany(mappedBy = "funcionario")
 	private List <OrdemDeServico> listOs = new ArrayList<>();
@@ -32,5 +33,5 @@ public class Funcionario extends Pessoa implements Serializable {
 	public void setListOs(List<OrdemDeServico> listOs) {
 		this.listOs = listOs;
 	}
-  
+
 }

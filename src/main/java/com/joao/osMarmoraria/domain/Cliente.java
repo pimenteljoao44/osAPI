@@ -1,10 +1,9 @@
 package com.joao.osMarmoraria.domain;
 
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
 
 @Entity
 public class Cliente extends Pessoa{

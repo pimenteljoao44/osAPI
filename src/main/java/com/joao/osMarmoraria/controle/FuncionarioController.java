@@ -21,7 +21,8 @@ import com.joao.osMarmoraria.domain.Funcionario;
 import com.joao.osMarmoraria.dtos.FuncionarioDTO;
 import com.joao.osMarmoraria.services.FuncionarioService;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/funcionarios")

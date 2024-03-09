@@ -6,8 +6,7 @@ import org.hibernate.validator.constraints.br.CPF;
 
 import com.joao.osMarmoraria.domain.Cliente;
 
-
-import jakarta.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 
 public class ClienteDTO implements Serializable {
 	private static final long serialVersionUID = 1L;

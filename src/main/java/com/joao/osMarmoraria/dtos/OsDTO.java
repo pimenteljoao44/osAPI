@@ -8,7 +8,7 @@ import com.joao.osMarmoraria.domain.OrdemDeServico;
 import com.joao.osMarmoraria.domain.enums.Prioridade;
 import com.joao.osMarmoraria.domain.enums.Status;
 
-import jakarta.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 
 public class OsDTO implements Serializable {
 

@@ -1,24 +1,22 @@
 package com.joao.osMarmoraria.domain;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import com.joao.osMarmoraria.domain.enums.NivelAcesso;
-import com.joao.osMarmoraria.domain.enums.Status;
 
-import jakarta.persistence.Cacheable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotEmpty;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 
 @Entity
 @Cacheable(false)
-public class Usuario implements Serializable {
+public class Usuario implements UserDetails {
 
 	private static final long serialVersionUID = 1L;
 
@@ -26,7 +24,7 @@ public class Usuario implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-	
+
 	private String nome;
 
 	@NotEmpty(message = "Campo Login é requerido")
@@ -49,6 +47,12 @@ public class Usuario implements Serializable {
 		this.login = login;
 		this.senha = senha;
 		this.nivelAcesso = (nivelAcesso == null? 0: nivelAcesso.getCod());
+	}
+
+	public Usuario(String login, String senha, Integer nivelAcesso) {
+		this.login = login;
+		this.senha = senha;
+		this.nivelAcesso = nivelAcesso;
 	}
 
 	public Integer getId() {
@@ -109,6 +113,40 @@ public class Usuario implements Serializable {
 				&& Objects.equals(nome, other.nome) && Objects.equals(senha, other.senha);
 	}
 
-   
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		 if(Objects.equals(nivelAcesso, NivelAcesso.GERENTE.getCod())) return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
+				new SimpleGrantedAuthority("ROLE_USER"));
+			else return List.of(new SimpleGrantedAuthority("ROLE_USER"))	;
+	}
 
+	@Override
+	public String getPassword() {
+		return senha;
+	}
+
+	@Override
+	public String getUsername() {
+		return login;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return true;
+	}
 }

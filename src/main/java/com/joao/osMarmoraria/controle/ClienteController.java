@@ -21,7 +21,8 @@ import com.joao.osMarmoraria.domain.Cliente;
 import com.joao.osMarmoraria.dtos.ClienteDTO;
 import com.joao.osMarmoraria.services.ClienteService;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/clientes")

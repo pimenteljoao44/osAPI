@@ -14,7 +14,7 @@ import com.joao.osMarmoraria.repository.PessoaRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 @Service
 public class ClienteService {

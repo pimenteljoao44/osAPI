@@ -14,7 +14,7 @@ import com.joao.osMarmoraria.dtos.OsDTO;
 import com.joao.osMarmoraria.repository.OsRepository;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 @Service
 public class OsService {
