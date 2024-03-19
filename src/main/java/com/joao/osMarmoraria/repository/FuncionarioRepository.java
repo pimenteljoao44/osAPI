@@ -9,8 +9,4 @@ import com.joao.osMarmoraria.domain.Funcionario;
 
 @Repository
 public interface FuncionarioRepository extends JpaRepository<Funcionario,Integer> {
-
-	@Query("SELECT obj FROM Funcionario obj WHERE obj.cpf =:cpf")
-	Funcionario findByCPF(@Param("cpf") String cpf);
-
 }

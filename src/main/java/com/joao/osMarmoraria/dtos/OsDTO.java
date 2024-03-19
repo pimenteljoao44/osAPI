@@ -43,7 +43,7 @@ private Integer id;
 		this.prioridade = obj.getPrioridade().getCod();
 		this.status = obj.getStatus().getCod();
 		this.funcionario = obj.getFuncionario().getId();
-		this.cliente = obj.getCliente().getId();
+		this.cliente = obj.getCliente().getCliId();
 		this.observacoes = obj.getObservacoes();
 	}
 

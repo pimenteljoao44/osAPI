@@ -1,92 +1,80 @@
 package com.joao.osMarmoraria.domain;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
-import org.hibernate.validator.constraints.br.CPF;
+import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
-public abstract class Pessoa implements Serializable {
-	private static final long serialVersionUID = 1L;
-	
-   @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Integer id;
-   
-   private String nome;
-   @CPF
-   private String cpf;
-   private String telefone;
-   
-public Pessoa() {
-	super();
-	
-}
+@Data
+public class Pessoa implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-public Pessoa(Integer id, String nome, String cpf, String telefone) {
-	super();
-	this.id = id;
-	this.nome = nome;
-	this.cpf = cpf;
-	this.telefone = telefone;
-}
+    private String nome;
 
-public Integer getId() {
-	return id;
-}
+    @OneToOne(mappedBy = "pessoa", cascade = {CascadeType.REMOVE,CascadeType.ALL}, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Endereco endereco;
 
-public void setId(Integer id) {
-	this.id = id;
-}
+    private String telefone;
 
-public String getNome() {
-	return nome;
-}
+    public Pessoa() {
+    }
 
-public void setNome(String nome) {
-	this.nome = nome;
-}
+    public Pessoa(Integer id, String nome,Endereco endereco, String telefone) {
+        this.id = id;
+        this.nome = nome;
+        this.endereco = endereco;
+        this.telefone = telefone;
+    }
 
-public String getCpf() {
-	return cpf;
-}
+    public Integer getId() {
+        return id;
+    }
 
-public void setCpf(String cpf) {
-	this.cpf = cpf;
-}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-public String getTelefone() {
-	return telefone;
-}
+    public String getNome() {
+        return nome;
+    }
 
-public void setTelefone(String telefone) {
-	this.telefone = telefone;
-}
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 
-@Override
-public int hashCode() {
-	return Objects.hash(cpf, id, nome, telefone);
-}
+    public Endereco getEndereco() {
+        return endereco;
+    }
 
-@Override
-public boolean equals(Object obj) {
-	if (this == obj)
-		return true;
-	if (obj == null)
-		return false;
-	if (getClass() != obj.getClass())
-		return false;
-	Pessoa other = (Pessoa) obj;
-	return Objects.equals(cpf, other.cpf) && Objects.equals(id, other.id) && Objects.equals(nome, other.nome)
-			&& Objects.equals(telefone, other.telefone);
-}
+    public void setEndereco(Endereco endereco) {
+        this.endereco = endereco;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
 
 
-   
-   
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pessoa pessoa = (Pessoa) o;
+        return Objects.equals(id, pessoa.id) && Objects.equals(nome, pessoa.nome) && Objects.equals(endereco, pessoa.endereco) && Objects.equals(telefone, pessoa.telefone);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, nome, endereco, telefone);
+    }
 }
