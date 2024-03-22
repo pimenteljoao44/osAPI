@@ -30,8 +30,8 @@ public class Funcionario implements Serializable {
 	@Column(name = "func_ctps")
 	private String ctps;
 
-	@OneToOne
-	@JoinColumn(name = "pessoa_id")
+	@OneToOne(cascade = {CascadeType.ALL, CascadeType.REMOVE}, orphanRemoval = true)
+	@JoinColumn(name = "pessoa_id", nullable = false)
 	private Pessoa pessoa;
 	@JsonIgnore
 	@OneToMany(mappedBy = "funcionario")

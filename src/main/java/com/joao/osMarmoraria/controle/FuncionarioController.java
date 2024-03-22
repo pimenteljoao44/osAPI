@@ -54,7 +54,7 @@ public class FuncionarioController {
 		Funcionario newObj = service.create(objDTO);
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newObj.getId()).toUri();
 		
-		return ResponseEntity.created(uri).build();
+		return ResponseEntity.created(uri).body(new FuncionarioDTO(newObj));
 	}
 	
 	@PutMapping(value ="/{id}")

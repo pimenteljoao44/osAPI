@@ -7,7 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 class OsMarmorariaApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void main() {
+		OsMarmorariaApplication.main(new String[]{});
 	}
 
 }

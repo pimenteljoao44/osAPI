@@ -1,39 +1,53 @@
 package com.joao.osMarmoraria.dtos;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.TipoPessoa;
+import com.joao.osMarmoraria.domain.interfaces.TipoPessoaValid;
 import org.hibernate.validator.constraints.br.CNPJ;
 import org.hibernate.validator.constraints.br.CPF;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.validation.constraints.NotEmpty;
-
+import javax.validation.constraints.NotNull;
+@TipoPessoaValid
 public class FuncionarioDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     private Integer id;
     @NotEmpty(message = "O campo Nome é requerido!")
     private String nome;
-    @CPF
-    @NotEmpty(message = "O campo CPF é requerido!")
+    @NotEmpty(message = "O campo CPF é requerido!",groups = PessoaFisica.class)
+    @CPF(message = "O campo CPF é inválido", groups = PessoaFisica.class)
     private String cpf;
 
     @NotEmpty(message = "O campo RG é requerido!")
     private String rg;
     @NotEmpty(message = "O campo Telefone é requerido!")
     private String telefone;
-    @NotEmpty(message = "O campo CNPJ é requerido!")
-    @CNPJ
+    @NotEmpty(message = "O campo CNPJ é requerido para pessoa jurídica!", groups = PessoaJuridica.class)
+    @CNPJ(message = "O campo CNPJ é inválido", groups = PessoaJuridica.class)
     private String cnpj;
-    @NotEmpty(message = "o campo tipo de pessoa é requerido!")
+    @NotNull(message = "o campo tipo de pessoa é requerido!")
+    @Enumerated(EnumType.STRING)
     private TipoPessoa tipoPessoa;
 
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
+    @NotEmpty(message = "O campo Cargo é requerido!")
+    private String cargo;
+
+    @NotNull(message = "O campo Salário é requerido!")
+    private BigDecimal salario;
+
+    private String ctps;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm", timezone = "America/Sao_Paulo")
     private Date dataCriacao;
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm", timezone = "America/Sao_Paulo")
     private Date dataAtualizacao;
 
     private Endereco endereco;
@@ -47,6 +61,9 @@ public class FuncionarioDTO implements Serializable {
         this.nome = obj.getPessoa().getNome();
         this.telefone = obj.getPessoa().getTelefone();
         this.endereco = obj.getPessoa().getEndereco();
+        this.cargo = obj.getCargo();
+        this.salario = obj.getSalario();
+        this.ctps = obj.getCtps();
         Pessoa pessoa = obj.getPessoa();
         if (pessoa instanceof PessoaFisica) {
             PessoaFisica pessoaFisica = (PessoaFisica) pessoa;
@@ -130,6 +147,30 @@ public class FuncionarioDTO implements Serializable {
 
     public void setDataAtualizacao(Date dataAtualizacao) {
         this.dataAtualizacao = dataAtualizacao;
+    }
+
+    public String getCargo() {
+        return cargo;
+    }
+
+    public void setCargo(String cargo) {
+        this.cargo = cargo;
+    }
+
+    public BigDecimal getSalario() {
+        return salario;
+    }
+
+    public void setSalario(BigDecimal salario) {
+        this.salario = salario;
+    }
+
+    public String getCtps() {
+        return ctps;
+    }
+
+    public void setCtps(String ctps) {
+        this.ctps = ctps;
     }
 
     public Endereco getEndereco() {

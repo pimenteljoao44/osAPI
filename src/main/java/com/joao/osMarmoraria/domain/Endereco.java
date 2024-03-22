@@ -30,7 +30,7 @@ public class Endereco {
     @JoinColumn(name = "cidId", nullable = true)
     private Cidade cidade;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE,orphanRemoval = true)
     @JoinColumn(name = "pessoa_id", referencedColumnName = "id")
     private Pessoa pessoa;
 

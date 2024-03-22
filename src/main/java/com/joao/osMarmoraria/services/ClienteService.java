@@ -65,27 +65,38 @@ public class ClienteService {
 	public Cliente update(Integer id, @Valid ClienteDTO objDTO) {
 		Cliente oldObj = findById(id);
 
-		oldObj.getPessoa().setNome(objDTO.getNome());
-		oldObj.getPessoa().setTelefone(objDTO.getTelefone());
+		boolean tipoPessoaAlterado = oldObj.getPessoa() instanceof PessoaFisica && objDTO.getTipoPessoa() == TipoPessoa.PESSOA_JURIDICA ||
+				oldObj.getPessoa() instanceof PessoaJuridica && objDTO.getTipoPessoa() == TipoPessoa.PESSOA_FISICA;
+
+		if (tipoPessoaAlterado) {
+			Pessoa novaPessoa = createPessoaFromDTO(objDTO);
+
+			novaPessoa.setId(oldObj.getPessoa().getId());
+
+			oldObj.setPessoa(novaPessoa);
+		} else {
+			oldObj.getPessoa().setNome(objDTO.getNome());
+			oldObj.getPessoa().setTelefone(objDTO.getTelefone());
+
+			if (objDTO.getTipoPessoa() == TipoPessoa.PESSOA_FISICA) {
+				((PessoaFisica) oldObj.getPessoa()).setCpf(objDTO.getCpf());
+				((PessoaFisica) oldObj.getPessoa()).setRg(objDTO.getRg());
+			} else {
+				((PessoaJuridica) oldObj.getPessoa()).setCnpj(objDTO.getCnpj());
+			}
+
+			if (objDTO.getEndereco() != null) {
+				Endereco endereco = oldObj.getPessoa().getEndereco();
+				endereco.setRua(objDTO.getEndereco().getRua());
+				endereco.setNumero(objDTO.getEndereco().getNumero());
+				endereco.setComplemento(objDTO.getEndereco().getComplemento());
+				endereco.setBairro(objDTO.getEndereco().getBairro());
+				endereco.setCidade(objDTO.getEndereco().getCidade());
+				oldObj.getPessoa().setEndereco(endereco);
+			}
+		}
+
 		oldObj.setDataAtualizacao(new Date());
-
-		if (objDTO.getEndereco() != null) {
-			Endereco endereco = oldObj.getPessoa().getEndereco();
-			endereco.setRua(objDTO.getEndereco().getRua());
-			endereco.setNumero(objDTO.getEndereco().getNumero());
-			endereco.setComplemento(objDTO.getEndereco().getComplemento());
-			endereco.setBairro(objDTO.getEndereco().getBairro());
-			endereco.setCidade(objDTO.getEndereco().getCidade());
-			oldObj.getPessoa().setEndereco(endereco);
-		}
-
-		if (oldObj.getPessoa() instanceof PessoaFisica) {
-			((PessoaFisica) oldObj.getPessoa()).setCpf(objDTO.getCpf());
-			((PessoaFisica) oldObj.getPessoa()).setRg(objDTO.getRg());
-		}
-		else if (oldObj.getPessoa() instanceof PessoaJuridica) {
-			((PessoaJuridica) oldObj.getPessoa()).setCnpj(objDTO.getCnpj());
-		}
 
 		return clienteRepository.save(oldObj);
 	}

@@ -8,6 +8,7 @@ import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.TipoPessoa;
 import com.joao.osMarmoraria.dtos.ClienteDTO;
 import com.joao.osMarmoraria.repository.ClienteRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,11 +43,15 @@ public class FuncionarioService {
 	@Transactional
 	public Funcionario create(FuncionarioDTO objDTO) {
 		if (findByDocumento(objDTO) != null) {
-			throw new DataIntegratyViolationException("Documento já cadastrado na base de dados!");
+			throw new DataIntegratyViolationException("Pessoa já cadastrada na base de dados!");
 		}
 
 		Pessoa pessoa = createPessoaFromDTO(objDTO);
-		Funcionario funcionario  = new Funcionario();
+		pessoa = pessoaRepository.save(pessoa);
+
+		Funcionario funcionario = new Funcionario();
+		funcionario.setSalario(objDTO.getSalario());
+		funcionario.setCargo(objDTO.getCargo());
 		funcionario.setDataCriacao(new Date());
 		funcionario.setPessoa(pessoa);
 
@@ -56,20 +61,41 @@ public class FuncionarioService {
 	@Transactional
 	public Funcionario update(Integer id, @Valid FuncionarioDTO objDTO) {
 		Funcionario oldObj = findById(id);
-		if (findByDocumento(objDTO) != null && findByDocumento(objDTO).getId() != id) {
-			throw new DataIntegratyViolationException("Documento já cadastrado na base de dados!");
+
+		boolean tipoPessoaAlterado = oldObj.getPessoa() instanceof PessoaFisica && objDTO.getTipoPessoa() == TipoPessoa.PESSOA_JURIDICA ||
+				oldObj.getPessoa() instanceof PessoaJuridica && objDTO.getTipoPessoa() == TipoPessoa.PESSOA_FISICA;
+
+		if (tipoPessoaAlterado) {
+			Pessoa novaPessoa = createPessoaFromDTO(objDTO);
+
+			novaPessoa.setId(oldObj.getPessoa().getId());
+
+			oldObj.setPessoa(novaPessoa);
+		} else {
+			oldObj.getPessoa().setNome(objDTO.getNome());
+			oldObj.getPessoa().setTelefone(objDTO.getTelefone());
+			oldObj.setCargo(objDTO.getCargo());
+			oldObj.setSalario(objDTO.getSalario());
+			oldObj.setCtps(objDTO.getCtps());
+			if (objDTO.getTipoPessoa() == TipoPessoa.PESSOA_FISICA) {
+				((PessoaFisica) oldObj.getPessoa()).setCpf(objDTO.getCpf());
+				((PessoaFisica) oldObj.getPessoa()).setRg(objDTO.getRg());
+			} else {
+				((PessoaJuridica) oldObj.getPessoa()).setCnpj(objDTO.getCnpj());
+			}
+
+			if (objDTO.getEndereco() != null) {
+				Endereco endereco = oldObj.getPessoa().getEndereco();
+				endereco.setRua(objDTO.getEndereco().getRua());
+				endereco.setNumero(objDTO.getEndereco().getNumero());
+				endereco.setComplemento(objDTO.getEndereco().getComplemento());
+				endereco.setBairro(objDTO.getEndereco().getBairro());
+				endereco.setCidade(objDTO.getEndereco().getCidade());
+				oldObj.getPessoa().setEndereco(endereco);
+			}
 		}
 
-		oldObj.getPessoa().setNome(objDTO.getNome());
-		oldObj.getPessoa().setTelefone(objDTO.getTelefone());
 		oldObj.setDataAtualizacao(new Date());
-
-		if (oldObj.getPessoa() instanceof PessoaFisica) {
-			((PessoaFisica) oldObj.getPessoa()).setCpf(objDTO.getCpf());
-			((PessoaFisica) oldObj.getPessoa()).setRg(objDTO.getRg());
-		} else if (oldObj.getPessoa() instanceof PessoaJuridica) {
-			((PessoaJuridica) oldObj.getPessoa()).setCnpj(objDTO.getCnpj());
-		}
 
 		return funcionarioRepository.save(oldObj);
 	}
@@ -84,11 +110,31 @@ public class FuncionarioService {
 	}
 
 	private Pessoa createPessoaFromDTO(FuncionarioDTO objDTO) {
+		Pessoa pessoa;
 		if (objDTO.getTipoPessoa() == TipoPessoa.PESSOA_FISICA) {
-			return new PessoaFisica(objDTO.getId(), objDTO.getNome(), objDTO.getEndereco(), objDTO.getTelefone(), objDTO.getCpf(), objDTO.getRg());
+			pessoa = new PessoaFisica();
+			((PessoaFisica) pessoa).setCpf(objDTO.getCpf());
+			((PessoaFisica) pessoa).setRg(objDTO.getRg());
 		} else {
-			return new PessoaJuridica(objDTO.getId(), objDTO.getNome(), objDTO.getEndereco(), objDTO.getTelefone(), objDTO.getCnpj());
+			pessoa = new PessoaJuridica();
+			((PessoaJuridica) pessoa).setCnpj(objDTO.getCnpj());
 		}
+		pessoa.setNome(objDTO.getNome());
+		pessoa.setTelefone(objDTO.getTelefone());
+
+		Hibernate.initialize(objDTO.getEndereco().getCidade());
+
+		Endereco endereco = new Endereco();
+		endereco.setRua(objDTO.getEndereco().getRua());
+		endereco.setNumero(objDTO.getEndereco().getNumero());
+		endereco.setComplemento(objDTO.getEndereco().getComplemento());
+		endereco.setBairro(objDTO.getEndereco().getBairro());
+		endereco.setCidade(objDTO.getEndereco().getCidade());
+		endereco.setPessoa(pessoa);
+
+		pessoa.setEndereco(endereco);
+
+		return pessoa;
 	}
 
 	private Pessoa findByDocumento(FuncionarioDTO objDTO) {
