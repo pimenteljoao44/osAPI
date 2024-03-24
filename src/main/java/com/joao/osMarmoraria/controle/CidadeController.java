@@ -40,7 +40,7 @@ public class CidadeController {
     public ResponseEntity<CidadeDTO> create(@Valid @RequestBody CidadeDTO cidadeDTO) {
         Cidade newObj = cidadeService.create(cidadeDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newObj.getCidId()).toUri();
-        return ResponseEntity.created(uri).build();
+        return ResponseEntity.created(uri).body(new CidadeDTO(newObj));
     }
 
     @PutMapping(value = "/{id}")

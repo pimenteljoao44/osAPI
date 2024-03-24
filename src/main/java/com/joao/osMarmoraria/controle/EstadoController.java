@@ -40,7 +40,7 @@ public class EstadoController {
     public ResponseEntity<EstadoDTO> create(@Valid @RequestBody EstadoDTO estadoDTO) {
         Estado newObj = estadoService.create(estadoDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newObj.getEstId()).toUri();
-        return ResponseEntity.created(uri).build();
+        return ResponseEntity.created(uri).body(new EstadoDTO(newObj));
     }
 
     @PutMapping(value = "/{id}")
