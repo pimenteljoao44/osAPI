@@ -1,0 +1,17 @@
+version: '2.4'
+
+services:
+  db_marmoraria:
+    image: postgres
+    container_name: marmoraria_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: marmoraria_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - marmoraria_data:/var/lib/postgresql/data
+
+volumes:
+  marmoraria_data:
