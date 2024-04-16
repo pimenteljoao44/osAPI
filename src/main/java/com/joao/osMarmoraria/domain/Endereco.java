@@ -56,8 +56,8 @@ public class Endereco {
                 ", numero='" + numero + '\'' +
                 ", complemento='" + complemento + '\'' +
                 ", bairro='" + bairro + '\'' +
-                ", cidade=" + (cidade != null ? cidade.getCidId() : null) + // Adjust as per your Cidade class
-                ", pessoa=" + (pessoa != null ? pessoa.getId() : null) + // Adjust as per your Pessoa class
+                ", cidade=" + (cidade != null ? cidade.getCidId() : null) +
+                ", pessoa=" + (pessoa != null ? pessoa.getId() : null) +
                 ", dataCriacao=" + dataCriacao +
                 ", dataAtualizacao=" + dataAtualizacao +
                 '}';

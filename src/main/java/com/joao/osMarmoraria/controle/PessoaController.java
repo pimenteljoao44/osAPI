@@ -52,8 +52,6 @@ public class PessoaController {
         return ResponseEntity.ok().body(newObj);
     }
 
-    // delete funcionario
-
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id){
         service.delete(id);
