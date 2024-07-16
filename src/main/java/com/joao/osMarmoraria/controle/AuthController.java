@@ -38,7 +38,9 @@ public class AuthController {
         Usuario usuario = repository.findByLogin(data.login());
         if (usuario != null && new BCryptPasswordEncoder().matches(data.senha(), usuario.getSenha())) {
             var token = tokenService.generateToken((Usuario) auth.getPrincipal());
-            return ResponseEntity.ok(new LoginResponseDTO(usuario.getId(), usuario.getNome(),usuario.getLogin(),usuario.getSenha(),usuario.getNivelAcesso(),token));
+            return ResponseEntity.ok(new LoginResponseDTO(
+                    usuario.getId(), usuario.getNome(),usuario.getLogin(),usuario.getSenha(),usuario.getNivelAcesso(),token
+            ));
         } else {
             return ResponseEntity.badRequest().build();
         }
