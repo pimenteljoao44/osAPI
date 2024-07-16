@@ -41,7 +41,10 @@ public class Cliente implements Serializable {
 		this.dataAtualizacao = dataAtualizacao;
 	}
 
-	public Integer getCliId() {
+    public Cliente(Integer cliente) {
+    }
+
+    public Integer getCliId() {
 		return cliId;
 	}
 

@@ -1,6 +1,8 @@
 package com.joao.osMarmoraria.services;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -36,8 +38,14 @@ public class DBservice {
 		Pessoa pessoa2 = new Pessoa(null, "Betina", endereco, "(44)99963-8888");
 		Cliente c1 = new Cliente(null, new ArrayList<>(), pessoa2, new Date(), new Date());
 
-		OrdemDeServico os1 = new OrdemDeServico(null, Prioridade.ALTA, "TESTE", Status.ABERTO, f1, c1);
-
+		Servico s1 = new Servico(1,"Montagem cuba",new BigDecimal(600),new BigDecimal(1),null,null);
+		Grupo gpPai = new Grupo(1,"Granito",true,null);
+		Grupo g1 = new Grupo(2,"Granito trabalhado",true,gpPai);
+		Fornecedor for1 = new Fornecedor();
+		OrdemDeServico os1 = new OrdemDeServico();
+			os1 =	new OrdemDeServico(1, LocalDateTime.now(),null,0,0,f1,c1,
+				"observacao","esta é uma descricao de o.s",new BigDecimal(2.000),new BigDecimal(50.00),List.of( new Produto(1,"Granito Branco",new BigDecimal(300),true,new BigDecimal(50),new BigDecimal(2),g1,for1,null)),List.of(s1));
+		for1 = new Fornecedor(1,pessoa1,new Date(),null,List.of(new Produto(1,"Granito Branco",new BigDecimal(300),true,new BigDecimal(50),new BigDecimal(2),g1,for1,os1)));
 		f1.getListOs().add(os1);
 		c1.getListOs().add(os1);
 
