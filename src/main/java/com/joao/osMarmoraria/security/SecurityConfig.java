@@ -35,6 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
                 .authorizeRequests(authorize -> authorize
+                        .antMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                         .antMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .antMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .antMatchers(HttpMethod.POST, "/product").hasRole("ADMIN")
