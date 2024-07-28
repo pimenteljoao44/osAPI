@@ -33,6 +33,9 @@ public class Usuario implements UserDetails {
 	@NotEmpty(message = "Campo Senha é requerido")
 	private String senha;
 
+	@NotEmpty(message = "Campo Email é requerido")
+	private String email;
+
 
 	private Integer nivelAcesso;
 
@@ -40,17 +43,19 @@ public class Usuario implements UserDetails {
 		super();
 	}
 
-	public Usuario(Integer id, String nome, String login, String senha, NivelAcesso nivelAcesso) {
+	public Usuario(Integer id, String nome, String login, String senha,String email, NivelAcesso nivelAcesso) {
 		super();
 		this.id = id;
 		this.nome = nome;
 		this.login = login;
 		this.senha = senha;
+		this.email = email;
 		this.nivelAcesso = (nivelAcesso == null? 0: nivelAcesso.getCod());
 	}
 
-	public Usuario(String login, String senha, Integer nivelAcesso) {
+	public Usuario(String login, String senha,String email, Integer nivelAcesso) {
 		this.login = login;
+		this.senha = senha;
 		this.senha = senha;
 		this.nivelAcesso = nivelAcesso;
 	}
@@ -86,6 +91,10 @@ public class Usuario implements UserDetails {
 	public void setSenha(String senha) {
 		this.senha = senha;
 	}
+
+	public String getEmail() {return email;}
+
+	public void setEmail(String email) {this.email = email;}
 
 	public NivelAcesso getNivelAcesso() {
 		return NivelAcesso.toEnum(this.nivelAcesso);

@@ -24,7 +24,7 @@ class UsuarioRepositoryTest {
     @Test
     @DisplayName("Shoud get user sucessfuly from database")
     void findByLoginSucess() {
-        Usuario obj = new Usuario("joao.votor","joao123",1);
+        Usuario obj = new Usuario("joao.votor","joao123","joao.vitor@gmail.com",1);
         UsuarioDTO data = new UsuarioDTO(obj);
         this.createUser(data);
         Usuario result =  this.usuarioRepository.findByLogin(obj.getLogin());
@@ -40,7 +40,7 @@ class UsuarioRepositoryTest {
     }
 
     private Usuario createUser(UsuarioDTO data){
-        Usuario newUser = new Usuario(data.getId(),data.getNome(), data.getLogin(), data.getSenha(),data.getNivelAcesso());
+        Usuario newUser = new Usuario(data.getId(),data.getNome(), data.getLogin(), data.getSenha(),data.getEmail(),data.getNivelAcesso());
         this.entityManager.persist(newUser);
         return newUser;
     }

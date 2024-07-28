@@ -22,10 +22,21 @@ public class UsuarioDTO implements Serializable {
 	@NotEmpty(message = "Campo Senha é requerido")
 	private String senha;
 
+	@NotEmpty(message = "Campo Email é requerido")
+	private String email;
+
 	private Integer nivelAcesso;
 
 	public UsuarioDTO() {
 		super();
+	}
+	public UsuarioDTO(Integer id, String nome, String login, String senha, String email, Integer nivelAcesso) {
+		this.id = id;
+		this.nome = nome;
+		this.login = login;
+		this.senha = senha;
+		this.email = email;
+		this.nivelAcesso = nivelAcesso;
 	}
 
 	public UsuarioDTO(Usuario obj) {
@@ -34,6 +45,7 @@ public class UsuarioDTO implements Serializable {
 		this.nome = obj.getNome();
 		this.login = obj.getLogin();
 		this.senha = obj.getSenha();
+		this.email = obj.getEmail();
 		this.nivelAcesso = obj.getNivelAcesso().getCod();
 	}
 
@@ -68,6 +80,10 @@ public class UsuarioDTO implements Serializable {
 	public void setSenha(String senha) {
 		this.senha = senha;
 	}
+
+	public String getEmail() {return email;}
+
+	public void  setEmail(String email) {this.email = email;}
 
 	public NivelAcesso getNivelAcesso() {
 		return NivelAcesso.toEnum(this.nivelAcesso);
