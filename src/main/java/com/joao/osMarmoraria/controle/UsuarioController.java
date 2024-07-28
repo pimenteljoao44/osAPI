@@ -61,6 +61,12 @@ public class UsuarioController {
 		obj = new UsuarioDTO(service.update(obj));
 		return ResponseEntity.ok().body(obj);
 	}
+
+	@PutMapping(value = "/{id}/update-password")
+	public ResponseEntity<Void> updatePassword(@PathVariable Integer id, @RequestBody String newPassword) {
+		service.updatePassword(id, newPassword);
+		return ResponseEntity.noContent().build();
+	}
 	
 	@DeleteMapping(value = "/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Integer id){

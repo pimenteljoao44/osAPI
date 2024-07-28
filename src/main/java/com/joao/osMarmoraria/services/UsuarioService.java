@@ -56,6 +56,13 @@ public class UsuarioService {
 		return fromDTO(obj);
 	}
 
+	public void updatePassword(Integer id, String newPassword) {
+		Usuario usuario = findById(id);
+		String encryptedPassword = new BCryptPasswordEncoder().encode(newPassword);
+		usuario.setSenha(encryptedPassword);
+		repository.save(usuario);
+	}
+
 	public void delete(Integer id) {
 		repository.deleteById(id);
 	}
@@ -67,6 +74,7 @@ public class UsuarioService {
 		newObj.setNome(obj.getNome());
 		newObj.setLogin(obj.getLogin());
 		newObj.setSenha(encryptedPassword);
+		newObj.setEmail(obj.getEmail());
 		newObj.setNivelAcesso(NivelAcesso.toEnum(obj.getNivelAcesso().getCod()));
 
 		return repository.save(newObj);

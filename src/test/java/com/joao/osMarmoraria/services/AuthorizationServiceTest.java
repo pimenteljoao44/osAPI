@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 class AuthorizationServiceTest {
     public static final String LOGIN = "joao.pimentel";
     public static final String SENHA = "123";
+    public static final String EMAIL = "joao.pimentel@gmail.com";
     public static final int NIVEL_ACESSO = 1;
 
     @InjectMocks
@@ -32,7 +33,7 @@ class AuthorizationServiceTest {
     }
 
     private void startUser() {
-        usuario = new Usuario(LOGIN, SENHA, NIVEL_ACESSO);
+        usuario = new Usuario(LOGIN, SENHA,EMAIL, NIVEL_ACESSO);
     }
 
     @Test
