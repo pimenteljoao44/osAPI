@@ -57,22 +57,10 @@ public class UsuarioService {
 	}
 
 	public void updatePassword(Integer id, String newPassword) {
-		try {
-			System.out.println("Iniciando atualização de senha para o usuário com ID: " + id);
-
-			Usuario usuario = findById(id);
-			System.out.println("Usuário encontrado: " + usuario);
-
-			String encryptedPassword = new BCryptPasswordEncoder().encode(newPassword);
-			usuario.setSenha(encryptedPassword);
-
-			repository.save(usuario);
-			System.out.println("Senha atualizada com sucesso para o usuário com ID: " + id);
-		} catch (Exception e) {
-			System.out.println("Erro ao atualizar a senha para o usuário com ID: " + id);
-			e.printStackTrace();
-			throw e;  // Re-lançar a exceção para que o controlador possa capturá-la
-		}
+		Usuario usuario = findById(id);
+		String encryptedPassword = new BCryptPasswordEncoder().encode(newPassword);
+		usuario.setSenha(encryptedPassword);
+		repository.save(usuario);
 	}
 
 	public void delete(Integer id) {
