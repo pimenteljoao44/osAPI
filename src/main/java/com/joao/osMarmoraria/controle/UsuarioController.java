@@ -66,6 +66,7 @@ public class UsuarioController {
 	@PutMapping(value = "/{id}/update-password")
 	public ResponseEntity<Void> updatePassword(@PathVariable Integer id, @RequestBody String newPassword) {
 		try {
+			System.out.println("Requisição recebida");
 			service.updatePassword(id, newPassword);
 			return ResponseEntity.noContent().build();
 		} catch (Exception e) {
