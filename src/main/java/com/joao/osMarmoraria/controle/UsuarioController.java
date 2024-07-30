@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -64,10 +65,16 @@ public class UsuarioController {
 
 	@PutMapping(value = "/{id}/update-password")
 	public ResponseEntity<Void> updatePassword(@PathVariable Integer id, @RequestBody String newPassword) {
-		service.updatePassword(id, newPassword);
-		return ResponseEntity.noContent().build();
+		try {
+			service.updatePassword(id, newPassword);
+			return ResponseEntity.noContent().build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
 	}
-	
+
+
 	@DeleteMapping(value = "/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Integer id){
 		service.delete(id);
