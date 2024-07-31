@@ -65,7 +65,6 @@ public class UsuarioController {
 
 	@PutMapping(value = "/{id}/update-password")
 	public ResponseEntity<Void> updatePassword(@PathVariable Integer id, @RequestBody String newPassword) {
-		System.out.println("Passou aqui");
 		service.updatePassword(id, newPassword);
 		return ResponseEntity.noContent().build();
 	}
