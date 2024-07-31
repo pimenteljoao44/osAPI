@@ -65,9 +65,15 @@ public class UsuarioController {
 
 	@PutMapping(value = "/{id}/update-password")
 	public ResponseEntity<Void> updatePassword(@PathVariable Integer id, @RequestBody String newPassword) {
-		service.updatePassword(id, newPassword);
-		return ResponseEntity.noContent().build();
+		try {
+			service.updatePassword(id, newPassword);
+			return ResponseEntity.noContent().build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
 	}
+
 
 
 	@DeleteMapping(value = "/{id}")
