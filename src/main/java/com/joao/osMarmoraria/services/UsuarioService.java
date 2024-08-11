@@ -35,6 +35,14 @@ public class UsuarioService {
 		return null;
 	}
 
+	private Usuario findByEmail(UsuarioDTO objDTO) {
+		Usuario obj = repository.findByEmail(objDTO.getEmail());
+		if (obj != null) {
+			return obj;
+		}
+		return null;
+	}
+
 	public Usuario findById(Integer id) {
 		Optional<Usuario> obj = repository.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException("Usuario não encontrado!"));
@@ -45,7 +53,7 @@ public class UsuarioService {
 	}
 
 	public Usuario create(UsuarioDTO objDTO) {
-		if (findByLogin(objDTO) != null) {
+		if (findByLogin(objDTO) != null || findByEmail(objDTO) != null) {
 			throw new DataIntegratyViolationException("Usuário já cadastrado na base de dados!");
 		}
 		return fromDTO(objDTO);
