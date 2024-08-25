@@ -35,7 +35,6 @@ public class FornecedorDTO implements Serializable {
     @NotNull(message = "o campo tipo de pessoa é requerido!")
     @Enumerated(EnumType.STRING)
     private TipoPessoa tipoPessoa;
-    @NotEmpty(message = "A venda deve obrigatóriamente conter produtos!")
     private List<Integer> produtos;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm", timezone = "America/Sao_Paulo")
     private Date dataCriacao;
@@ -59,6 +58,9 @@ public class FornecedorDTO implements Serializable {
             this.cnpj = pessoaJuridica.getCnpj();
             this.tipoPessoa = TipoPessoa.PESSOA_JURIDICA;
         }
+    }
+
+    public FornecedorDTO() {
     }
 
     public Integer getId() {
@@ -125,11 +127,11 @@ public class FornecedorDTO implements Serializable {
         this.tipoPessoa = tipoPessoa;
     }
 
-    public @NotEmpty(message = "A venda deve obrigatóriamente conter produtos!") List<Integer> getProdutos() {
+    public List<Integer> getProdutos() {
         return produtos;
     }
 
-    public void setProdutos(@NotEmpty(message = "A venda deve obrigatóriamente conter produtos!") List<Integer> produtos) {
+    public void setProdutos(List<Integer> produtos) {
         this.produtos = produtos;
     }
 

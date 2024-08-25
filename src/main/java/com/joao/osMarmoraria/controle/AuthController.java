@@ -65,7 +65,7 @@ public class AuthController {
 
             usuarioService.update(new UsuarioDTO(usuario.getId(),usuario.getNome(),usuario.getLogin(),senhaTemp,usuario.getEmail(),usuario.getNivelAcesso().getCod()));
             emailService.enviarEmailTexto(usuario.getEmail(), "Recuperção de Senha", "Olá "+
-                    usuario.getNome() + " Sua senha de acesso é: " + senhaTemp);
+                    usuario.getNome() + " Sua nova senha de acesso é: " + senhaTemp);
 
             return ResponseEntity.ok(new RecoveryDTO(usuario.getEmail(),senhaTemp));
         } else {
