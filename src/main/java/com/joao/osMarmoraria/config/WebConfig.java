@@ -15,7 +15,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public Validator getValidator() {
-        System.out.println("Chamou WebConfig");
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.setValidationMessageSource(messageSource());
         return validator;

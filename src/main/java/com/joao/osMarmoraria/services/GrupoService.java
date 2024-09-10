@@ -23,8 +23,10 @@ public class GrupoService {
 
     public Grupo findById(Integer id) {
         Optional<Grupo> obj = grupoRepository.findById(id);
-        return obj.orElseThrow(() -> new ObjectNotFoundException(
-                "Objeto não encontrado! id:" + id + ",tipo: " + Grupo.class.getName()));
+        if (obj.isPresent()) {
+            return obj.get();
+        }
+        return null;
     }
 
     public Grupo create (@Valid GrupoDTO grupoDTO) {

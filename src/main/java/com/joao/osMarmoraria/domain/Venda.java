@@ -51,7 +51,7 @@ public class Venda {
     public void addItem(ItemVenda item) {
         item.setVenda(this);
         if (!itensVenda.contains(item)) {
-            item.setPreco(item.getProduto().getPreco());
+            item.setPreco(item.getProduto().getPrecoVenda());
             itensVenda.add(item);
             item.getProduto().baixarEstoque(item.getQuantidade());
             calculaTotal();
@@ -62,7 +62,7 @@ public class Venda {
 
     public void removeItem(ItemVenda item) {
         if (itensVenda.remove(item)) {
-            item.getProduto().estornarEstoque(item.getQuantidade());
+            item.getProduto().aumentarEstoque(item.getQuantidade());
             calculaTotal();
         }
     }

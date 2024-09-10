@@ -1,7 +1,11 @@
 package com.joao.osMarmoraria.domain;
-
+import com.joao.osMarmoraria.domain.Fornecedor;
+import com.joao.osMarmoraria.domain.Grupo;
+import com.joao.osMarmoraria.domain.OrdemDeServico;
+import com.joao.osMarmoraria.domain.enums.UnidadeDeMedida;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 
@@ -14,10 +18,16 @@ public class Produto {
     private Integer prodId;
 
     private String nome;
-    private BigDecimal preco;
+    private BigDecimal precoCusto;
+    private BigDecimal precoVenda;
+    private BigDecimal lucro;
+    private BigDecimal margemLucro;
     private Boolean ativo = true;
     private BigDecimal estoque;
     private BigDecimal quantidade;
+
+    @Enumerated(EnumType.STRING)
+    private UnidadeDeMedida unidadeDeMedida;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "grupo_id", nullable = true)
@@ -42,8 +52,16 @@ public class Produto {
         }
     }
 
-    public void estornarEstoque(BigDecimal quantidade) {
-        estoque = estoque.add(quantidade);
+    public void aumentarEstoque(BigDecimal quantidade) {
+        this.estoque = this.estoque.add(quantidade);
+    }
+
+
+    public void atualizarLucro() {
+        if (precoVenda != null && precoCusto != null) {
+            lucro = precoVenda.subtract(precoCusto);
+            margemLucro = lucro.divide(precoCusto, 2, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100));
+        }
     }
 
     @Override
@@ -51,7 +69,8 @@ public class Produto {
         return "Produto{" +
                 "prodId=" + prodId +
                 ", nome='" + nome + '\'' +
-                ", preco=" + preco +
+                ", precoCusto=" + precoCusto +
+                ", precoVenda=" + precoVenda +
                 ", estoque=" + estoque +
                 '}';
     }

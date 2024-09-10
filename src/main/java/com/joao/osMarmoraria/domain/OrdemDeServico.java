@@ -72,7 +72,7 @@ public class OrdemDeServico {
 	public void addItem(Produto item) throws Exception {
 		item.setOrdemDeServico(this);
 		if (!produtos.contains(item)) {
-			item.setPreco(item.getPreco());
+			item.setPrecoCusto(item.getPrecoCusto());
 			produtos.add(item);
 			calculaTotal();
 		} else {
@@ -104,7 +104,7 @@ public class OrdemDeServico {
 	public void removeItem(Produto item) {
 		produtos.remove(item);
 		calculaTotal();
-		item.estornarEstoque(item.getQuantidade());
+		item.aumentarEstoque(item.getQuantidade());
 	}
 
 	public BigDecimal calculaTotal() {
@@ -116,7 +116,7 @@ public class OrdemDeServico {
 
 		if (produtos != null && !produtos.isEmpty()) {
 			for (Produto p : produtos) {
-				valorTotal = valorTotal.add(p.getPreco().multiply(p.getQuantidade())).add(calculaServicos());
+				valorTotal = valorTotal.add(p.getPrecoCusto().multiply(p.getQuantidade())).add(calculaServicos());
 			}
 		}
 

@@ -81,6 +81,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .antMatchers(HttpMethod.POST, "/venda").permitAll()
                         .antMatchers(HttpMethod.PUT, "/venda/{id}").permitAll()
                         .antMatchers(HttpMethod.DELETE, "/venda/{id}").permitAll()
+                        .antMatchers(HttpMethod.GET,"/compra").permitAll()
+                        .antMatchers(HttpMethod.POST,"/compra").permitAll()
+                        .antMatchers(HttpMethod.PUT,"/compra/{id}").permitAll()
+                        .antMatchers(HttpMethod.DELETE,"/compra/{id}").permitAll()
+                        .antMatchers(HttpMethod.GET,"/compra/itens").permitAll()
+                        .antMatchers(HttpMethod.POST,"/compra/{id}/addItem").permitAll()
+                        .antMatchers(HttpMethod.DELETE,"/compra/{id}/removeItem/{itemId}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);

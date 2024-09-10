@@ -49,7 +49,7 @@ public class ProdutoService {
 
         Produto newProd = new Produto();
         newProd.setNome(produtoDTO.getNome());
-        newProd.setPreco(produtoDTO.getPreco());
+        newProd.setPrecoCusto(produtoDTO.getPreco());
         newProd.setAtivo(produtoDTO.getAtivo());
         newProd.setEstoque(produtoDTO.getEstoque());
         newProd.setQuantidade(produtoDTO.getQuantidade());
@@ -79,7 +79,7 @@ public class ProdutoService {
         produto.setGrupo(grupo);
         produto.setAtivo(produtoDTO.getAtivo());
         produto.setEstoque(produtoDTO.getEstoque());
-        produto.setPreco(produtoDTO.getPreco());
+        produto.setPrecoCusto(produtoDTO.getPreco());
         produto.setQuantidade(produtoDTO.getQuantidade());
         if (produtoDTO.getFornecedor() != null) {
             Fornecedor fornecedor = findFornecedorById(produtoDTO.getFornecedor());
@@ -121,7 +121,7 @@ public class ProdutoService {
         newProduto.setGrupo(obj.getGrupo());
         newProduto.setAtivo(obj.getAtivo());
         newProduto.setEstoque(obj.getEstoque());
-        newProduto.setPreco(obj.getPreco());
+        newProduto.setPrecoCusto(obj.getPreco());
         newProduto.setQuantidade(obj.getQuantidade());
         newProduto.setFornecedor(fornecedor);
         newProduto.setOrdemDeServico(os);
