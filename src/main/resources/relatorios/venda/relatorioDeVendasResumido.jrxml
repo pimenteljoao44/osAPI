@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="RelatorioDeVendas" pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20"
+              bottomMargin="20" uuid="f5e1d9e0-8c4d-4d91-bb9a-575f5fdd0c41">
+
+    <parameter name="cliente" class="java.lang.Integer"/>
+    <parameter name="dataInicial" class="java.lang.String"/>
+    <parameter name="dataFinal" class="java.lang.String"/>
+    <parameter name="formaPagamento" class="java.lang.String"/>
+
+    <queryString>
+        <![CDATA[
+     SELECT v.ven_id, v.data_abertura, v.data_fechamento, v.desconto, v.forma_pagamento, v.total,
+            v.venda_tipo, pess.nome AS cliente_nome, p.prod_id, p.nome AS produto_nome, iv.quantidade, iv.preco
+     FROM venda v
+     LEFT JOIN cliente c ON c.cli_id = v.cliente_id
+     LEFT JOIN pessoa pess ON pess.id = c.pessoa_id
+     LEFT JOIN item_venda iv ON iv.venda_id = v.ven_id
+     LEFT JOIN produto p ON p.prod_id = iv.prod_id
+     WHERE (v.cliente_id = $P{cliente} OR $P{cliente} IS NULL)
+       AND (v.data_abertura >= CAST($P{dataInicial} AS DATE) OR $P{dataInicial} IS NULL)
+       AND (v.data_abertura <= CAST($P{dataFinal} AS DATE) OR $P{dataFinal} IS NULL)
+       AND (v.forma_pagamento = $P{formaPagamento} OR $P{formaPagamento} IS NULL)
+    ]]>
+    </queryString>
+
+
+    <!-- Campos do banco de dados -->
+    <field name="ven_id" class="java.lang.Integer"/>
+    <field name="data_abertura" class="java.sql.Timestamp"/>
+    <field name="data_fechamento" class="java.sql.Timestamp"/>
+    <field name="desconto" class="java.math.BigDecimal"/>
+    <field name="forma_pagamento" class="java.lang.String"/>
+    <field name="total" class="java.math.BigDecimal"/>
+    <field name="venda_tipo" class="java.lang.String"/>
+    <field name="cliente_nome" class="java.lang.String"/>
+    <field name="produto_nome" class="java.lang.String"/>
+    <field name="quantidade" class="java.math.BigDecimal"/>
+    <field name="preco" class="java.math.BigDecimal"/>
+
+    <!-- Cabeçalho com estilo profissional -->
+    <title>
+        <band height="100">
+            <image>
+                <reportElement x="0" y="0" width="100" height="60" />
+                <imageExpression><![CDATA["relatorios/venda/LogoMarmoraria.png"]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="100" y="0" width="455" height="60" />
+                <textElement textAlignment="Center">
+                    <font size="24" isBold="true" isUnderline="true" pdfFontName="Helvetica"/>
+                </textElement>
+                <text><![CDATA[Relatório de Vendas]]></text>
+            </staticText>
+            <line>
+                <reportElement x="0" y="65" width="555" height="1"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#000000"/>
+                </graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="0" y="70" width="200" height="20"/>
+                <textElement>
+                    <font size="10" isItalic="true"/>
+                </textElement>
+                <text><![CDATA[Data de Emissão: ]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="200" y="70" width="120" height="20"/>
+                <textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <!-- Cabeçalhos das colunas com estilo e bordas aprimoradas -->
+    <columnHeader>
+        <band height="35">
+            <rectangle>
+                <reportElement x="0" y="0" width="555" height="35" />
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#BDBDBD"/>
+                </graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="0" width="60" height="35" />
+                <textElement><font size="12" isBold="true" /></textElement>
+                <text><![CDATA[ID Venda]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="60" y="0" width="100" height="35" />
+                <textElement><font size="12" isBold="true" /></textElement>
+                <text><![CDATA[Cliente]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="160" y="0" width="90" height="35" />
+                <textElement><font size="12" isBold="true" /></textElement>
+                <text><![CDATA[Produto]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="250" y="0" width="80" height="35" />
+                <textElement><font size="12" isBold="true" /></textElement>
+                <text><![CDATA[Quantidade]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="330" y="0" width="60" height="35" />
+                <textElement><font size="12" isBold="true" /></textElement>
+                <text><![CDATA[Preço]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="390" y="0" width="70" height="35" />
+                <textElement><font size="12" isBold="true" /></textElement>
+                <text><![CDATA[Total]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="460" y="0" width="95" height="35" />
+                <textElement><font size="12" isBold="true" /></textElement>
+                <text><![CDATA[Forma Pagamento]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <!-- Detalhes aprimorados com bordas e sombreamento -->
+    <detail>
+        <band height="30" splitType="Stretch">
+            <rectangle>
+                <reportElement x="0" y="0" width="555" height="30" />
+                <graphicElement>
+                    <pen lineWidth="0.5" lineColor="#BDBDBD"/>
+                </graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="0" y="0" width="60" height="30" />
+                <textFieldExpression><![CDATA[$F{ven_id}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="60" y="0" width="100" height="30" />
+                <textFieldExpression><![CDATA[$F{cliente_nome}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="160" y="0" width="90" height="30" />
+                <textFieldExpression><![CDATA[$F{produto_nome}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="250" y="0" width="80" height="30" />
+                <textFieldExpression><![CDATA[$F{quantidade}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="330" y="0" width="60" height="30" />
+                <textFieldExpression><![CDATA[new java.text.DecimalFormat("R$ #,##0.00").format($F{preco})]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="390" y="0" width="70" height="30" />
+                <textFieldExpression><![CDATA[new java.text.DecimalFormat("R$ #,##0.00").format($F{total})]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="460" y="0" width="95" height="30" />
+                <textFieldExpression><![CDATA[$F{forma_pagamento}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <!-- Rodapé -->
+    <pageFooter>
+        <band height="50">
+            <textField>
+                <reportElement x="0" y="0" width="555" height="50" />
+                <!-- Data e hora de emissão em português -->
+                <textFieldExpression><![CDATA["Relatório gerado em " + new java.text.SimpleDateFormat("dd 'de' MMMM 'de' yyyy 'às' HH:mm:ss", new java.util.Locale("pt", "BR")).format(new java.util.Date())]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+</jasperReport>

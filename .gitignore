@@ -1,0 +1,23 @@
+# Build
+/target/
+/out/
+
+# Logs
+*.log
+
+# IDEs
+/.idea/
+/.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Outros
+*.class
+*.jar
+*.war
+
+# Configurações locais
+application.properties
+application.yml
