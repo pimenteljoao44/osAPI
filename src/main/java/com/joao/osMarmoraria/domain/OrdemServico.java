@@ -1,10 +1,12 @@
 package com.joao.osMarmoraria.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,7 +16,7 @@ import java.util.List;
 @Entity
 @Table(name = "ordens_servico")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class OrdemServico {
+public class OrdemServico implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +31,7 @@ public class OrdemServico {
     @NotNull(message = "Projeto é obrigatório")
     private Integer projetoId;
 
+    @JsonBackReference("projeto-ordemservico")
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projeto_id", insertable = false, updatable = false)
     private Projeto projeto;
@@ -36,7 +39,7 @@ public class OrdemServico {
     @Column(name = "cliente_id", nullable = false)
     @NotNull(message = "Cliente é obrigatório")
     private Integer clienteId;
-
+    @JsonBackReference("cliente-ordemservico")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", insertable = false, updatable = false)
     private Cliente cliente;
@@ -96,9 +99,8 @@ public class OrdemServico {
     @JoinColumn(name = "funcionario_id")
     private Funcionario funcionario;
 
-
     @ManyToOne
-    @JoinColumn(name = "servico_id")  // This creates the foreign key column
+    @JoinColumn(name = "servico_id")
     private Servico servico;
 
     // Construtores
@@ -137,12 +139,32 @@ public class OrdemServico {
         return "OS" + System.currentTimeMillis();
     }
 
-    public void iniciarExecucao() {
+    public void aprovar() {
         if (status == StatusOrdemServico.PENDENTE) {
+            status = StatusOrdemServico.APROVADA;
+        } else {
+            throw new IllegalStateException("Ordem de serviço deve estar pendente para ser aprovada");
+        }
+    }
+
+    public void agendar(LocalDate dataInicio, LocalDate dataConclusao) {
+        if (status == StatusOrdemServico.APROVADA || status == StatusOrdemServico.PENDENTE) {
+            this.dataPrevistaInicio = dataInicio;
+            this.dataPrevistaConclusao = dataConclusao;
+            if (status == StatusOrdemServico.PENDENTE) {
+                status = StatusOrdemServico.AGENDADA;
+            }
+        } else {
+            throw new IllegalStateException("Ordem de serviço deve estar aprovada ou pendente para ser agendada");
+        }
+    }
+
+    public void iniciarExecucao() {
+        if (status == StatusOrdemServico.AGENDADA || status == StatusOrdemServico.APROVADA) {
             status = StatusOrdemServico.EM_ANDAMENTO;
             dataInicio = LocalDate.now();
         } else {
-            throw new IllegalStateException("Ordem de serviço deve estar pendente para ser iniciada");
+            throw new IllegalStateException("Ordem de serviço deve estar agendada ou aprovada para ser iniciada");
         }
     }
 
@@ -179,8 +201,16 @@ public class OrdemServico {
         }
     }
 
-    public boolean podeSerIniciada() {
+    public boolean podeSerAprovada() {
         return status == StatusOrdemServico.PENDENTE;
+    }
+
+    public boolean podeSerAgendada() {
+        return status == StatusOrdemServico.APROVADA || status == StatusOrdemServico.PENDENTE;
+    }
+
+    public boolean podeSerIniciada() {
+        return status == StatusOrdemServico.AGENDADA || status == StatusOrdemServico.APROVADA;
     }
 
     public boolean podeSerPausada() {

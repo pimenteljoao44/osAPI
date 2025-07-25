@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.List;
 @Entity
 @Data
 @AllArgsConstructor
-public class Compra {
+public class Compra implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

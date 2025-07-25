@@ -1,12 +1,15 @@
 package com.joao.osMarmoraria.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.joao.osMarmoraria.domain.Cliente;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.TipoProjeto;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,7 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "projetos")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Projeto {
+public class Projeto implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,12 +34,10 @@ public class Projeto {
     @Size(max = 500, message = "Descrição deve ter no máximo 500 caracteres")
     private String descricao;
 
-    @Column(name = "cliente_id", nullable = false)
+    @JsonBackReference("cliente-projetos")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "cliente_id", nullable = false)
     @NotNull(message = "Cliente é obrigatório")
-    private Integer clienteId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", insertable = false, updatable = false)
     private Cliente cliente;
 
     @Column(name = "tipo_projeto", nullable = false)
@@ -98,41 +99,42 @@ public class Projeto {
     @Column(name = "observacoes_medidas", length = 500)
     private String observacoesMedidas;
 
-    // Relacionamentos
+    @JsonManagedReference("projeto-itens")
     @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProjetoItem> itens = new ArrayList<>();
 
+    @JsonManagedReference("projeto-ordemservico")
     @OneToOne(mappedBy = "projeto", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private OrdemServico ordemServico;
 
     // Auditoria
     @Column(name = "data_criacao", nullable = false)
-    private LocalDateTime dataCriacao;
+    private LocalDate dataCriacao;
 
     @Column(name = "data_atualizacao", nullable = false)
-    private LocalDateTime dataAtualizacao;
+    private LocalDate dataAtualizacao;
 
-    @Column(name = "usuario_criacao", nullable = false)
-    @NotNull(message = "Usuário de criação é obrigatório")
-    private Integer usuarioCriacao;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_criacao", nullable = false)
+    private Usuario usuarioCriacao;
 
     // Construtores
     public Projeto() {
     }
 
-    public Projeto(String nome, Integer clienteId, TipoProjeto tipoProjeto) {
+    public Projeto(String nome, Cliente cliente, TipoProjeto tipoProjeto) {
         this.nome = nome;
-        this.clienteId = clienteId;
+        this.cliente = cliente;
         this.tipoProjeto = tipoProjeto;
-        this.dataCriacao = LocalDateTime.now();
-        this.dataAtualizacao = LocalDateTime.now();
+        this.dataCriacao = LocalDate.now();
+        this.dataAtualizacao = LocalDate.now();
     }
 
     // Métodos de negócio
     @PrePersist
     protected void onCreate() {
-        dataCriacao = LocalDateTime.now();
-        dataAtualizacao = LocalDateTime.now();
+        dataCriacao = LocalDate.now();
+        dataAtualizacao = LocalDate.now();
         if (status == null) {
             status = StatusProjeto.ORCAMENTO;
         }
@@ -141,7 +143,7 @@ public class Projeto {
 
     @PreUpdate
     protected void onUpdate() {
-        dataAtualizacao = LocalDateTime.now();
+        dataAtualizacao = LocalDate.now();
         calcularMedidas();
     }
 
@@ -196,14 +198,6 @@ public class Projeto {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
-    }
-
-    public Integer getClienteId() {
-        return clienteId;
-    }
-
-    public void setClienteId(Integer clienteId) {
-        this.clienteId = clienteId;
     }
 
     public Cliente getCliente() {
@@ -350,27 +344,27 @@ public class Projeto {
         this.ordemServico = ordemServico;
     }
 
-    public LocalDateTime getDataCriacao() {
+    public LocalDate getDataCriacao() {
         return dataCriacao;
     }
 
-    public void setDataCriacao(LocalDateTime dataCriacao) {
+    public void setDataCriacao(LocalDate dataCriacao) {
         this.dataCriacao = dataCriacao;
     }
 
-    public LocalDateTime getDataAtualizacao() {
+    public LocalDate getDataAtualizacao() {
         return dataAtualizacao;
     }
 
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
+    public void setDataAtualizacao(LocalDate dataAtualizacao) {
         this.dataAtualizacao = dataAtualizacao;
     }
 
-    public Integer getUsuarioCriacao() {
+    public Usuario getUsuarioCriacao() {
         return usuarioCriacao;
     }
 
-    public void setUsuarioCriacao(Integer usuarioCriacao) {
+    public void setUsuarioCriacao(Usuario usuarioCriacao) {
         this.usuarioCriacao = usuarioCriacao;
     }
 }

@@ -8,7 +8,7 @@ import lombok.Data;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ProjetoDTO {
@@ -25,7 +25,6 @@ public class ProjetoDTO {
     @NotNull(message = "Cliente é obrigatório")
     private Integer clienteId;
 
-    private Cliente cliente;
 
     @NotNull(message = "Tipo de projeto é obrigatório")
     private TipoProjeto tipoProjeto;
@@ -57,9 +56,9 @@ public class ProjetoDTO {
 
     private List<ProjetoItemDTO> itens;
 
-    private LocalDateTime dataCriacao;
+    private LocalDate dataCriacao;
 
-    private LocalDateTime dataAtualizacao;
+    private LocalDate dataAtualizacao;
 
     @NotNull(message = "Usuário de criação é obrigatório")
     private Integer usuarioCriacao;
@@ -99,14 +98,6 @@ public class ProjetoDTO {
 
     public void setClienteId(Integer clienteId) {
         this.clienteId = clienteId;
-    }
-
-    public Cliente getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
     }
 
     public TipoProjeto getTipoProjeto() {
@@ -197,19 +188,19 @@ public class ProjetoDTO {
         this.itens = itens;
     }
 
-    public LocalDateTime getDataCriacao() {
+    public LocalDate getDataCriacao() {
         return dataCriacao;
     }
 
-    public void setDataCriacao(LocalDateTime dataCriacao) {
+    public void setDataCriacao(LocalDate dataCriacao) {
         this.dataCriacao = dataCriacao;
     }
 
-    public LocalDateTime getDataAtualizacao() {
+    public LocalDate getDataAtualizacao() {
         return dataAtualizacao;
     }
 
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
+    public void setDataAtualizacao(LocalDate dataAtualizacao) {
         this.dataAtualizacao = dataAtualizacao;
     }
 

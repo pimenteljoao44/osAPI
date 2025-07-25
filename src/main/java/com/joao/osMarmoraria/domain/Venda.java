@@ -9,6 +9,7 @@ import lombok.Data;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,7 +18,7 @@ import java.util.List;
 @Entity
 @Data
 @AllArgsConstructor
-public class Venda {
+public class Venda implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer venId;

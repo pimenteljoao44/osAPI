@@ -6,6 +6,7 @@ import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.dtos.ItemOrdemServicoDTO;
 import com.joao.osMarmoraria.dtos.OrdemServicoDTO;
+import com.joao.osMarmoraria.dtos.AgendamentoDTO;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,12 +77,11 @@ public class OrdemServicoService {
 		OrdemServico ordemServico = new OrdemServico();
 		ordemServico.setNumero(gerarNumeroOS());
 		ordemServico.setProjetoId(projetoId);
-		ordemServico.setClienteId(projeto.getClienteId());
 		ordemServico.setDataEmissao(LocalDate.now());
 		ordemServico.setDataPrevistaConclusao(projeto.getDataPrevista());
 		ordemServico.setValorTotal(projeto.getValorTotal());
 		ordemServico.setObservacoes("Ordem de serviço gerada automaticamente do projeto: " + projeto.getNome());
-		ordemServico.setUsuarioCriacao(projeto.getUsuarioCriacao());
+		ordemServico.setUsuarioCriacao(projeto.getUsuarioCriacao().getId());
 
 		// Montar instruções técnicas
 		StringBuilder instrucoes = new StringBuilder();
@@ -137,7 +137,91 @@ public class OrdemServicoService {
 		return convertToDTO(ordemExistente);
 	}
 
-	// Operações de Status
+	// Operações de Aprovação e Agendamento
+	public OrdemServicoDTO aprovarOrdemServico(Integer id, String observacoes) {
+		OrdemServico ordemServico = ordemServicoRepository.findById(id)
+				.orElseThrow(() -> new ObjectNotFoundException("Ordem de serviço não encontrada com ID: " + id));
+
+		if (!ordemServico.podeSerAprovada()) {
+			throw new IllegalStateException("Ordem de serviço deve estar pendente para ser aprovada");
+		}
+
+		ordemServico.aprovar();
+
+		// Adicionar observações da aprovação
+		if (observacoes != null && !observacoes.trim().isEmpty()) {
+			String observacoesAtuais = ordemServico.getObservacoes() != null ? ordemServico.getObservacoes() : "";
+			ordemServico.setObservacoes(observacoesAtuais + "\n[APROVAÇÃO] " + observacoes);
+		}
+
+		ordemServico = ordemServicoRepository.save(ordemServico);
+
+		// Atualizar status do projeto relacionado
+		if (ordemServico.getProjetoId() != null) {
+			projetoService.atualizarStatus(ordemServico.getProjetoId(), StatusProjeto.APROVADO);
+		}
+
+		return convertToDTO(ordemServico);
+	}
+
+	public OrdemServicoDTO agendarOrdemServico(Integer id, AgendamentoDTO agendamentoDTO) {
+		OrdemServico ordemServico = ordemServicoRepository.findById(id)
+				.orElseThrow(() -> new ObjectNotFoundException("Ordem de serviço não encontrada com ID: " + id));
+
+		if (!ordemServico.podeSerAgendada()) {
+			throw new IllegalStateException("Ordem de serviço deve estar aprovada ou pendente para ser agendada");
+		}
+
+		// Validar datas
+		LocalDate dataInicio = agendamentoDTO.getDataPrevistaInicio();
+		LocalDate dataConclusao = agendamentoDTO.getDataPrevistaConclusao();
+
+		if (dataInicio == null) {
+			throw new IllegalArgumentException("Data prevista de início é obrigatória");
+		}
+
+		if (dataInicio.isBefore(LocalDate.now())) {
+			throw new IllegalArgumentException("Data prevista de início não pode ser anterior à data atual");
+		}
+
+		if (dataConclusao != null && dataConclusao.isBefore(dataInicio)) {
+			throw new IllegalArgumentException("Data prevista de conclusão não pode ser anterior à data de início");
+		}
+
+		// Agendar a ordem de serviço
+		ordemServico.agendar(dataInicio, dataConclusao);
+
+		// Definir responsável se informado
+		if (agendamentoDTO.getResponsavel() != null && !agendamentoDTO.getResponsavel().trim().isEmpty()) {
+			ordemServico.setResponsavel(agendamentoDTO.getResponsavel());
+		}
+
+		// Adicionar observações do agendamento
+		if (agendamentoDTO.getObservacoes() != null && !agendamentoDTO.getObservacoes().trim().isEmpty()) {
+			String observacoesAtuais = ordemServico.getObservacoes() != null ? ordemServico.getObservacoes() : "";
+			ordemServico.setObservacoes(observacoesAtuais + "\n[AGENDAMENTO] " + agendamentoDTO.getObservacoes());
+		}
+
+		ordemServico = ordemServicoRepository.save(ordemServico);
+		return convertToDTO(ordemServico);
+	}
+
+	public OrdemServicoDTO aprovarEAgendar(Integer id, AgendamentoDTO agendamentoDTO) {
+		OrdemServico ordemServico = ordemServicoRepository.findById(id)
+				.orElseThrow(() -> new ObjectNotFoundException("Ordem de serviço não encontrada com ID: " + id));
+
+		if (ordemServico.getStatus() != StatusOrdemServico.PENDENTE) {
+			throw new IllegalStateException("Ordem de serviço deve estar pendente para ser aprovada e agendada");
+		}
+
+		// Primeiro aprovar
+		aprovarOrdemServico(id, "Aprovada e agendada automaticamente");
+
+		// Depois agendar
+		return agendarOrdemServico(id, agendamentoDTO);
+	}
+
+	// Operações de Status Existentes
 	public OrdemServicoDTO iniciarExecucao(Integer id) {
 		OrdemServico ordemServico = ordemServicoRepository.findById(id)
 				.orElseThrow(() -> new ObjectNotFoundException("Ordem de serviço não encontrada com ID: " + id));
@@ -210,6 +294,22 @@ public class OrdemServicoService {
 
 	public List<OrdemServicoDTO> buscarPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
 		return ordemServicoRepository.findByPeriodo(dataInicio, dataFim).stream()
+				.map(this::convertToDTO)
+				.collect(Collectors.toList());
+	}
+
+	public List<OrdemServicoDTO> buscarPendentesAprovacao() {
+		return buscarPorStatus(StatusOrdemServico.PENDENTE);
+	}
+
+	public List<OrdemServicoDTO> buscarAprovadasSemAgendamento() {
+		return ordemServicoRepository.findByStatusAndDataPrevistaInicioIsNull(StatusOrdemServico.APROVADA).stream()
+				.map(this::convertToDTO)
+				.collect(Collectors.toList());
+	}
+
+	public List<OrdemServicoDTO> buscarAgendadasParaHoje() {
+		return ordemServicoRepository.findByStatusAndDataPrevistaInicio(StatusOrdemServico.AGENDADA, LocalDate.now()).stream()
 				.map(this::convertToDTO)
 				.collect(Collectors.toList());
 	}

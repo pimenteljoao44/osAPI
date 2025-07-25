@@ -1,15 +1,17 @@
 package com.joao.osMarmoraria.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "projeto_itens")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class ProjetoItem {
+public class ProjetoItem implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +21,7 @@ public class ProjetoItem {
     @NotNull(message = "Projeto é obrigatório")
     private Integer projetoId;
 
+    @JsonBackReference("projeto-itens")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projeto_id", insertable = false, updatable = false)
     private Projeto projeto;

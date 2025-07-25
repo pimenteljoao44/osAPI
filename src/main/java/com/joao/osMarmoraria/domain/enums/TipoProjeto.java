@@ -8,7 +8,10 @@ public enum TipoProjeto {
     PISO("Piso"),
     PAREDE("Parede"),
     ESCADA("Escada"),
-    OUTROS("Outros");
+    OUTROS("Outros"),
+    PIA("Pia"),
+    SOLEIRA("Soleira"),
+    LAREIRA("Lareira");
 
     private final String descricao;
 

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="RelatorioContasReceber" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+              uuid="f5e1d9e0-8c4d-4d91-bb9a-575f5fdd0c43">
+    <parameter name="clienteId" class="java.lang.Long" />
+    <parameter name="dataVencimentoInicio" class="java.time.LocalDate" />
+    <parameter name="dataVencimentoFim" class="java.time.LocalDate" />
+    <parameter name="apenasVencidas" class="java.lang.Boolean" />
+    <parameter name="apenasRecebidas" class="java.lang.Boolean" />
+    <!-- Consulta SQL ajustada com base na estrutura da tabela -->
+    <queryString>
+        <![CDATA[SELECT
+    cr.id,
+    cr.valor,
+    cr.data_vencimento,
+    cr.status,
+    pess.nome AS cliente_nome,
+    CASE
+        -- Ajuste esta condição com base em como seu sistema marca como 'RECEBIDA'
+        WHEN cr.status LIKE '%PAGA%' OR cr.status LIKE '%RECEB%' THEN 'RECEBIDA'
+        WHEN cr.data_vencimento < CURRENT_DATE THEN 'VENCIDA'
+        ELSE 'PENDENTE'
+    END as situacao
+FROM
+    conta_receber cr
+    LEFT JOIN venda v ON cr.venda_id = v.ven_id
+    LEFT JOIN cliente c ON v.cliente_id = c.cli_id
+    LEFT JOIN pessoa pess ON c.pessoa_id = pess.id
+WHERE
+    (c.cli_id = $P{clienteId} OR $P{clienteId} IS NULL)
+    AND (cr.data_vencimento >= $P{dataVencimentoInicio} OR $P{dataVencimentoInicio} IS NULL)
+    AND (cr.data_vencimento <= $P{dataVencimentoFim} OR $P{dataVencimentoFim} IS NULL)
+    AND (
+        -- Lógica de filtro por situação simplificada
+        -- Mostrar Todas (se ambos null ou ambos false)
+        (($P{apenasVencidas} IS NULL OR $P{apenasVencidas} = FALSE) AND ($P{apenasRecebidas} IS NULL OR $P{apenasRecebidas} = FALSE))
+        OR
+        -- Apenas Vencidas (Venceu E Não Recebida/Paga)
+        ($P{apenasVencidas} = TRUE AND cr.data_vencimento < CURRENT_DATE AND cr.status NOT LIKE '%PAGA%' AND cr.status NOT LIKE '%RECEB%')
+        OR
+        -- Apenas Recebidas/Pagas
+        ($P{apenasRecebidas} = TRUE AND (cr.status LIKE '%PAGA%' OR cr.status LIKE '%RECEB%'))
+    )
+ORDER BY
+    cr.data_vencimento,
+    pess.nome]]>
+    </queryString>
+    <!-- Campos solicitados -->
+    <field name="id" class="java.lang.Long" />
+    <field name="valor" class="java.math.BigDecimal" />
+    <field name="data_vencimento" class="java.sql.Timestamp" /> <!-- Ajustado para Timestamp -->
+    <field name="status" class="java.lang.String" />
+    <field name="cliente_nome" class="java.lang.String" />
+    <!-- Campo calculado pela consulta CASE -->
+    <field name="situacao" class="java.lang.String" />
+
+    <variable name="totalGeral" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valor}]]></variableExpression>
+    </variable>
+    <variable name="totalVencidas" class="java.math.BigDecimal" calculation="Sum">
+        <!-- Corrigido: Qualificado BigDecimal -->
+        <variableExpression><![CDATA[$F{situacao}.equals("VENCIDA") ? $F{valor} : new java.math.BigDecimal(0)]]></variableExpression>
+    </variable>
+    <variable name="totalRecebidas" class="java.math.BigDecimal" calculation="Sum">
+        <!-- Corrigido: Qualificado BigDecimal -->
+        <variableExpression><![CDATA[$F{situacao}.equals("RECEBIDA") ? $F{valor} : new java.math.BigDecimal(0)]]></variableExpression>
+    </variable>
+
+    <title>
+        <band height="100">
+            <image>
+                <reportElement x="0" y="0" width="100" height="60" />
+                <imageExpression><![CDATA["relatorios/venda/LogoMarmoraria.png"]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="120" y="10" width="400" height="30" />
+                <textElement textAlignment="Center">
+                    <font size="18" isBold="true" />
+                </textElement>
+                <text><![CDATA[Relatório de Contas a Receber]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="120" y="45" width="400" height="15" />
+                <textElement textAlignment="Center">
+                    <font size="10" />
+                </textElement>
+                <textFieldExpression><![CDATA[($P{dataVencimentoInicio} != null && $P{dataVencimentoFim} != null) ? "Período de Vencimento: " + $P{dataVencimentoInicio} + " até " + $P{dataVencimentoFim} : ""]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="120" y="65" width="400" height="15" />
+                <textElement textAlignment="Center">
+                    <font size="10" />
+                </textElement>
+                <textFieldExpression><![CDATA[($P{apenasVencidas} == true) ? "Apenas Vencidas" : ($P{apenasRecebidas} == true) ? "Apenas Recebidas" : "Todas"]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+    <columnHeader>
+        <band height="30">
+            <staticText>
+                <reportElement x="0" y="0" width="50" height="20" />
+                <textElement>
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[ID]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="60" y="0" width="150" height="20" />
+                <textElement>
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[Cliente]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="220" y="0" width="90" height="20" />
+                <textElement>
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[Vencimento]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="320" y="0" width="100" height="20" />
+                <textElement>
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[Status]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="430" y="0" width="100" height="20" />
+                <textElement textAlignment="Right">
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[Valor (R$)]]></text>
+            </staticText>
+            <line>
+                <reportElement x="0" y="25" width="555" height="1" />
+            </line>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="25">
+            <textField>
+                <reportElement x="0" y="0" width="50" height="20" />
+                <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="60" y="0" width="150" height="20" />
+                <textFieldExpression><![CDATA[$F{cliente_nome}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="220" y="0" width="90" height="20" />
+                <textFieldExpression><![CDATA[$F{data_vencimento}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="320" y="0" width="100" height="20" />
+                <textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+            </textField>
+            <textField pattern="¤#,##0.00">
+                <reportElement x="430" y="0" width="100" height="20" />
+                <textElement textAlignment="Right" />
+                <textFieldExpression><![CDATA[$F{valor}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+    <summary>
+        <band height="100">
+            <line>
+                <reportElement x="0" y="5" width="555" height="1" />
+            </line>
+            <staticText>
+                <reportElement x="300" y="15" width="120" height="20" />
+                <textElement textAlignment="Right">
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[Total Geral:]]></text>
+            </staticText>
+            <textField pattern="¤#,##0.00">
+                <reportElement x="430" y="15" width="100" height="20" />
+                <textElement textAlignment="Right">
+                    <font isBold="true" />
+                </textElement>
+                <textFieldExpression><![CDATA[$V{totalGeral}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="300" y="40" width="120" height="20" />
+                <textElement textAlignment="Right">
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[Total Vencidas:]]></text>
+            </staticText>
+            <textField pattern="¤#,##0.00">
+                <reportElement x="430" y="40" width="100" height="20" />
+                <textElement textAlignment="Right" />
+                <textFieldExpression><![CDATA[$V{totalVencidas}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="300" y="65" width="120" height="20" />
+                <textElement textAlignment="Right">
+                    <font isBold="true" />
+                </textElement>
+                <text><![CDATA[Total Recebidas:]]></text>
+            </staticText>
+            <textField pattern="¤#,##0.00">
+                <reportElement x="430" y="65" width="100" height="20" />
+                <textElement textAlignment="Right" />
+                <textFieldExpression><![CDATA[$V{totalRecebidas}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

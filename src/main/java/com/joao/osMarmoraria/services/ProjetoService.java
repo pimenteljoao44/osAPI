@@ -1,13 +1,10 @@
 package com.joao.osMarmoraria.services;
-import com.joao.osMarmoraria.domain.Produto;
-import com.joao.osMarmoraria.domain.Projeto;
-import com.joao.osMarmoraria.domain.ProjetoItem;
+import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.TipoProjeto;
 import com.joao.osMarmoraria.dtos.*;
-import com.joao.osMarmoraria.repository.ProdutoRepository;
-import com.joao.osMarmoraria.repository.ProjetoItemRepository;
-import com.joao.osMarmoraria.repository.ProjetoRepository;
+import com.joao.osMarmoraria.repository.*;
+import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +33,12 @@ public class ProjetoService {
     @Autowired
     private ProdutoRepository produtoRepository;
 
+    @Autowired
+    private ClienteRepository clienteRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     // CRUD Operations
     public Page<ProjetoDTO> listarProjetos(Pageable pageable) {
         return projetoRepository.findAllWithCliente(pageable)
@@ -58,20 +61,17 @@ public class ProjetoService {
         if (projetoRepository.existsByNomeAndClienteId(projetoDTO.getNome(), projetoDTO.getClienteId())) {
             throw new IllegalArgumentException("Já existe um projeto com este nome para o cliente informado");
         }
-
         Projeto projeto = convertToEntity(projetoDTO);
-
         calcularMedidasProjeto(projeto);
 
-        projeto.setValorTotal(BigDecimal.ONE); // Valor temporário para passar validação
-        projeto = projetoRepository.save(projeto);
+        // Removido: projeto.setValorTotal(BigDecimal.ONE); // Valor temporário incorreto
 
+        projeto = projetoRepository.save(projeto);
         if (projetoDTO.getItens() != null && !projetoDTO.getItens().isEmpty()) {
             salvarItens(projeto.getId(), projetoDTO.getItens());
         }
-
-        calcularValoresItens(projeto);
-        projeto.recalcularValorTotal();
+        List<ProjetoItem> itensSalvos = projetoItemRepository.findByProjetoId(projeto.getId());
+        calcularValoresProjeto(projeto, itensSalvos);
 
         projeto = projetoRepository.save(projeto);
 
@@ -82,36 +82,29 @@ public class ProjetoService {
     public ProjetoDTO atualizarProjeto(Integer id, ProjetoDTO projetoDTO) {
         Projeto projetoExistente = projetoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado com ID: " + id));
-
-        // Atualizar campos
         projetoExistente.setNome(projetoDTO.getNome());
         projetoExistente.setDescricao(projetoDTO.getDescricao());
         projetoExistente.setTipoProjeto(projetoDTO.getTipoProjeto());
         projetoExistente.setDataPrevista(projetoDTO.getDataPrevista());
         projetoExistente.setObservacoes(projetoDTO.getObservacoes());
         projetoExistente.setMargemLucro(projetoDTO.getMargemLucro());
-
-        // Atualizar medidas
         if (projetoDTO.getMedidas() != null) {
             projetoExistente.setProfundidade(projetoDTO.getMedidas().getProfundidade());
             projetoExistente.setLargura(projetoDTO.getMedidas().getLargura());
             projetoExistente.setAltura(projetoDTO.getMedidas().getAltura());
             projetoExistente.setObservacoesMedidas(projetoDTO.getMedidas().getObservacoes());
         }
-
-        // Recalcular valores
         calcularMedidasProjeto(projetoExistente);
-
-        // Atualizar itens
         projetoItemRepository.deleteByProjetoId(id);
         if (projetoDTO.getItens() != null && !projetoDTO.getItens().isEmpty()) {
             salvarItens(id, projetoDTO.getItens());
         }
 
-        calcularValoresItens(projetoExistente);
-        projetoExistente.recalcularValorTotal();
 
-        projetoExistente = projetoRepository.save(projetoExistente);
+        List<ProjetoItem> itensAtualizados = projetoItemRepository.findByProjetoId(id);
+        calcularValoresProjeto(projetoExistente, itensAtualizados);
+
+        projetoExistente = projetoRepository.save(projetoExistente); // Salva os valores calculados
         return convertToDTO(projetoRepository.findByIdWithDetails(projetoExistente.getId()).get());
     }
 
@@ -154,34 +147,41 @@ public class ProjetoService {
         return convertToDTO(projeto);
     }
 
-    // Cálculo de Orçamento
     public CalculoOrcamentoDTO calcularOrcamento(ProjetoDTO projetoDTO) {
         CalculoOrcamentoDTO calculo = new CalculoOrcamentoDTO();
 
-        // Calcular valor dos materiais
+        // 1. Calcular valor dos materiais
         BigDecimal valorMateriais = BigDecimal.ZERO;
-        if (projetoDTO.getItens() != null) {
+        if (projetoDTO.getItens() != null && !projetoDTO.getItens().isEmpty()) {
             valorMateriais = projetoDTO.getItens().stream()
-                    .map(item -> item.getQuantidade().multiply(item.getValorUnitario()))
+                    .map(item -> {
+                        if (item.getQuantidade() != null && item.getValorUnitario() != null) {
+                            return item.getQuantidade().multiply(item.getValorUnitario());
+                        }
+                        return BigDecimal.ZERO;
+                    })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
-        // Calcular mão de obra baseada na área (R$ 50 por m²)
         BigDecimal valorMaoObra = BigDecimal.ZERO;
+        BigDecimal taxaMaoObraPorM2 = this.getTaxaMaoObraPorTipo(projetoDTO.getTipoProjeto());
+
         if (projetoDTO.getMedidas() != null &&
                 projetoDTO.getMedidas().getProfundidade() != null &&
                 projetoDTO.getMedidas().getLargura() != null) {
-
             BigDecimal area = projetoDTO.getMedidas().getProfundidade()
                     .multiply(projetoDTO.getMedidas().getLargura());
-            valorMaoObra = area.multiply(new BigDecimal("50.00"));
+            valorMaoObra = area.multiply(taxaMaoObraPorM2);
         }
 
-        // Calcular valor total com margem de lucro
         BigDecimal subtotal = valorMateriais.add(valorMaoObra);
         BigDecimal margemLucro = projetoDTO.getMargemLucro() != null ?
                 projetoDTO.getMargemLucro() : new BigDecimal("20.00");
-        BigDecimal multiplicadorLucro = BigDecimal.ONE.add(margemLucro.divide(new BigDecimal("100")));
+
+        BigDecimal multiplicadorLucro = BigDecimal.ONE.add(
+                margemLucro.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP)
+        );
+
         BigDecimal valorTotal = subtotal.multiply(multiplicadorLucro);
 
         calculo.setValorMateriais(valorMateriais);
@@ -192,11 +192,66 @@ public class ProjetoService {
         return calculo;
     }
 
-    // Materiais Sugeridos
+    private BigDecimal getTaxaMaoObraPorTipo(TipoProjeto tipoProjeto) {
+        if (tipoProjeto == null) {
+            return new BigDecimal("50.00");
+        }
+        switch (tipoProjeto) {
+            case BANHEIRO:
+                return new BigDecimal("80.00");
+            case COZINHA:
+                return new BigDecimal("70.00");
+            case CUBA:
+                return new BigDecimal("120.00");
+            case BANCADA:
+                return new BigDecimal("60.00");
+            case ESCADA:
+                return new BigDecimal("100.00");
+            case LAREIRA:
+                return new BigDecimal("90.00");
+            case SOLEIRA:
+                return new BigDecimal("40.00");
+            case PIA:
+                return new BigDecimal("110.00");
+            case OUTROS:
+            default:
+                return new BigDecimal("50.00");
+        }
+    }
+
+    private void calcularValoresProjeto(Projeto projeto, List<ProjetoItem> itensProjeto) {
+        BigDecimal valorMateriais = BigDecimal.ZERO;
+        if (itensProjeto != null) {
+            valorMateriais = itensProjeto.stream()
+                    .map(ProjetoItem::getValorTotal) // Assume que getValorTotal já foi calculado
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        BigDecimal valorMaoObra = BigDecimal.ZERO;
+        BigDecimal taxaMaoObraPorM2 = this.getTaxaMaoObraPorTipo(projeto.getTipoProjeto());
+
+        if (projeto.getArea() != null) {
+            valorMaoObra = projeto.getArea().multiply(taxaMaoObraPorM2);
+        }
+
+        // Calcular valor total com margem de lucro
+        BigDecimal subtotal = valorMateriais.add(valorMaoObra);
+        BigDecimal margemLucro = projeto.getMargemLucro() != null ?
+                projeto.getMargemLucro() : new BigDecimal("20.00");
+
+        BigDecimal multiplicadorLucro = BigDecimal.ONE.add(
+                margemLucro.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP)
+        );
+
+        BigDecimal valorTotal = subtotal.multiply(multiplicadorLucro);
+
+        projeto.setValorMaoObra(valorMaoObra);
+        projeto.setValorTotal(valorTotal);
+    }
+
     public List<MaterialSugeridoDTO> obterMateriaisSugeridos(TipoProjeto tipoProjeto, MedidasProjetoDTO medidas) {
         List<MaterialSugeridoDTO> materiais = new ArrayList<>();
 
-        // Lógica para sugerir materiais baseado no tipo de projeto
         List<Integer> produtoIds = obterProdutosSugeridosPorTipo(tipoProjeto);
 
         for (Integer produtoId : produtoIds) {
@@ -301,14 +356,15 @@ public class ProjetoService {
         return "Aplicação em " + tipoProjeto.getDescricao().toLowerCase();
     }
 
-    // Conversão DTO
     private ProjetoDTO convertToDTO(Projeto projeto) {
+        if (projeto == null) {
+            return null;
+        }
+
         ProjetoDTO dto = new ProjetoDTO();
         dto.setId(projeto.getId());
         dto.setNome(projeto.getNome());
         dto.setDescricao(projeto.getDescricao());
-        dto.setClienteId(projeto.getClienteId());
-        dto.setCliente(projeto.getCliente());
         dto.setTipoProjeto(projeto.getTipoProjeto());
         dto.setStatus(projeto.getStatus());
         dto.setDataInicio(projeto.getDataInicio());
@@ -320,9 +376,17 @@ public class ProjetoService {
         dto.setObservacoes(projeto.getObservacoes());
         dto.setDataCriacao(projeto.getDataCriacao());
         dto.setDataAtualizacao(projeto.getDataAtualizacao());
-        dto.setUsuarioCriacao(projeto.getUsuarioCriacao());
 
-        // Medidas
+        if (projeto.getUsuarioCriacao() != null) {
+            dto.setUsuarioCriacao(projeto.getUsuarioCriacao().getId());
+        } else {
+            throw new IllegalStateException("Projeto não possui usuário de criação associado");
+        }
+
+        if (projeto.getCliente() != null) {
+            dto.setClienteId(projeto.getCliente().getCliId());
+        }
+
         if (projeto.getProfundidade() != null || projeto.getLargura() != null || projeto.getAltura() != null) {
             MedidasProjetoDTO medidas = new MedidasProjetoDTO();
             medidas.setProfundidade(projeto.getProfundidade());
@@ -334,9 +398,10 @@ public class ProjetoService {
             dto.setMedidas(medidas);
         }
 
-        // Itens
         List<ProjetoItem> itens = projetoItemRepository.findByProjetoIdWithProduto(projeto.getId());
-        List<ProjetoItemDTO> itensDTO = itens.stream().map(this::convertItemToDTO).collect(Collectors.toList());
+        List<ProjetoItemDTO> itensDTO = itens.stream()
+                .map(this::convertItemToDTO)
+                .collect(Collectors.toList());
         dto.setItens(itensDTO);
 
         return dto;
@@ -347,7 +412,6 @@ public class ProjetoService {
         dto.setId(item.getId());
         dto.setProjetoId(item.getProjetoId());
         dto.setProdutoId(item.getProdutoId());
-        dto.setProduto(item.getProduto());
         dto.setQuantidade(item.getQuantidade());
         dto.setValorUnitario(item.getValorUnitario());
         dto.setValorTotal(item.getValorTotal());
@@ -359,16 +423,36 @@ public class ProjetoService {
         Projeto projeto = new Projeto();
         projeto.setNome(dto.getNome());
         projeto.setDescricao(dto.getDescricao());
-        projeto.setClienteId(dto.getClienteId());
         projeto.setTipoProjeto(dto.getTipoProjeto());
         projeto.setStatus(dto.getStatus() != null ? dto.getStatus() : StatusProjeto.ORCAMENTO);
+        projeto.setDataInicio(dto.getDataInicio());
         projeto.setDataPrevista(dto.getDataPrevista());
-        projeto.setObservacoes(dto.getObservacoes());
+        projeto.setDataFinalizacao(dto.getDataFinalizacao());
+        projeto.setValorTotal(dto.getValorTotal() != null ? dto.getValorTotal() : BigDecimal.ZERO);
+        projeto.setValorMaoObra(dto.getValorMaoObra() != null ? dto.getValorMaoObra() : BigDecimal.ZERO);
         projeto.setMargemLucro(dto.getMargemLucro() != null ? dto.getMargemLucro() : new BigDecimal("20.00"));
-        projeto.setUsuarioCriacao(dto.getUsuarioCriacao() != null ? dto.getUsuarioCriacao() : 1);
+        projeto.setObservacoes(dto.getObservacoes());
+        projeto.setDataCriacao(dto.getDataCriacao() != null ? dto.getDataCriacao() : LocalDate.now());
+        projeto.setDataAtualizacao(dto.getDataAtualizacao() != null ? dto.getDataAtualizacao() : LocalDate.now());
 
-        projeto.setValorTotal(BigDecimal.ONE);
+        if (dto.getClienteId() != null) {
+            Cliente cliente = clienteRepository.findById(dto.getClienteId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Cliente não encontrado com ID: " + dto.getClienteId()));
 
+            projeto.setCliente(cliente);
+        } else {
+            throw new ObjectNotFoundException("ID do Cliente é obrigatório.");
+        }
+
+
+        if (dto.getUsuarioCriacao() != null) {
+            Usuario usuarioCriacao = usuarioRepository.findById(dto.getUsuarioCriacao())
+                    .orElseThrow(() -> new ObjectNotFoundException("Usuário de criação não encontrado com ID: " + dto.getUsuarioCriacao()));
+
+            projeto.setUsuarioCriacao(usuarioCriacao);
+        } else {
+            throw new ObjectNotFoundException("ID do Usuário de criação é obrigatório.");
+        }
         if (dto.getMedidas() != null) {
             projeto.setProfundidade(dto.getMedidas().getProfundidade());
             projeto.setLargura(dto.getMedidas().getLargura());

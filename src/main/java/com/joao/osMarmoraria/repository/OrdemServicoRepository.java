@@ -41,4 +41,9 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Inte
     boolean existsByNumero(String numero);
 
     boolean existsByProjetoId(Integer projetoId);
+
+    List<OrdemServico> findByStatusAndDataPrevistaInicioIsNull(StatusOrdemServico status);
+
+    List<OrdemServico> findByStatusAndDataPrevistaInicio(StatusOrdemServico status, LocalDate dataPrevistaInicio);
+
 }

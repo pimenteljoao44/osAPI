@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="RelatorioComprasPorFornecedorPeriodo" pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20"
+              bottomMargin="20" uuid="f5e1d9e0-8c4d-4d91-bb9a-575f5fdd0c44">
+
+    <parameter name="fornecedorId" class="java.lang.Long"/>
+    <parameter name="dataInicio" class="java.time.LocalDate"/>
+    <parameter name="dataFim" class="java.time.LocalDate"/>
+
+    <queryString>
+        <![CDATA[
+        SELECT
+    pess.nome AS fornecedor_nome,
+    c.compr_id,
+    c.data_compra,
+    c.valor_total,
+    c.forma_pagamento,
+    COUNT(ic.id) as total_itens,
+    SUM(ic.quantidade * ic.valor) as valor_total_itens
+FROM compra c
+         LEFT JOIN fornecedor f ON f.id = c.fornecedor_id
+         LEFT JOIN pessoa pess ON pess.id = f.pessoa_id
+         LEFT JOIN item_compra ic ON ic.compra_id = c.compr_id
+WHERE (c.fornecedor_id = $P{fornecedorId} OR $P{fornecedorId} IS NULL)
+  AND c.data_compra >= $P{dataInicio}
+  AND c.data_compra <= $P{dataFim}
+GROUP BY pess.nome, c.compr_id, c.data_compra, c.valor_total, c.forma_pagamento
+ORDER BY pess.nome, c.data_compra DESC
+        ]]>
+    </queryString>
+
+    <field name="fornecedor_nome" class="java.lang.String"/>
+    <field name="compr_id" class="java.lang.Integer"/>
+    <field name="data_compra" class="java.sql.Date"/>
+    <field name="valor_total" class="java.math.BigDecimal"/>
+    <field name="forma_pagamento" class="java.lang.String"/>
+    <field name="total_itens" class="java.lang.Long"/>
+    <field name="valor_total_itens" class="java.math.BigDecimal"/>
+
+    <variable name="totalGeral" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valor_total}]]></variableExpression>
+    </variable>
+
+    <group name="fornecedorGroup">
+        <groupExpression><![CDATA[$F{fornecedor_nome}]]></groupExpression>
+        <groupHeader>
+            <band height="30">
+                <textField>
+                    <!-- Substituído por UUID válido -->
+                    <reportElement x="0" y="5" width="555" height="20" uuid="123e4567-e89b-12d3-a456-426614174000"/>
+                    <textElement>
+                        <font size="12" isBold="true"/>
+                    </textElement>
+                    <textFieldExpression><![CDATA["Fornecedor: " + $F{fornecedor_nome}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="20">
+                <line>
+                    <reportElement x="0" y="0" width="555" height="1"/>
+                </line>
+            </band>
+        </groupFooter>
+    </group>
+
+    <title>
+        <band height="100">
+            <image>
+                <reportElement x="0" y="0" width="100" height="60"/>
+                <imageExpression><![CDATA["relatorios/compra/LogoMarmoraria.png"]]></imageExpression>
+            </image>
+            <staticText>
+                <!-- Removido uuid="titulo" -->
+                <reportElement x="120" y="10" width="400" height="30"/>
+                <textElement textAlignment="Center">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Relatório de Compras por Fornecedor e Período]]></text>
+            </staticText>
+            <textField>
+                <!-- Removido uuid="periodo" -->
+                <reportElement x="120" y="45" width="400" height="15"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Período: " + $P{dataInicio} + " até " + $P{dataFim}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="30">
+            <staticText>
+                <!-- Removido uuid="header-id" -->
+                <reportElement x="0" y="0" width="60" height="20"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[ID Compra]]></text>
+            </staticText>
+            <staticText>
+                <!-- Removido uuid="header-data" -->
+                <reportElement x="70" y="0" width="80" height="20"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Data Compra]]></text>
+            </staticText>
+            <staticText>
+                <!-- Removido uuid="header-pagamento" -->
+                <reportElement x="160" y="0" width="120" height="20"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Forma Pagamento]]></text>
+            </staticText>
+            <staticText>
+                <!-- Removido uuid="header-itens" -->
+                <reportElement x="290" y="0" width="60" height="20"/>
+                <textElement>
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Itens]]></text>
+            </staticText>
+            <staticText>
+                <!-- Removido uuid="header-valor-itens" -->
+                <reportElement x="360" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Valor Itens]]></text>
+            </staticText>
+            <staticText>
+                <!-- Removido uuid="header-total" -->
+                <reportElement x="450" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Total (R$)]]></text>
+            </staticText>
+            <line>
+                <reportElement x="0" y="25" width="555" height="1"/>
+            </line>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="25">
+            <textField>
+                <!-- Removido uuid="detail-id" -->
+                <reportElement x="0" y="0" width="60" height="20"/>
+                <textFieldExpression><![CDATA[$F{compr_id}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy">
+                <!-- Removido uuid="detail-data" -->
+                <reportElement x="70" y="0" width="80" height="20"/>
+                <textFieldExpression><![CDATA[$F{data_compra}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <!-- Removido uuid="detail-pagamento" -->
+                <reportElement x="160" y="0" width="120" height="20"/>
+                <textFieldExpression><![CDATA[$F{forma_pagamento}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <!-- Removido uuid="detail-itens" -->
+                <reportElement x="290" y="0" width="60" height="20"/>
+                <textFieldExpression><![CDATA[$F{total_itens}]]></textFieldExpression>
+            </textField>
+            <textField pattern="¤#,##0.00">
+                <!-- Removido uuid="detail-valor-itens" -->
+                <reportElement x="360" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{valor_total_itens}]]></textFieldExpression>
+            </textField>
+            <textField pattern="¤#,##0.00">
+                <!-- Removido uuid="detail-total" -->
+                <reportElement x="450" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{valor_total}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="50">
+            <line>
+                <reportElement x="0" y="5" width="555" height="1"/>
+            </line>
+            <staticText>
+                <!-- Removido uuid="total-label" -->
+                <reportElement x="370" y="15" width="80" height="20"/>
+                <textElement textAlignment="Right">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Total Geral:]]></text>
+            </staticText>
+            <textField pattern="¤#,##0.00">
+                <!-- Removido uuid="total-value" -->
+                <reportElement x="450" y="15" width="80" height="20"/>
+                <textElement textAlignment="Right">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$V{totalGeral}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
+</jasperReport>

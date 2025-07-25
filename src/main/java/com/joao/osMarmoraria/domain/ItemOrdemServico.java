@@ -3,12 +3,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "item_ordem_servico")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class ItemOrdemServico {
+public class ItemOrdemServico implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

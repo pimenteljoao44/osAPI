@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "payment_transactions")
-public class PaymentTransaction {
+public class PaymentTransaction implements Serializable {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

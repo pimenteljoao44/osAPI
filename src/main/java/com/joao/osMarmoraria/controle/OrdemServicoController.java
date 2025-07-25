@@ -3,18 +3,19 @@ package com.joao.osMarmoraria.controle;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
 
 import com.joao.osMarmoraria.domain.OrdemServico;
 import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
+import com.joao.osMarmoraria.dtos.AgendamentoDTO;
 import com.joao.osMarmoraria.dtos.OrdemServicoDTO;
-
 import com.joao.osMarmoraria.services.OrdemServicoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -49,17 +50,51 @@ public class OrdemServicoController {
     }
 
     @PostMapping("/gerar-por-projeto/{projetoId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<OrdemServicoDTO> gerarPorProjeto(@PathVariable Integer projetoId) {
         OrdemServicoDTO ordemServico = ordemServicoService.gerarPorProjeto(projetoId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ordemServico);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<OrdemServicoDTO> atualizarOrdemServico(@PathVariable Integer id, @Valid @RequestBody OrdemServicoDTO ordemServicoDTO) {
         OrdemServicoDTO ordemAtualizada = ordemServicoService.atualizarOrdemServico(id, ordemServicoDTO);
         return ResponseEntity.ok(ordemAtualizada);
     }
 
+    // Novos endpoints para aprovação e agendamento
+    @PatchMapping("/{id}/aprovar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrdemServicoDTO> aprovarOrdemServico(
+            @PathVariable Integer id,
+            @RequestBody(required = false) Map<String, String> request) {
+
+        String observacoes = request != null ? request.get("observacoes") : null;
+        OrdemServicoDTO ordemServico = ordemServicoService.aprovarOrdemServico(id, observacoes);
+        return ResponseEntity.ok(ordemServico);
+    }
+
+    @PatchMapping("/{id}/agendar")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<OrdemServicoDTO> agendarOrdemServico(
+            @PathVariable Integer id,
+            @Valid @RequestBody AgendamentoDTO agendamentoDTO) {
+
+        OrdemServicoDTO ordemServico = ordemServicoService.agendarOrdemServico(id, agendamentoDTO);
+        return ResponseEntity.ok(ordemServico);
+    }
+
+    @PatchMapping("/{id}/aprovar-e-agendar")
+    public ResponseEntity<OrdemServicoDTO> aprovarEAgendar(
+            @PathVariable Integer id,
+            @Valid @RequestBody AgendamentoDTO agendamentoDTO) {
+
+        OrdemServicoDTO ordemServico = ordemServicoService.aprovarEAgendar(id, agendamentoDTO);
+        return ResponseEntity.ok(ordemServico);
+    }
+
+    // Endpoints existentes de controle de execução
     @PatchMapping("/{id}/iniciar-os")
     public ResponseEntity<OrdemServicoDTO> iniciarExecucao(@PathVariable Integer id) {
         OrdemServicoDTO ordemServico = ordemServicoService.iniciarExecucao(id);
@@ -90,6 +125,7 @@ public class OrdemServicoController {
         return ResponseEntity.ok(ordemServico);
     }
 
+    // Consultas específicas
     @GetMapping("/status/{status}")
     public ResponseEntity<List<OrdemServicoDTO>> buscarPorStatus(@PathVariable StatusOrdemServico status) {
         List<OrdemServicoDTO> ordensServico = ordemServicoService.buscarPorStatus(status);
@@ -109,5 +145,36 @@ public class OrdemServicoController {
 
         List<OrdemServicoDTO> ordensServico = ordemServicoService.buscarPorPeriodo(dataInicio, dataFim);
         return ResponseEntity.ok(ordensServico);
+    }
+
+    @GetMapping("/pendentes-aprovacao")
+    public ResponseEntity<List<OrdemServicoDTO>> buscarPendentesAprovacao() {
+        List<OrdemServicoDTO> ordensServico = ordemServicoService.buscarPendentesAprovacao();
+        return ResponseEntity.ok(ordensServico);
+    }
+
+    @GetMapping("/aprovadas-sem-agendamento")
+    public ResponseEntity<List<OrdemServicoDTO>> buscarAprovadasSemAgendamento() {
+        List<OrdemServicoDTO> ordensServico = ordemServicoService.buscarAprovadasSemAgendamento();
+        return ResponseEntity.ok(ordensServico);
+    }
+
+    @GetMapping("/agendadas-hoje")
+    public ResponseEntity<List<OrdemServicoDTO>> buscarAgendadasParaHoje() {
+        List<OrdemServicoDTO> ordensServico = ordemServicoService.buscarAgendadasParaHoje();
+        return ResponseEntity.ok(ordensServico);
+    }
+
+    // Endpoint para dashboard de estatísticas
+    @GetMapping("/dashboard/estatisticas")
+    public ResponseEntity<Map<String, Object>> obterEstatisticasDashboard() {
+        Map<String, Object> estatisticas = Map.of(
+                "pendentesAprovacao", ordemServicoService.buscarPendentesAprovacao().size(),
+                "aprovadasSemAgendamento", ordemServicoService.buscarAprovadasSemAgendamento().size(),
+                "agendadasHoje", ordemServicoService.buscarAgendadasParaHoje().size(),
+                "emAndamento", ordemServicoService.buscarPorStatus(StatusOrdemServico.EM_ANDAMENTO).size(),
+                "pausadas", ordemServicoService.buscarPorStatus(StatusOrdemServico.PAUSADA).size()
+        );
+        return ResponseEntity.ok(estatisticas);
     }
 }

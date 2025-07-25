@@ -42,4 +42,52 @@ public class RelatorioService {
             return JasperExportManager.exportReportToPdf(jasperPrint);
         }
     }
+
+    public byte[] gerarRelatorioVendasPorClientePeriodo(Map<String, Object> parametros) throws Exception {
+        JasperReport jasperReport = JasperCompileManager.compileReport(
+                resourceLoader.getResource("classpath:relatorios/venda/relatorioVendasPorClientePeriodo.jrxml").getInputStream()
+        );
+
+        try (var connection = DataSourceUtils.getConnection(dataSource)) {
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, connection);
+
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+        }
+    }
+
+    public byte[] gerarRelatorioContasPagar(Map<String, Object> parametros) throws Exception {
+        JasperReport jasperReport = JasperCompileManager.compileReport(
+                resourceLoader.getResource("classpath:relatorios/financeiro/relatorioContasPagar.jrxml").getInputStream()
+        );
+
+        try (var connection = DataSourceUtils.getConnection(dataSource)) {
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, connection);
+
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+        }
+    }
+
+    public byte[] gerarRelatorioContasReceber(Map<String, Object> parametros) throws Exception {
+        JasperReport jasperReport = JasperCompileManager.compileReport(
+                resourceLoader.getResource("classpath:relatorios/financeiro/relatorioContasReceber.jrxml").getInputStream()
+        );
+
+        try (var connection = DataSourceUtils.getConnection(dataSource)) {
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, connection);
+
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+        }
+    }
+
+    public byte[] gerarRelatorioComprasPorFornecedorPeriodo(Map<String, Object> parametros) throws Exception {
+        JasperReport jasperReport = JasperCompileManager.compileReport(
+                resourceLoader.getResource("classpath:relatorios/compra/relatorioComprasPorFornecedorPeriodo.jrxml").getInputStream()
+        );
+
+        try (var connection = DataSourceUtils.getConnection(dataSource)) {
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, connection);
+
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+        }
+    }
 }

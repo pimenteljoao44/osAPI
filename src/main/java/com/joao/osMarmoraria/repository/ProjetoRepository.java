@@ -30,7 +30,7 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
             "(:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%'))) AND " +
             "(:status IS NULL OR p.status = :status) AND " +
             "(:tipoProjeto IS NULL OR p.tipoProjeto = :tipoProjeto) AND " +
-            "(:clienteId IS NULL OR p.clienteId = :clienteId)")
+            "(:clienteId IS NULL OR p.cliente.cliId = :clienteId)")
     Page<Projeto> findWithFilters(@Param("nome") String nome,
                                   @Param("status") StatusProjeto status,
                                   @Param("tipoProjeto") TipoProjeto tipoProjeto,
@@ -41,8 +41,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
 
     List<Projeto> findByTipoProjeto(TipoProjeto tipoProjeto);
 
-    List<Projeto> findByClienteId(Integer clienteId);
-    @Query("SELECT p FROM Projeto p WHERE p.clienteId = :clienteId AND p.status = :status")
+    List<Projeto> findByCliente_CliId(Integer clienteId);
+    @Query("SELECT p FROM Projeto p WHERE p.cliente.cliId = :clienteId AND p.status = :status")
     List<Projeto> findByClienteIdAndStatus(@Param("clienteId") Integer clienteId,
                                            @Param("status") StatusProjeto status);
     @Query("SELECT p FROM Projeto p WHERE p.dataCriacao BETWEEN :dataInicio AND :dataFim")
@@ -57,7 +57,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
     @Query("SELECT SUM(p.valorTotal) FROM Projeto p WHERE p.status = :status")
     Double sumValorTotalByStatus(@Param("status") StatusProjeto status);
 
-    boolean existsByNomeAndClienteId(String nome, Integer clienteId);
+    @Query("SELECT COUNT(p) > 0 FROM Projeto p WHERE p.nome = :nome AND p.cliente.cliId = :clienteId")
+    boolean existsByNomeAndClienteId(@Param("nome") String nome, @Param("clienteId") Integer clienteId);
 
 
 }

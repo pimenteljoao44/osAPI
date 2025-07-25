@@ -21,7 +21,7 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Inte
 
     List<ContaReceber> findByStatus(String status);
 
-    @Query("SELECT cr FROM ContaReceber cr WHERE cr.venda.cliente.cliId = :clienteId OR cr.projeto.clienteId = :clienteId")
+    @Query("SELECT cr FROM ContaReceber cr WHERE cr.venda.cliente.cliId = :clienteId OR cr.projeto.cliente.cliId= :clienteId")
     List<ContaReceber> findByClienteId(@Param("clienteId") Integer clienteId);
 
 

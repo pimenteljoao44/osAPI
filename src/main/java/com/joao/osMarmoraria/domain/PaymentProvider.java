@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +18,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "payment_providers")
-public class PaymentProvider {
+public class PaymentProvider implements Serializable {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

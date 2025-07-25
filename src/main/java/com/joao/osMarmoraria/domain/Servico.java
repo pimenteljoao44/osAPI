@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
 @Entity
 @Data
 @AllArgsConstructor
-public class Servico {
+public class Servico implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

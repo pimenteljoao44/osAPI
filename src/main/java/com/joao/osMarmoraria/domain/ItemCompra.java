@@ -6,13 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemCompra {
+public class ItemCompra implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
