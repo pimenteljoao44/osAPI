@@ -77,6 +77,7 @@ public class OrdemServicoService {
 		OrdemServico ordemServico = new OrdemServico();
 		ordemServico.setNumero(gerarNumeroOS());
 		ordemServico.setProjetoId(projetoId);
+		ordemServico.setClienteId(projeto.getCliente().getCliId());
 		ordemServico.setDataEmissao(LocalDate.now());
 		ordemServico.setDataPrevistaConclusao(projeto.getDataPrevista());
 		ordemServico.setValorTotal(projeto.getValorTotal());

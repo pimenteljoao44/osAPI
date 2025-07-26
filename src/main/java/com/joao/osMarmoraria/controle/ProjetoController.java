@@ -7,12 +7,14 @@ import com.joao.osMarmoraria.dtos.*;
 
 
 import com.joao.osMarmoraria.services.ProjetoService;
+import com.joao.osMarmoraria.services.RelatorioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +25,7 @@ import javax.validation.Valid;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/projetos-personalizados")
@@ -36,6 +36,9 @@ public class ProjetoController {
     @Autowired
     private ProjetoService projetoService;
 
+    @Autowired
+    private RelatorioService relatorioService;
+
     @GetMapping
     public ResponseEntity<Page<ProjetoDTO>> listarProjetos(
             @RequestParam(defaultValue = "0") int page,
@@ -45,7 +48,8 @@ public class ProjetoController {
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) StatusProjeto status,
             @RequestParam(required = false) TipoProjeto tipoProjeto,
-            @RequestParam(required = false) Integer clienteId) {
+            @RequestParam(required = false) Integer clienteId,
+            @RequestParam(required = false) String clienteNome) {
 
         Sort sort = sortDir.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() :
@@ -53,7 +57,7 @@ public class ProjetoController {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ProjetoDTO> projetos = projetoService.listarComFiltros(nome, status, tipoProjeto, clienteId, pageable);
+        Page<ProjetoDTO> projetos = projetoService.listarComFiltros(nome, status, tipoProjeto, clienteId, clienteNome, pageable);
         return ResponseEntity.ok(projetos);
     }
 
@@ -106,6 +110,44 @@ public class ProjetoController {
 
         List<ProjetoDTO> projetos = projetoService.obterProjetosPorPeriodo(dataInicio, dataFim);
         return ResponseEntity.ok(projetos);
+    }
+
+
+    @PostMapping("/orcamento-pdf")
+    public ResponseEntity<byte[]> gerarOrcamentoPDF(@Valid @RequestBody OrcamentoPDFDTO orcamento) {
+        try {
+            Map<String, Object> parametros = new HashMap<>();
+            parametros.put("projetoId", orcamento.getProjetoId());
+            parametros.put("clienteNome", orcamento.getClienteNome());
+            parametros.put("clienteEmail", orcamento.getClienteEmail());
+            parametros.put("clienteTelefone", orcamento.getClienteTelefone());
+            parametros.put("clienteEndereco", orcamento.getClienteEndereco());
+            parametros.put("projetoNome", orcamento.getProjetoNome());
+            parametros.put("projetoDescricao", orcamento.getProjetoDescricao());
+            parametros.put("dataOrcamento", orcamento.getDataOrcamento());
+            parametros.put("dataValidade", orcamento.getDataValidade());
+            parametros.put("largura", orcamento.getLargura());
+            parametros.put("comprimento", orcamento.getComprimento());
+            parametros.put("area", orcamento.getArea());
+            parametros.put("espessura", orcamento.getEspessura());
+            parametros.put("valorMateriais", orcamento.getValorMateriais());
+            parametros.put("valorMaoObra", orcamento.getValorMaoObra());
+            parametros.put("margemLucro", orcamento.getMargemLucro());
+            parametros.put("valorTotal", orcamento.getValorTotal());
+            parametros.put("observacoes", orcamento.getObservacoes());
+
+            byte[] pdfRelatorio = relatorioService.gerarOrcamentoPDF(parametros);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("inline", "Orcamento.pdf");
+
+            return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println("Erro ao gerar o orçamento: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // Classes internas para requests

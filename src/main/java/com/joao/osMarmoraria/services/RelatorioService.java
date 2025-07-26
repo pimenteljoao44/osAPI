@@ -90,4 +90,16 @@ public class RelatorioService {
             return JasperExportManager.exportReportToPdf(jasperPrint);
         }
     }
+
+    public byte[] gerarOrcamentoPDF(Map<String, Object> parametros) throws Exception {
+        JasperReport jasperReport = JasperCompileManager.compileReport(
+                resourceLoader.getResource("classpath:relatorios/orcamento/orcamento.jrxml").getInputStream()
+        );
+
+        try (var connection = DataSourceUtils.getConnection(dataSource)) {
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, connection);
+
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+        }
+    }
 }

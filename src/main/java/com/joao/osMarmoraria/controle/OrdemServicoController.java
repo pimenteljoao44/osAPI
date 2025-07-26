@@ -1,15 +1,12 @@
 package com.joao.osMarmoraria.controle;
 
-import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import com.joao.osMarmoraria.domain.OrdemServico;
 import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
-import com.joao.osMarmoraria.dtos.AgendamentoDTO;
 import com.joao.osMarmoraria.dtos.OrdemServicoDTO;
+import com.joao.osMarmoraria.dtos.AgendamentoDTO;
 import com.joao.osMarmoraria.services.OrdemServicoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 
@@ -94,7 +90,6 @@ public class OrdemServicoController {
         return ResponseEntity.ok(ordemServico);
     }
 
-    // Endpoints existentes de controle de execução
     @PatchMapping("/{id}/iniciar-os")
     public ResponseEntity<OrdemServicoDTO> iniciarExecucao(@PathVariable Integer id) {
         OrdemServicoDTO ordemServico = ordemServicoService.iniciarExecucao(id);
@@ -125,7 +120,6 @@ public class OrdemServicoController {
         return ResponseEntity.ok(ordemServico);
     }
 
-    // Consultas específicas
     @GetMapping("/status/{status}")
     public ResponseEntity<List<OrdemServicoDTO>> buscarPorStatus(@PathVariable StatusOrdemServico status) {
         List<OrdemServicoDTO> ordensServico = ordemServicoService.buscarPorStatus(status);
@@ -165,7 +159,6 @@ public class OrdemServicoController {
         return ResponseEntity.ok(ordensServico);
     }
 
-    // Endpoint para dashboard de estatísticas
     @GetMapping("/dashboard/estatisticas")
     public ResponseEntity<Map<String, Object>> obterEstatisticasDashboard() {
         Map<String, Object> estatisticas = Map.of(

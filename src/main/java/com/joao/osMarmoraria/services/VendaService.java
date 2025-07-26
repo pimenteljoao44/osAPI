@@ -6,12 +6,14 @@ import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.VendaTipo;
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
+import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,10 +45,13 @@ public class VendaService {
     @Autowired
     private OrdemServicoService ordemServicoService;
 
+    @Autowired
+    private ParcelaService parcelaService;
+
     @Transactional(readOnly = true)
     public Venda findById(Integer id) {
         return vendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada! ID: " + id));
+                .orElseThrow(() -> new ObjectNotFoundException("Venda não encontrada! ID: " + id));
     }
 
     public List<Venda> findAll() {
@@ -120,6 +125,259 @@ public class VendaService {
         return vendaRepository.save(venda);
     }
 
+    // ========== MÉTODOS PARA VENDA-PROJETO ==========
+
+    @Transactional
+    public VendaProjetoDTO criarVendaProjeto(VendaProjetoCreateDTO createDTO) {
+        // Verificar se cliente existe
+        Cliente cliente = clienteRepository.findById(createDTO.getClienteId())
+                .orElseThrow(() -> new ObjectNotFoundException("Cliente não encontrado! ID: " + createDTO.getClienteId()));
+
+        // Verificar se projeto existe
+        Projeto projeto = projetoRepository.findByIdWithDetails(createDTO.getProjetoId())
+                .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + createDTO.getProjetoId()));
+
+        // Verificar se projeto pode ser vendido
+        if (projeto.getStatus() != StatusProjeto.ORCAMENTO && projeto.getStatus() != StatusProjeto.APROVADO) {
+            throw new IllegalStateException("Projeto deve estar em status 'ORÇAMENTO' ou 'APROVADO' para ser vendido");
+        }
+
+        // Verificar se já existe venda para este projeto
+        Optional<Venda> vendaExistente = vendaRepository.findByProjetoId(createDTO.getProjetoId());
+        if (vendaExistente.isPresent()) {
+            throw new IllegalStateException("Já existe uma venda para este projeto");
+        }
+
+        // Criar venda de projeto
+        Venda venda = new Venda();
+        venda.setCliente(cliente);
+        venda.setProjetoId(projeto.getId());
+        venda.setDataAbertura(new Date());
+        venda.setVendaTipo(VendaTipo.ORCAMENTO);
+        venda.setFormaPagamento(FormaPagamento.valueOf(createDTO.getFormaPagamento()));
+        venda.setNumeroParcelas(createDTO.getNumeroParcelas() != null ? createDTO.getNumeroParcelas() : 1);
+        venda.setObservacoes(createDTO.getObservacoes());
+
+        // Calcular valores
+        BigDecimal valorTotal = projeto.getValorTotal();
+        BigDecimal desconto = createDTO.getDesconto() != null ? createDTO.getDesconto() : BigDecimal.ZERO;
+        BigDecimal valorFinal = valorTotal.subtract(desconto);
+
+        venda.setTotal(valorTotal);
+        venda.setDesconto(desconto);
+
+        venda = vendaRepository.save(venda);
+
+        // Atualizar status do projeto para VENDIDO
+        projeto.setStatus(StatusProjeto.VENDIDO);
+        projetoRepository.save(projeto);
+
+        // Gerar parcelas se necessário
+        if (venda.getNumeroParcelas() > 1) {
+            gerarParcelasVendaProjeto(venda, projeto);
+        }
+
+        return convertVendaToProjetoDTO(venda, projeto);
+    }
+
+    @Transactional(readOnly = true)
+    public VendaProjetoDTO buscarVendaProjetoPorId(Integer id) {
+        Venda venda = findById(id);
+
+        if (!venda.isVendaProjeto()) {
+            throw new IllegalArgumentException("Esta venda não é uma venda de projeto");
+        }
+
+        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
+                .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + venda.getProjetoId()));
+
+        return convertVendaToProjetoDTO(venda, projeto);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VendaProjetoDTO> listarVendasProjetos() {
+        List<Venda> vendas = vendaRepository.findByVendaTipoAndProjetoIdIsNotNull(VendaTipo.ORCAMENTO);
+        return vendas.stream()
+                .map(venda -> {
+                    try {
+                        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
+                                .orElse(null);
+                        return convertVendaToProjetoDTO(venda, projeto);
+                    } catch (Exception e) {
+                        // Log error and continue
+                        return null;
+                    }
+                })
+                .filter(dto -> dto != null)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<VendaProjetoDTO> buscarVendasProjetosPorCliente(Integer clienteId) {
+        List<Venda> vendas = vendaRepository.findByClienteIdAndVendaTipoAndProjetoIdIsNotNull(clienteId, VendaTipo.ORCAMENTO);
+        return vendas.stream()
+                .map(venda -> {
+                    try {
+                        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
+                                .orElse(null);
+                        return convertVendaToProjetoDTO(venda, projeto);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(dto -> dto != null)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<VendaProjetoDTO> buscarVendasProjetosPorStatus(String status) {
+        List<Venda> vendas;
+        if ("ORCAMENTO".equals(status)) {
+            vendas = vendaRepository.findByVendaTipoAndDataFechamentoIsNullAndProjetoIdIsNotNull(VendaTipo.ORCAMENTO);
+        } else if ("VENDIDO".equals(status)) {
+            vendas = vendaRepository.findByVendaTipoAndDataFechamentoIsNotNullAndProjetoIdIsNotNull(VendaTipo.ORCAMENTO);
+        } else {
+            vendas = vendaRepository.findByVendaTipoAndProjetoIdIsNotNull(VendaTipo.ORCAMENTO);
+        }
+
+        return vendas.stream()
+                .map(venda -> {
+                    try {
+                        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
+                                .orElse(null);
+                        return convertVendaToProjetoDTO(venda, projeto);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(dto -> dto != null)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public VendaProjetoDTO atualizarVendaProjeto(Integer id, VendaProjetoUpdateDTO updateDTO) {
+        Venda venda = findById(id);
+
+        if (!venda.isVendaProjeto()) {
+            throw new IllegalArgumentException("Esta venda não é uma venda de projeto");
+        }
+
+        // Atualizar campos editáveis
+        if (updateDTO.getDesconto() != null) {
+            venda.setDesconto(updateDTO.getDesconto());
+        }
+
+        if (updateDTO.getFormaPagamento() != null) {
+            venda.setFormaPagamento(FormaPagamento.valueOf(updateDTO.getFormaPagamento()));
+        }
+
+        if (updateDTO.getNumeroParcelas() != null) {
+            venda.setNumeroParcelas(updateDTO.getNumeroParcelas());
+        }
+
+        if (updateDTO.getObservacoes() != null) {
+            venda.setObservacoes(updateDTO.getObservacoes());
+        }
+
+        venda = vendaRepository.save(venda);
+
+        Venda finalVenda = venda;
+        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
+                .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + finalVenda.getProjetoId()));
+
+        return convertVendaToProjetoDTO(venda, projeto);
+    }
+
+    @Transactional
+    public VendaProjetoDTO efetuarVendaProjeto(Integer id) {
+        Venda venda = findById(id);
+
+        if (!venda.isVendaProjeto()) {
+            throw new IllegalArgumentException("Esta venda não é uma venda de projeto");
+        }
+
+        if (venda.getDataFechamento() != null) {
+            throw new IllegalStateException("Esta venda já foi efetivada");
+        }
+
+        venda.setDataFechamento(new Date());
+        venda = vendaRepository.save(venda);
+
+        Venda finalVenda = venda;
+        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
+                .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + finalVenda.getProjetoId()));
+
+        // Atualizar status do projeto
+        projeto.setStatus(StatusProjeto.VENDIDO);
+        projetoRepository.save(projeto);
+
+        return convertVendaToProjetoDTO(venda, projeto);
+    }
+
+    @Transactional
+    public String gerarOrdemServicoParaVendaProjeto(Integer vendaId) {
+        VendaProjetoDTO vendaProjeto = buscarVendaProjetoPorId(vendaId);
+
+        if (!"VENDIDO".equals(vendaProjeto.getStatus())) {
+            throw new IllegalStateException("Venda deve estar efetivada para gerar ordem de serviço");
+        }
+
+        if (vendaProjeto.getOrdemServicoGerada()) {
+            throw new IllegalStateException("Ordem de serviço já foi gerada para esta venda");
+        }
+
+        try {
+            OrdemServicoDTO ordemServico = ordemServicoService.gerarPorProjeto(vendaProjeto.getProjetoId());
+            return "Ordem de serviço " + ordemServico.getNumero() + " gerada com sucesso!";
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar ordem de serviço: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public String gerarContaReceberParaVendaProjeto(Integer vendaId) {
+        VendaProjetoDTO vendaProjeto = buscarVendaProjetoPorId(vendaId);
+
+        if (!"VENDIDO".equals(vendaProjeto.getStatus())) {
+            throw new IllegalStateException("Venda deve estar efetivada para gerar conta a receber");
+        }
+
+        if (vendaProjeto.getContaReceberGerada()) {
+            throw new IllegalStateException("Conta a receber já foi gerada para esta venda");
+        }
+
+        try {
+            ContaReceberDTO contaReceber = new ContaReceberDTO();
+            contaReceber.setProjetoId(vendaProjeto.getProjetoId());
+            contaReceber.setValor(vendaProjeto.getValorFinal());
+            contaReceber.setDataVencimento(vendaProjeto.getDataPrevistaConclusao());
+            contaReceber.setStatus("PENDENTE");
+            contaReceber.setObservacoes("Conta gerada automaticamente da venda de projeto");
+
+            ContaReceberDTO novaConta = contaReceberService.criarPorProjeto(contaReceber);
+            return "Conta a receber gerada com sucesso! ID: " + novaConta.getId();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar conta a receber: " + e.getMessage());
+        }
+    }
+
+    private void gerarParcelasVendaProjeto(Venda venda, Projeto projeto) {
+        try {
+            InstallmentRequestDTO installmentRequest = new InstallmentRequestDTO();
+            installmentRequest.setValorTotal(venda.getTotal().subtract(venda.getDesconto()));
+            installmentRequest.setNumeroParcelas(venda.getNumeroParcelas());
+            installmentRequest.setDataPrimeiroVencimento(LocalDate.now().plusDays(30));
+            installmentRequest.setObservacoes("Parcelas geradas automaticamente da venda do projeto: " + projeto.getNome());
+
+            parcelaService.gerarParcelasParaVenda(venda,installmentRequest);
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            System.err.println("Erro ao gerar parcelas para venda de projeto: " + e.getMessage());
+        }
+    }
+
+    // ========== MÉTODOS AUXILIARES ==========
+
     private void updateData(Venda existingVenda, Venda venda) {
         existingVenda.setDataAbertura(venda.getDataAbertura());
         existingVenda.setDataFechamento(venda.getDataFechamento());
@@ -142,7 +400,6 @@ public class VendaService {
             existingVenda.getItensVenda().add(managedItem);
         }
     }
-
 
     public Venda fromDTO(VendaDTO objDTO) {
         Cliente cliente = clienteRepository.findById(objDTO.getCliente())
@@ -176,157 +433,6 @@ public class VendaService {
         );
     }
 
-    @Transactional
-    public VendaProjetoDTO criarVendaProjeto(VendaProjetoDTO vendaProjetoDTO) {
-        // Verificar se cliente existe
-        Cliente cliente = clienteRepository.findById(vendaProjetoDTO.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado! ID: " + vendaProjetoDTO.getClienteId()));
-
-        // Verificar se projeto existe
-        Projeto projeto = projetoRepository.findById(vendaProjetoDTO.getProjetoId())
-                .orElseThrow(() -> new RuntimeException("Projeto não encontrado! ID: " + vendaProjetoDTO.getProjetoId()));
-
-        // Verificar se projeto pode ser vendido
-        if (!"ORCAMENTO".equals(projeto.getStatus().name()) && !"APROVADO".equals(projeto.getStatus().name())) {
-            throw new RuntimeException("Projeto deve estar em status 'ORÇAMENTO' ou 'APROVADO' para ser vendido");
-        }
-
-        // Criar venda de projeto (usando a entidade Venda existente com adaptações)
-        Venda venda = new Venda();
-        venda.setCliente(cliente);
-        venda.setDataAbertura(new Date());
-        venda.setTotal(vendaProjetoDTO.getValorTotal());
-        venda.setDesconto(vendaProjetoDTO.getDesconto() != null ? vendaProjetoDTO.getDesconto() : BigDecimal.ZERO);
-        venda.setVendaTipo(VendaTipo.ORCAMENTO); // Assumindo que existe este enum
-        venda.setFormaPagamento(FormaPagamento.valueOf(vendaProjetoDTO.getFormaPagamento()));
-
-        // Calcular valor final
-        BigDecimal valorFinal = venda.getTotal().subtract(venda.getDesconto());
-        venda.setTotal(valorFinal);
-
-        venda = vendaRepository.save(venda);
-
-        // Atualizar status do projeto para VENDIDO
-        projeto.setStatus(StatusProjeto.VENDIDO);
-        projetoRepository.save(projeto);
-
-        return convertVendaToProjetoDTO(venda, projeto);
-    }
-
-    @Transactional(readOnly = true)
-    public VendaProjetoDTO buscarVendaProjetoPorId(Integer id) {
-        Venda venda = findById(id);
-
-        // Buscar projeto relacionado (assumindo que existe uma forma de relacionar)
-        // Por enquanto, vou buscar pelo cliente e status
-        List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
-        Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
-
-        return convertVendaToProjetoDTO(venda, projeto);
-    }
-
-    @Transactional(readOnly = true)
-    public List<VendaProjetoDTO> listarVendasProjetos() {
-        List<Venda> vendas = vendaRepository.findByVendaTipo(VendaTipo.ORCAMENTO);
-        return vendas.stream()
-                .map(venda -> {
-                    List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
-                    Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
-                    return convertVendaToProjetoDTO(venda, projeto);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public VendaProjetoDTO atualizarVendaProjeto(VendaProjetoDTO vendaProjetoDTO) {
-        Venda venda = findById(vendaProjetoDTO.getId());
-
-        // Atualizar campos editáveis
-        venda.setTotal(vendaProjetoDTO.getValorTotal());
-        venda.setDesconto(vendaProjetoDTO.getDesconto());
-        venda.setFormaPagamento(FormaPagamento.valueOf(vendaProjetoDTO.getFormaPagamento()));
-
-        // Recalcular valor final
-        BigDecimal valorFinal = venda.getTotal().subtract(venda.getDesconto());
-        venda.setTotal(valorFinal);
-
-        venda = vendaRepository.save(venda);
-
-        // Buscar projeto relacionado
-        List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
-        Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
-
-        return convertVendaToProjetoDTO(venda, projeto);
-    }
-
-    @Transactional
-    public VendaProjetoDTO efetuarVendaProjeto(Integer id) {
-        Venda venda = findById(id);
-        venda.setDataFechamento(new Date());
-        venda = vendaRepository.save(venda);
-
-        // Buscar projeto relacionado
-        List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
-        Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
-
-        return convertVendaToProjetoDTO(venda, projeto);
-    }
-
-    @Transactional(readOnly = true)
-    public List<VendaProjetoDTO> buscarVendasProjetosPorCliente(Integer clienteId) {
-        List<Venda> vendas = vendaRepository.findByClienteIdAndVendaTipo(clienteId, VendaTipo.ORCAMENTO);
-        return vendas.stream()
-                .map(venda -> {
-                    List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(clienteId, StatusProjeto.VENDIDO);
-                    Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
-                    return convertVendaToProjetoDTO(venda, projeto);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public String gerarOrdemServicoParaVendaProjeto(Integer vendaId) {
-        VendaProjetoDTO vendaProjeto = buscarVendaProjetoPorId(vendaId);
-
-        if (vendaProjeto.getProjetoId() == null) {
-            throw new RuntimeException("Projeto não encontrado para esta venda");
-        }
-
-        if (vendaProjeto.getOrdemServicoGerada()) {
-            throw new RuntimeException("Ordem de serviço já foi gerada para esta venda");
-        }
-
-        try {
-            OrdemServicoDTO ordemServico = ordemServicoService.gerarPorProjeto(vendaProjeto.getProjetoId());
-            return "Ordem de serviço " + ordemServico.getNumero() + " gerada com sucesso!";
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar ordem de serviço: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public String gerarContaReceberParaVendaProjeto(Integer vendaId) {
-        VendaProjetoDTO vendaProjeto = buscarVendaProjetoPorId(vendaId);
-
-        if (vendaProjeto.getContaReceberGerada()) {
-            throw new RuntimeException("Conta a receber já foi gerada para esta venda");
-        }
-
-        try {
-            ContaReceberDTO contaReceber = new ContaReceberDTO();
-            contaReceber.setProjetoId(vendaProjeto.getProjetoId());
-            contaReceber.setValor(vendaProjeto.getValorFinal());
-            contaReceber.setDataVencimento(vendaProjeto.getDataPrevistaConclusao());
-            contaReceber.setStatus("PENDENTE");
-            contaReceber.setObservacoes("Conta gerada automaticamente da venda de projeto");
-
-            ContaReceberDTO novaConta = contaReceberService.criarPorProjeto(contaReceber);
-            return "Conta a receber gerada com sucesso! ID: " + novaConta.getId();
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar conta a receber: " + e.getMessage());
-        }
-    }
-
     private VendaProjetoDTO convertVendaToProjetoDTO(Venda venda, Projeto projeto) {
         VendaProjetoDTO dto = new VendaProjetoDTO();
         dto.setId(venda.getVenId());
@@ -342,6 +448,8 @@ public class VendaService {
         dto.setDesconto(venda.getDesconto());
         dto.setValorFinal(venda.getTotal().subtract(venda.getDesconto()));
         dto.setFormaPagamento(venda.getFormaPagamento().name());
+        dto.setNumeroParcelas(venda.getNumeroParcelas());
+        dto.setObservacoes(venda.getObservacoes());
         dto.setStatus(venda.getDataFechamento() != null ? "VENDIDO" : "ORCAMENTO");
 
         // Informações do cliente

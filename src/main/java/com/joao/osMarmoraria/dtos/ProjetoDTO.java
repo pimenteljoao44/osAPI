@@ -25,6 +25,7 @@ public class ProjetoDTO {
     @NotNull(message = "Cliente é obrigatório")
     private Integer clienteId;
 
+    private String clienteNome;
 
     @NotNull(message = "Tipo de projeto é obrigatório")
     private TipoProjeto tipoProjeto;
@@ -98,6 +99,14 @@ public class ProjetoDTO {
 
     public void setClienteId(Integer clienteId) {
         this.clienteId = clienteId;
+    }
+
+    public String getClienteNome() {
+        return clienteNome;
+    }
+
+    public void setClienteNome(String clienteNome) {
+        this.clienteNome = clienteNome;
     }
 
     public TipoProjeto getTipoProjeto() {

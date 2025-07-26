@@ -16,6 +16,8 @@ public class ProjetoItemDTO {
     @NotNull(message = "Produto é obrigatório")
     private Integer produtoId;
 
+    private String produtoNome;
+
     @NotNull(message = "Quantidade é obrigatória")
     @DecimalMin(value = "0.001", message = "Quantidade deve ser maior que zero")
     private BigDecimal quantidade;
@@ -66,6 +68,10 @@ public class ProjetoItemDTO {
     public void setProdutoId(Integer produtoId) {
         this.produtoId = produtoId;
     }
+
+    public String getProdutoNome() { return produtoNome; }
+
+    public void setProdutoNome(String produtoNome) { this.produtoNome = produtoNome; }
 
     public BigDecimal getQuantidade() {
         return quantidade;

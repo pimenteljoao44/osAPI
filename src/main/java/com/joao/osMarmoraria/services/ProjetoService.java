@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,8 +46,8 @@ public class ProjetoService {
                 .map(this::convertToDTO);
     }
 
-    public Page<ProjetoDTO> listarComFiltros(String nome, StatusProjeto status, TipoProjeto tipoProjeto, Integer clienteId, Pageable pageable) {
-        return projetoRepository.findWithFilters(nome, status, tipoProjeto, clienteId, pageable)
+    public Page<ProjetoDTO> listarComFiltros(String nome, StatusProjeto status, TipoProjeto tipoProjeto, Integer clienteId, String clienteNome, Pageable pageable) {
+        return projetoRepository.findWithFilters(nome, status, tipoProjeto, clienteId, clienteNome, pageable)
                 .map(this::convertToDTO);
     }
 
@@ -385,6 +386,7 @@ public class ProjetoService {
 
         if (projeto.getCliente() != null) {
             dto.setClienteId(projeto.getCliente().getCliId());
+            dto.setClienteNome(projeto.getCliente().getPessoa().getNome());
         }
 
         if (projeto.getProfundidade() != null || projeto.getLargura() != null || projeto.getAltura() != null) {
@@ -408,10 +410,14 @@ public class ProjetoService {
     }
 
     private ProjetoItemDTO convertItemToDTO(ProjetoItem item) {
+        Optional<Produto> produto = produtoRepository.findById(item.getProdutoId());
+        produto.orElseThrow(() -> new RuntimeException("Produto não Encontrado ID: "));
+
         ProjetoItemDTO dto = new ProjetoItemDTO();
         dto.setId(item.getId());
         dto.setProjetoId(item.getProjetoId());
         dto.setProdutoId(item.getProdutoId());
+        dto.setProdutoNome(produto.get().getNome());
         dto.setQuantidade(item.getQuantidade());
         dto.setValorUnitario(item.getValorUnitario());
         dto.setValorTotal(item.getValorTotal());

@@ -26,15 +26,17 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
             countQuery = "SELECT COUNT(p) FROM Projeto p")
     Page<Projeto> findAllWithCliente(Pageable pageable);
 
-    @Query("SELECT p FROM Projeto p WHERE " +
-            "(:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%'))) AND " +
+    @Query("SELECT p FROM Projeto p LEFT JOIN p.cliente c LEFT JOIN c.pessoa pe WHERE " +
+            "(:nome IS NULL OR p.nome LIKE CONCAT('%', CAST(:nome AS string), '%')) AND " +
             "(:status IS NULL OR p.status = :status) AND " +
             "(:tipoProjeto IS NULL OR p.tipoProjeto = :tipoProjeto) AND " +
-            "(:clienteId IS NULL OR p.cliente.cliId = :clienteId)")
+            "(:clienteId IS NULL OR p.cliente.cliId = :clienteId) AND " +
+            "(:clienteNome IS NULL OR LOWER(pe.nome) LIKE CONCAT('%', CAST(:clienteNome AS string), '%'))")
     Page<Projeto> findWithFilters(@Param("nome") String nome,
                                   @Param("status") StatusProjeto status,
                                   @Param("tipoProjeto") TipoProjeto tipoProjeto,
                                   @Param("clienteId") Integer clienteId,
+                                  @Param("clienteNome") String clienteNome,
                                   Pageable pageable);
 
     List<Projeto> findByStatus(StatusProjeto status);
