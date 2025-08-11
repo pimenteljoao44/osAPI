@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CompraService {
@@ -37,7 +38,7 @@ public class CompraService {
 
     @Autowired
     private ContaPagarService contaPagarService;
-    
+
     @Autowired
     private ParcelaService parcelaService;
 
@@ -72,52 +73,33 @@ public class CompraService {
     @Transactional
     public Compra create(CompraDTO objDto) {
         Compra compra = fromDTO(objDto);
-        List<ItemCompra> itensTemporarios = new ArrayList<>(compra.getItensCompra());
-        compra.getItensCompra().clear();
-        BigDecimal valorTotalCalculado = BigDecimal.ZERO;
-        BigDecimal quantidadeTotalCalculada = BigDecimal.ZERO;
+        compra.setValorTotal(compra.calculaTotal()); // Garante que o total seja calculado
+        compra.setQuantidadeTotal(compra.calculaQuantidadeTotal()); // Garante que a quantidade total seja calculada
 
-        for (ItemCompra item : itensTemporarios) {
-            item.setCompra(compra);
-            compra.getItensCompra().add(item);
+        Compra savedCompra = compraRepository.save(compra);
+
+        // Associa os itens à compra salva e salva os itens
+        for (ItemCompra item : savedCompra.getItensCompra()) {
+            item.setCompra(savedCompra);
+            itemRepository.save(item);
+        }
+
+        // Aumenta o estoque dos produtos
+        for (ItemCompra item : savedCompra.getItensCompra()) {
             Produto produto = produtoRepository.findById(item.getProduto().getProdId())
                     .orElseThrow(() -> new RuntimeException("Produto não encontrado! ID: " + item.getProduto().getProdId()));
             produto.aumentarEstoque(item.getQuantidade());
             produtoRepository.save(produto);
-            valorTotalCalculado = valorTotalCalculado.add(item.getValor().multiply(item.getQuantidade()));
-            quantidadeTotalCalculada = quantidadeTotalCalculada.add(item.getQuantidade());
         }
 
-        compra.setValorTotal(valorTotalCalculado);
-        compra.setQuantidadeTotal(quantidadeTotalCalculada);
-
-        ContaPagar contaPagar = new ContaPagar();
-        contaPagar.setCompra(compra);
-        contaPagar.setValor(compra.getValorTotal());
-        contaPagar.setDataVencimento(LocalDate.now().plusDays(30));
-        contaPagar.setStatus("PENDENTE");
-        
-        if (compra.isParcelado()) {
-            contaPagar.setParcelado(true);
-            contaPagar.setNumeroParcelas(compra.getNumeroParcelas());
-        }
-        
-        compra.getContasPagar().add(contaPagar);
-
-        compra = compraRepository.save(compra);
-        
-        contaPagarService.criar(new ContaPagarDTO(contaPagar));
-        
-        if (compra.isParcelado()) {
-            InstallmentRequestDTO installmentRequest = new InstallmentRequestDTO(
-                compra.getNumeroParcelas(),
-                compra.getIntervaloParcelas(),
-                compra.getValorTotal()
-            );
-            parcelaService.gerarParcelasParaCompra(compra, installmentRequest);
+        // Gerar contas a pagar (parceladas ou não) usando InstallmentRequestDTO se disponível
+        if (objDto.getInstallmentRequest() != null && objDto.getInstallmentRequest().isValid()) {
+            gerarContasPagarComInstallmentRequest(savedCompra.getComprId(), objDto.getInstallmentRequest());
+        } else {
+            gerarContasPagarParceladas(savedCompra.getComprId());
         }
 
-        return compra;
+        return savedCompra;
     }
 
     @Transactional
@@ -193,21 +175,22 @@ public class CompraService {
         Optional<Fornecedor> fornecedor = fornecedorRepository.findById(objDto.getFornecedor());
         Optional<Funcionario> funcionario = funcionarioRepository.findById(objDto.getFuncionario());
 
-
         List<ItemCompra> items = new ArrayList<>();
-        for (ItemCompraDTO itemDto : objDto.getItensCompra()) {
-            Produto produto = produtoRepository.findById(itemDto.getProduto())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado! ID: " + itemDto.getProduto()));
+        if (objDto.getItensCompra() != null) {
+            for (ItemCompraDTO itemDto : objDto.getItensCompra()) {
+                Produto produto = produtoRepository.findById(itemDto.getProduto())
+                        .orElseThrow(() -> new RuntimeException("Produto não encontrado! ID: " + itemDto.getProduto()));
 
-            ItemCompra item = new ItemCompra();
-            item.setId(itemDto.getId());
-            item.setQuantidade(itemDto.getQuantidade());
-            item.setValor(itemDto.getValor());
-            item.setProduto(produto);
-            items.add(item);
+                ItemCompra item = new ItemCompra();
+                item.setId(itemDto.getId());
+                item.setQuantidade(itemDto.getQuantidade());
+                item.setValor(itemDto.getValor());
+                item.setProduto(produto);
+                items.add(item);
+            }
         }
 
-        return new Compra(
+        Compra compra = new Compra(
                 objDto.getComprId(),
                 objDto.getObservacoes(),
                 objDto.getDataCompra() != null ? objDto.getDataCompra() : new Date(),
@@ -216,5 +199,152 @@ public class CompraService {
                 FormaPagamento.toEnum(objDto.getFormaPagamento()),
                 items
         );
+
+        // Setar campos de parcelamento
+        compra.setNumeroParcelas(objDto.getNumeroParcelas() != null ? objDto.getNumeroParcelas() : 1);
+        compra.setIntervaloParcelas(objDto.getIntervaloParcelas() != null ? objDto.getIntervaloParcelas() : 30);
+
+        return compra;
+    }
+
+    @Transactional
+    public void gerarContasPagarParceladas(Integer compraId) {
+        Compra compra = compraRepository.findById(compraId)
+                .orElseThrow(() -> new ObjectNotFoundException("Compra não encontrada com ID: " + compraId));
+
+        List<ContaPagar> contasExistentes = contaPagarService.buscarPorCompra(compraId);
+        if (!contasExistentes.isEmpty()) {
+            throw new IllegalStateException("Contas a pagar já foram geradas para esta compra");
+        }
+
+        // Verificar se a forma de pagamento permite parcelamento
+        boolean permiteParcelamento = compra.getFormaPagamento().permiteParcelamento();
+        Integer numeroParcelas = permiteParcelamento ?
+                (compra.getNumeroParcelas() != null ? compra.getNumeroParcelas() : 1) : 1;
+
+        Integer intervaloParcelas = compra.getIntervaloParcelas() != null ? compra.getIntervaloParcelas() : 30;
+        BigDecimal valorTotal = compra.getValorTotal();
+
+        if (numeroParcelas == 1) {
+            // Pagamento à vista - uma única conta a pagar
+            ContaPagar conta = new ContaPagar();
+            conta.setCompra(compra);
+            conta.setDescricao("Compra #" + compra.getComprId() + " - Pagamento à vista");
+            conta.setValor(valorTotal);
+
+            LocalDate dataVencimento = LocalDate.now().plusDays(7); // 7 dias para pagamento
+            conta.setDataVencimento(dataVencimento);
+            conta.setStatus("PENDENTE");
+
+            ContaPagarDTO contaDTO = new ContaPagarDTO(conta);
+            contaPagarService.criar(contaDTO);
+
+        } else {
+            // Pagamento parcelado - múltiplas contas a pagar com parcelas
+            List<Parcela> parcelas = gerarParcelasCompra(valorTotal, numeroParcelas, LocalDate.now().plusDays(30), intervaloParcelas);
+
+            for (Parcela parcela : parcelas) {
+                ContaPagar conta = new ContaPagar();
+                conta.setCompra(compra);
+                conta.setDescricao("Compra #" + compra.getComprId() + " - Parcela " + parcela.getNumeroParcela() + "/" + numeroParcelas);
+                conta.setValor(parcela.getValorParcela());
+                conta.setDataVencimento(parcela.getDataVencimento());
+                conta.setStatus("PENDENTE");
+
+                ContaPagarDTO contaDTO = new ContaPagarDTO(conta);
+                ContaPagar contaSalva = contaPagarService.criar(contaDTO);
+
+                // Associar parcela à conta a pagar
+                parcela.setContaPagar(contaSalva);
+                parcelaService.salvar(parcela);
+            }
+        }
+    }
+
+    /**
+     * Gera contas a pagar usando dados do InstallmentRequestDTO
+     */
+    @Transactional
+    public void gerarContasPagarComInstallmentRequest(Integer compraId, InstallmentRequestDTO installmentRequest) {
+        Compra compra = compraRepository.findById(compraId)
+                .orElseThrow(() -> new ObjectNotFoundException("Compra não encontrada com ID: " + compraId));
+
+        List<ContaPagar> contasExistentes = contaPagarService.buscarPorCompra(compraId);
+        if (!contasExistentes.isEmpty()) {
+            throw new IllegalStateException("Contas a pagar já foram geradas para esta compra");
+        }
+
+        Integer numeroParcelas = installmentRequest.getNumeroParcelas();
+        BigDecimal valorTotal = installmentRequest.getValorTotal();
+        LocalDate dataPrimeiroVencimento = installmentRequest.getDataPrimeiroVencimento();
+        Integer intervaloDias = installmentRequest.getIntervaloDias();
+
+        if (numeroParcelas == 1) {
+            // Pagamento à vista - uma única conta a pagar
+            ContaPagar conta = new ContaPagar();
+            conta.setCompra(compra);
+            conta.setDescricao("Compra #" + compra.getComprId() + " - Pagamento à vista");
+            conta.setValor(valorTotal);
+            conta.setDataVencimento(dataPrimeiroVencimento);
+            conta.setStatus("PENDENTE");
+
+            ContaPagarDTO contaDTO = new ContaPagarDTO(conta);
+            contaPagarService.criar(contaDTO);
+
+        } else {
+            // Pagamento parcelado - múltiplas contas a pagar com parcelas
+            List<Parcela> parcelas = gerarParcelasCompra(valorTotal, numeroParcelas, dataPrimeiroVencimento, intervaloDias);
+
+            for (Parcela parcela : parcelas) {
+                ContaPagar conta = new ContaPagar();
+                conta.setCompra(compra);
+                conta.setDescricao("Compra #" + compra.getComprId() + " - Parcela " + parcela.getNumeroParcela() + "/" + numeroParcelas);
+                conta.setValor(parcela.getValorParcela());
+                conta.setDataVencimento(parcela.getDataVencimento());
+                conta.setStatus("PENDENTE");
+
+                ContaPagarDTO contaDTO = new ContaPagarDTO(conta);
+                ContaPagar contaSalva = contaPagarService.criar(contaDTO);
+
+                // Associar parcela à conta a pagar
+                parcela.setContaPagar(contaSalva);
+                parcelaService.salvar(parcela);
+            }
+        }
+    }
+
+    /**
+     * Gera as parcelas para uma compra
+     */
+    private List<Parcela> gerarParcelasCompra(BigDecimal valorTotal, int numeroParcelas, LocalDate dataVencimentoInicial, int intervaloDias) {
+        List<Parcela> parcelas = new ArrayList<>();
+
+        // Calcula o valor base de cada parcela
+        BigDecimal valorParcela = valorTotal.divide(BigDecimal.valueOf(numeroParcelas), 2, BigDecimal.ROUND_DOWN);
+
+        // Calcula o resto para ajustar na última parcela
+        BigDecimal valorRestante = valorTotal.subtract(valorParcela.multiply(BigDecimal.valueOf(numeroParcelas)));
+
+        for (int i = 1; i <= numeroParcelas; i++) {
+            BigDecimal valorFinal = valorParcela;
+
+            // Adiciona o resto na última parcela
+            if (i == numeroParcelas) {
+                valorFinal = valorFinal.add(valorRestante);
+            }
+
+            LocalDate dataVencimento = dataVencimentoInicial.plusDays((long) (i - 1) * intervaloDias);
+
+            Parcela parcela = new Parcela();
+            parcela.setNumeroParcela(i);
+            parcela.setTotalParcelas(numeroParcelas);
+            parcela.setValorParcela(valorFinal);
+            parcela.setDataVencimento(dataVencimento);
+            parcela.setStatus("PENDENTE");
+
+            parcelas.add(parcela);
+        }
+
+        return parcelas;
     }
 }

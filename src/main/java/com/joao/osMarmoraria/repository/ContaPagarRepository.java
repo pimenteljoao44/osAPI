@@ -24,6 +24,8 @@ public interface ContaPagarRepository extends JpaRepository<ContaPagar, Integer>
     @Query("SELECT cp FROM ContaPagar cp WHERE cp.compra.fornecedor.id = :fornecedorId")
     List<ContaPagar> findByFornecedorId(@Param("fornecedorId") Integer fornecedorId);
 
+    @Query("SELECT cp FROM ContaPagar cp WHERE cp.compra.comprId = :compraId")
+    List<ContaPagar> findByCompraId(@Param("compraId") Integer compraId);
 
 
     @Query("SELECT cp FROM ContaPagar cp WHERE cp.dataVencimento BETWEEN :dataInicio AND :dataFim")

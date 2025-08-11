@@ -17,26 +17,26 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InstallmentRequestDTO {
-    
+
     @NotNull(message = "Número de parcelas é obrigatório")
     @Min(value = 1, message = "Número de parcelas deve ser no mínimo 1")
     @Max(value = 24, message = "Número de parcelas deve ser no máximo 24")
     private Integer numeroParcelas;
-    
+
     @NotNull(message = "Intervalo entre parcelas é obrigatório")
     @Min(value = 1, message = "Intervalo deve ser no mínimo 1 dia")
     @Max(value = 365, message = "Intervalo deve ser no máximo 365 dias")
     private Integer intervaloDias;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDate dataPrimeiroVencimento;
-    
+
     @NotNull(message = "Valor total é obrigatório")
     @Positive(message = "Valor total deve ser positivo")
     private BigDecimal valorTotal;
-    
+
     private String observacoes;
-    
+
     // Construtor de conveniência
     public InstallmentRequestDTO(Integer numeroParcelas, Integer intervaloDias, BigDecimal valorTotal) {
         this.numeroParcelas = numeroParcelas;
@@ -44,7 +44,7 @@ public class InstallmentRequestDTO {
         this.valorTotal = valorTotal;
         this.dataPrimeiroVencimento = LocalDate.now().plusDays(intervaloDias);
     }
-    
+
     // Métodos de conveniência
     public BigDecimal getValorParcela() {
         if (numeroParcelas != null && numeroParcelas > 0 && valorTotal != null) {
@@ -59,16 +59,16 @@ public class InstallmentRequestDTO {
         }
         return dataPrimeiroVencimento;
     }
-    
+
     public boolean isParcelado() {
         return numeroParcelas != null && numeroParcelas > 1;
     }
-    
+
     // Validação personalizada
     public boolean isValid() {
         return numeroParcelas != null && numeroParcelas > 0 &&
-               intervaloDias != null && intervaloDias > 0 &&
-               valorTotal != null && valorTotal.compareTo(BigDecimal.ZERO) > 0;
+                intervaloDias != null && intervaloDias > 0 &&
+                valorTotal != null && valorTotal.compareTo(BigDecimal.ZERO) > 0;
     }
 }
 

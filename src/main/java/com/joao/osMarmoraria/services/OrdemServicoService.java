@@ -355,6 +355,18 @@ public class OrdemServicoService {
 		return dto;
 	}
 
+	public boolean existeOrdemServicoParaProjeto(Integer projetoId) {
+		if (projetoId == null) {
+			throw new IllegalArgumentException("ID do projeto não pode ser nulo");
+		}
+
+		// Verifica se o projeto existe primeiro
+		if (!projetoRepository.existsById(projetoId)) {
+			throw new ObjectNotFoundException("Projeto não encontrado com ID: " + projetoId);
+		}
+
+		return ordemServicoRepository.existsByProjetoId(projetoId);
+	}
 	private ItemOrdemServicoDTO convertItemToDTO(ItemOrdemServico item) {
 		ItemOrdemServicoDTO dto = new ItemOrdemServicoDTO();
 		dto.setId(item.getId());

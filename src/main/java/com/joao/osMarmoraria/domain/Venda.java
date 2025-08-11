@@ -9,7 +9,6 @@ import lombok.Data;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,7 +17,7 @@ import java.util.List;
 @Entity
 @Data
 @AllArgsConstructor
-public class Venda implements Serializable {
+public class Venda {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer venId;
@@ -50,6 +49,12 @@ public class Venda implements Serializable {
     @JoinColumn(name ="cliente_id")
     private Cliente cliente;
 
+    // Campo para funcionário responsável pela venda
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name ="funcionario_id")
+    private Funcionario funcionario;
+
     // Novo campo para vendas de projeto
     @Column(name = "projeto_id")
     private Integer projetoId;
@@ -60,10 +65,6 @@ public class Venda implements Serializable {
 
     // Campos adicionais para vendas de projeto
     private Integer numeroParcelas = 1;
-    
-    @Column(name = "intervalo_parcelas")
-    private Integer intervaloParcelas = 30; // dias entre parcelas
-    
     private String observacoes;
 
     public Venda() {
@@ -101,13 +102,13 @@ public class Venda implements Serializable {
     }
 
     public BigDecimal calculaTotal() {
-        if (vendaTipo == VendaTipo.ORCAMENTO && projeto != null) {
+        if (isVendaProjeto() && projeto != null) {
             // Para vendas de projeto, usar o valor do projeto
             total = projeto.getValorTotal();
         } else {
             // Para vendas de produtos, calcular baseado nos itens
             total = itensVenda.stream()
-                    .map(item -> item.getProduto().getPrecoCusto().multiply(item.getQuantidade()))
+                    .map(item -> item.getPreco().multiply(new BigDecimal(String.valueOf(item.getQuantidade()))))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 

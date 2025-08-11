@@ -16,14 +16,22 @@ public interface VendaRepository extends JpaRepository<Venda, Integer> {
     // Métodos existentes
     List<Venda> findByVendaTipo(VendaTipo vendaTipo);
 
+
     @Query("SELECT v FROM Venda v WHERE v.cliente.cliId = :clienteId AND v.vendaTipo = :vendaTipo")
     List<Venda> findByClienteIdAndVendaTipo(@Param("clienteId") Integer clienteId, @Param("vendaTipo") VendaTipo vendaTipo);
 
-    // Novos métodos para vendas de projeto
     Optional<Venda> findByProjetoId(Integer projetoId);
+
+
+    @Query("SELECT v FROM Venda v WHERE v.cliente.cliId = :cliId")
+    List<Venda> findByClienteId(@Param("cliId") Integer cliId);
+
 
     @Query("SELECT v FROM Venda v WHERE v.vendaTipo = :vendaTipo AND v.projetoId IS NOT NULL")
     List<Venda> findByVendaTipoAndProjetoIdIsNotNull(@Param("vendaTipo") VendaTipo vendaTipo);
+
+    @Query("SELECT v FROM Venda v WHERE v.vendaTipo = :vendaTipo AND v.projetoId IS NULL")
+    List<Venda> findByVendaTipoAndProjetoIdIsNull(@Param("vendaTipo") VendaTipo vendaTipo);
 
     @Query("SELECT v FROM Venda v WHERE v.cliente.cliId = :clienteId AND v.vendaTipo = :vendaTipo AND v.projetoId IS NOT NULL")
     List<Venda> findByClienteIdAndVendaTipoAndProjetoIdIsNotNull(@Param("clienteId") Integer clienteId, @Param("vendaTipo") VendaTipo vendaTipo);
@@ -52,4 +60,6 @@ public interface VendaRepository extends JpaRepository<Venda, Integer> {
 
     @Query("SELECT v FROM Venda v WHERE v.vendaTipo = :vendaTipo AND v.projetoId IS NOT NULL ORDER BY v.dataAbertura DESC")
     List<Venda> findRecentProjectSales(@Param("vendaTipo") VendaTipo vendaTipo);
+    List<Venda> findByVendaTipoAndDataFechamentoIsNull(@Param("vendaTipo") VendaTipo vendaTipo);
+
 }

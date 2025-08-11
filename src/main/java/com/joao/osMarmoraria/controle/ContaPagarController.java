@@ -1,5 +1,6 @@
 package com.joao.osMarmoraria.controle;
 
+import com.joao.osMarmoraria.domain.ContaPagar;
 import com.joao.osMarmoraria.dtos.ContaPagarDTO;
 import com.joao.osMarmoraria.services.ContaPagarService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +36,8 @@ public class ContaPagarController {
 
     @PostMapping
     public ResponseEntity<ContaPagarDTO> criar(@Valid @RequestBody ContaPagarDTO contaPagarDTO) {
-        ContaPagarDTO contaCriada = contaPagarService.criar(contaPagarDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(contaCriada);
+        ContaPagar contaCriada = contaPagarService.criar(contaPagarDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ContaPagarDTO(contaCriada));
     }
 
     @PutMapping("/{id}")

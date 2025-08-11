@@ -30,7 +30,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().sessionManagement().sessionCreationPolicy(
-                SessionCreationPolicy.IF_REQUIRED)
+                        SessionCreationPolicy.IF_REQUIRED)
                 .and().authorizeRequests(authorize ->
                         authorize.antMatchers(HttpMethod.POST, "/auth/login").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/recovery").permitAll()
@@ -104,6 +104,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                 .antMatchers(HttpMethod.POST, "/projetos-personalizados/calcular-orcamento").permitAll()
                                 .antMatchers(HttpMethod.POST, "/projetos-personalizados/materiais-sugeridos").permitAll()
                                 .antMatchers(HttpMethod.GET, "/projetos-personalizados/relatorio/periodo").permitAll()
+                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/cliente/{id}").permitAll()
 
                                 // Endpoints de tipos e status (se existirem)
                                 .antMatchers(HttpMethod.GET, "/projetos-personalizados/tipos").permitAll()
@@ -142,6 +143,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                 .antMatchers(HttpMethod.GET, "/api/parcelas/dashboard/resumo").permitAll()
                                 .antMatchers(HttpMethod.GET, "/api/parcelas/vencidas").permitAll()
                                 .antMatchers(HttpMethod.GET, "/api/parcelas/proximas-vencer").permitAll()
+                                .antMatchers("/api/venda-unificada/**").permitAll()
                                 .antMatchers("/error").permitAll()
                                 .anyRequest().authenticated()).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
     }

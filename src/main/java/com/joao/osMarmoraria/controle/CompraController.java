@@ -69,5 +69,26 @@ public class CompraController {
 		CompraDTO newObj = new CompraDTO(compraService.removeItem(id, itemId));
 		return ResponseEntity.ok().body(newObj);
 	}
-}
 
+	@PostMapping(value = "/{id}/gerar-contas-pagar")
+	public ResponseEntity<Map<String, Object>> gerarContasPagar(@PathVariable Integer id) {
+		try {
+			compraService.gerarContasPagarParceladas(id);
+
+			Map<String, Object> response = Map.of(
+					"success", true,
+					"message", "Contas a pagar geradas com sucesso"
+			);
+
+			return ResponseEntity.ok().body(response);
+
+		} catch (Exception e) {
+			Map<String, Object> response = Map.of(
+					"success", false,
+					"message", "Erro ao gerar contas a pagar: " + e.getMessage()
+			);
+
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+}

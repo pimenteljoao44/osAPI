@@ -3,10 +3,7 @@ package com.joao.osMarmoraria.services;
 import com.joao.osMarmoraria.domain.*;
 
 import com.joao.osMarmoraria.dtos.ProdutoDTO;
-import com.joao.osMarmoraria.repository.FornecedorRepository;
-import com.joao.osMarmoraria.repository.GrupoRepository;
-import com.joao.osMarmoraria.repository.OsRepository;
-import com.joao.osMarmoraria.repository.ProdutoRepository;
+import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +23,7 @@ public class ProdutoService {
     private FornecedorRepository fornecedorRepository;
 
     @Autowired
-    private OsRepository osRepository;
+    private OrdemServicoRepository ordemServicoRepository;
 
     @Autowired
     private GrupoRepository grupoRepository;
@@ -111,7 +108,7 @@ public class ProdutoService {
     }
 
     public OrdemServico findOSById(Integer id){
-        Optional<OrdemServico> os = osRepository.findById(id);
+        Optional<OrdemServico> os = ordemServicoRepository.findById(id);
         return os.orElseThrow(() -> new ObjectNotFoundException(
                 "Objeto não encontrado! id:" + id + ",tipo: " + OrdemServico.class.getName()));
     }

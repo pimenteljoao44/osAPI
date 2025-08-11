@@ -40,7 +40,12 @@ public class ProjetoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // CRUD Operations
+    public List<ProjetoDTO> listarProjetosAprovadosPorCliente(Integer clienteId) {
+        return projetoRepository.findProjetosAprovadosByCliente(clienteId)
+                .stream().map(this::convertToDTO).collect(Collectors.toList());
+
+    }
+
     public Page<ProjetoDTO> listarProjetos(Pageable pageable) {
         return projetoRepository.findAllWithCliente(pageable)
                 .map(this::convertToDTO);

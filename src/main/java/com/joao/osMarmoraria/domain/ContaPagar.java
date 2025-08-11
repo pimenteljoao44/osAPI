@@ -18,7 +18,7 @@ public class ContaPagar implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-    
+
     @JsonManagedReference
     @ManyToOne
     private Compra compra;
@@ -26,8 +26,9 @@ public class ContaPagar implements Serializable {
     private BigDecimal valor;
     private LocalDate dataVencimento;
     private String status;
+    private String descricao;
     private LocalDate dataPagamento;
-    
+
     // Novos campos para suporte a parcelamento
     @Column(name = "parcelado")
     private boolean parcelado = false;
@@ -50,12 +51,12 @@ public class ContaPagar implements Serializable {
 
     public ContaPagar() {
     }
-    
+
     // Métodos de conveniência para parcelamento
     public boolean isParcelado() {
         return false;
     }
-    
+
     public BigDecimal getValorPago() {
         if (isParcelado()) {
             return parcelas.stream()
@@ -65,15 +66,15 @@ public class ContaPagar implements Serializable {
         }
         return "PAGO".equals(status) ? valor : BigDecimal.ZERO;
     }
-    
+
     public BigDecimal getValorPendente() {
         return valor.subtract(getValorPago());
     }
-    
+
     public long getParcelasPagas() {
         return parcelas.stream().filter(Parcela::isPaga).count();
     }
-    
+
     public long getParcelasPendentes() {
         return parcelas.stream().filter(Parcela::isPendente).count();
     }

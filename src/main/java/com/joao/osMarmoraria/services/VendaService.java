@@ -13,12 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +45,9 @@ public class VendaService {
 
     @Autowired
     private ParcelaService parcelaService;
+
+    @Autowired
+    private ContaReceberRepository contaReceberRepository;
 
     @Transactional(readOnly = true)
     public Venda findById(Integer id) {
@@ -79,6 +80,12 @@ public class VendaService {
 
         BigDecimal valorTotal = venda.calculaTotal();
         savedVenda.setTotal(valorTotal);
+
+        // Se a venda já está efetivada e tem dados de parcelamento, gerar contas a receber
+        if (savedVenda.getDataFechamento() != null && objDto.getInstallmentRequest() != null && objDto.getInstallmentRequest().isValid()) {
+            gerarContasReceberComInstallmentRequest(savedVenda.getVenId(), objDto.getInstallmentRequest());
+        }
+
         return vendaRepository.save(savedVenda);
     }
 
@@ -118,14 +125,248 @@ public class VendaService {
     }
 
     @Transactional
-    public Venda efetuarVenda(Integer vendaId) {
+    public void gerarContasReceberParceladas(Integer vendaId) {
+        Venda venda = vendaRepository.findById(vendaId)
+                .orElseThrow(() -> new ObjectNotFoundException("Venda não encontrada com ID: " + vendaId));
+
+        if (venda.getDataFechamento() == null) {
+            throw new IllegalStateException("Venda deve estar efetivada para gerar contas a receber");
+        }
+
+        List<ContaReceber> contasExistentes = contaReceberRepository.findByVenda(venda);
+        if (!contasExistentes.isEmpty()) {
+            throw new IllegalStateException("Contas a receber já foram geradas para esta venda");
+        }
+
+        Integer numeroParcelas = venda.getNumeroParcelas() != null ? venda.getNumeroParcelas() : 1;
+        BigDecimal valorTotal = venda.getTotal();
+        BigDecimal valorParcelaCalculado = valorTotal.divide(BigDecimal.valueOf(numeroParcelas), 2, RoundingMode.HALF_UP);
+
+        BigDecimal somaParcelasAnteriores = valorParcelaCalculado.multiply(BigDecimal.valueOf(numeroParcelas - 1));
+        BigDecimal ultimaParcela = valorTotal.subtract(somaParcelasAnteriores);
+
+        LocalDate dataVencimento = venda.getDataFechamento().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        for (int i = 1; i <= numeroParcelas; i++) {
+            ContaReceber conta = new ContaReceber();
+            conta.setVenda(venda);
+            conta.setDescricao("Venda #" + venda.getVenId() + " - Parcela " + i + "/" + numeroParcelas);
+
+            BigDecimal valorDaParcela = (i == numeroParcelas) ? ultimaParcela : valorParcelaCalculado;
+            conta.setValor(valorDaParcela);
+
+            conta.setDataVencimento(dataVencimento);
+            conta.setStatus("PENDENTE");
+            conta.setDataCriacao(LocalDate.now());
+
+            contaReceberRepository.save(conta);
+
+            dataVencimento = dataVencimento.plusDays(30);
+        }
+    }
+
+    @Transactional
+    public void gerarContasReceberComInstallmentRequest(Integer vendaId, InstallmentRequestDTO installmentRequest) {
+        Venda venda = vendaRepository.findById(vendaId)
+                .orElseThrow(() -> new ObjectNotFoundException("Venda não encontrada com ID: " + vendaId));
+
+        if (venda.getDataFechamento() == null) {
+            throw new IllegalStateException("Venda deve estar efetivada para gerar contas a receber");
+        }
+
+        List<ContaReceber> contasExistentes = contaReceberRepository.findByVenda(venda);
+        if (!contasExistentes.isEmpty()) {
+            throw new IllegalStateException("Contas a receber já foram geradas para esta venda");
+        }
+
+        Integer numeroParcelas = installmentRequest.getNumeroParcelas();
+        BigDecimal valorTotal = installmentRequest.getValorTotal();
+        LocalDate dataPrimeiroVencimento = installmentRequest.getDataPrimeiroVencimento();
+        Integer intervaloDias = installmentRequest.getIntervaloDias();
+
+        if (numeroParcelas == 1) {
+            // Pagamento à vista - uma única conta a receber
+            ContaReceber conta = new ContaReceber();
+            conta.setVenda(venda);
+            conta.setDescricao("Venda #" + venda.getVenId() + " - Pagamento à vista");
+            conta.setValor(valorTotal);
+            conta.setDataVencimento(dataPrimeiroVencimento);
+            conta.setStatus("PENDENTE");
+            conta.setDataCriacao(LocalDate.now());
+
+            contaReceberRepository.save(conta);
+
+        } else {
+            // Pagamento parcelado - múltiplas contas a receber
+            BigDecimal valorParcelaCalculado = valorTotal.divide(BigDecimal.valueOf(numeroParcelas), 2, RoundingMode.HALF_UP);
+            BigDecimal somaParcelasAnteriores = valorParcelaCalculado.multiply(BigDecimal.valueOf(numeroParcelas - 1));
+            BigDecimal ultimaParcela = valorTotal.subtract(somaParcelasAnteriores);
+
+            LocalDate dataVencimento = dataPrimeiroVencimento;
+
+            for (int i = 1; i <= numeroParcelas; i++) {
+                ContaReceber conta = new ContaReceber();
+                conta.setVenda(venda);
+                conta.setDescricao("Venda #" + venda.getVenId() + " - Parcela " + i + "/" + numeroParcelas);
+
+                BigDecimal valorDaParcela = (i == numeroParcelas) ? ultimaParcela : valorParcelaCalculado;
+                conta.setValor(valorDaParcela);
+
+                conta.setDataVencimento(dataVencimento);
+                conta.setStatus("PENDENTE");
+                conta.setDataCriacao(LocalDate.now());
+
+                contaReceberRepository.save(conta);
+
+                dataVencimento = dataVencimento.plusDays(intervaloDias);
+            }
+        }
+    }
+
+
+    public void efetivarVenda(Integer vendaId) {
         Venda venda = findById(vendaId);
         venda.efetuarVenda(); // Atualiza a data de fechamento e recalcula o total
 
-        return vendaRepository.save(venda);
+        vendaRepository.save(venda);
     }
 
-    // ========== MÉTODOS PARA VENDA-PROJETO ==========
+
+    @Transactional
+    public Map<String, Object> processarVendaCompleta(Integer vendaId) {
+        Map<String, Object> resultado = new HashMap<>();
+        List<String> erros = new ArrayList<>();
+        List<String> sucessos = new ArrayList<>();
+
+        try {
+            Venda venda = findById(vendaId);
+
+            // 1. Efetivar a venda se ainda não foi efetivada
+            if (venda.getDataFechamento() == null) {
+                efetivarVenda(vendaId);
+                sucessos.add("Venda efetivada com sucesso");
+            }
+
+            // 2. Gerar contas a receber parceladas
+            try {
+                gerarContasReceberParceladas(vendaId);
+                sucessos.add("Contas a receber geradas com sucesso");
+            } catch (IllegalStateException e) {
+                if (e.getMessage().contains("já foram geradas")) {
+                    sucessos.add("Contas a receber já existem");
+                } else {
+                    erros.add("Erro ao gerar contas a receber: " + e.getMessage());
+                }
+            }
+
+            // 3. Gerar ordem de serviço
+            try {
+                String resultadoOS = gerarOrdemServicoParaVenda(vendaId);
+                sucessos.add(resultadoOS);
+            } catch (Exception e) {
+                erros.add("Erro ao gerar ordem de serviço: " + e.getMessage());
+            }
+
+            // Determinar resultado final
+            boolean success = erros.isEmpty();
+            resultado.put("success", success);
+            resultado.put("sucessos", sucessos);
+            resultado.put("erros", erros);
+
+            if (success) {
+                resultado.put("message", "Venda processada completamente com sucesso");
+            } else {
+                resultado.put("message", "Venda processada com alguns problemas: " + String.join(", ", erros));
+            }
+
+        } catch (Exception e) {
+            resultado.put("success", false);
+            resultado.put("message", "Erro geral no processamento: " + e.getMessage());
+            resultado.put("erros", Arrays.asList(e.getMessage()));
+        }
+
+        return resultado;
+    }
+
+    @Transactional
+    public Map<String, Object> processarVendaCompleta(Integer vendaId, InstallmentRequestDTO installmentRequest) {
+        Map<String, Object> resultado = new HashMap<>();
+        List<String> erros = new ArrayList<>();
+        List<String> sucessos = new ArrayList<>();
+
+        try {
+            Venda venda = findById(vendaId);
+
+            // 1. Efetivar a venda se ainda não foi efetivada
+            if (venda.getDataFechamento() == null) {
+                efetivarVenda(vendaId);
+                sucessos.add("Venda efetivada com sucesso");
+            }
+
+            // 2. Gerar contas a receber usando InstallmentRequestDTO se fornecido
+            try {
+                if (installmentRequest != null && installmentRequest.isValid()) {
+                    gerarContasReceberComInstallmentRequest(vendaId, installmentRequest);
+                    sucessos.add("Contas a receber geradas com sucesso usando dados de parcelamento");
+                } else {
+                    gerarContasReceberParceladas(vendaId);
+                    sucessos.add("Contas a receber geradas com sucesso");
+                }
+            } catch (IllegalStateException e) {
+                if (e.getMessage().contains("já foram geradas")) {
+                    sucessos.add("Contas a receber já existem");
+                } else {
+                    erros.add("Erro ao gerar contas a receber: " + e.getMessage());
+                }
+            }
+
+            // 3. Gerar ordem de serviço
+            try {
+                String resultadoOS = gerarOrdemServicoParaVenda(vendaId);
+                sucessos.add(resultadoOS);
+            } catch (Exception e) {
+                erros.add("Erro ao gerar ordem de serviço: " + e.getMessage());
+            }
+
+            // Determinar resultado final
+            boolean success = erros.isEmpty();
+            resultado.put("success", success);
+            resultado.put("sucessos", sucessos);
+            resultado.put("erros", erros);
+
+            if (success) {
+                resultado.put("message", "Venda processada completamente com sucesso");
+            } else {
+                resultado.put("message", "Venda processada com alguns problemas: " + String.join(", ", erros));
+            }
+
+        } catch (Exception e) {
+            resultado.put("success", false);
+            resultado.put("message", "Erro geral no processamento: " + e.getMessage());
+            resultado.put("erros", Arrays.asList(e.getMessage()));
+        }
+
+        return resultado;
+    }
+
+    @Transactional
+    public String gerarOrdemServicoParaVenda(Integer vendaId) {
+        Venda venda = findById(vendaId);
+
+        if (venda.getDataFechamento() == null) {
+            throw new IllegalStateException("Venda deve estar efetivada para gerar ordem de serviço");
+        }
+
+        if (venda.isVendaProjeto()) {
+            return gerarOrdemServicoParaVendaProjeto(venda.getVenId());
+        } else if (venda.isVendaProduto()) {
+            return "Venda realizada com sucesso";
+        } else {
+            throw new IllegalStateException("Tipo de venda não suportado para geração de ordem de serviço");
+        }
+    }
 
     @Transactional
     public VendaProjetoDTO criarVendaProjeto(VendaProjetoCreateDTO createDTO) {
@@ -316,21 +557,30 @@ public class VendaService {
 
     @Transactional
     public String gerarOrdemServicoParaVendaProjeto(Integer vendaId) {
-        VendaProjetoDTO vendaProjeto = buscarVendaProjetoPorId(vendaId);
-
-        if (!"VENDIDO".equals(vendaProjeto.getStatus())) {
-            throw new IllegalStateException("Venda deve estar efetivada para gerar ordem de serviço");
-        }
-
-        if (vendaProjeto.getOrdemServicoGerada()) {
-            throw new IllegalStateException("Ordem de serviço já foi gerada para esta venda");
-        }
-
         try {
-            OrdemServicoDTO ordemServico = ordemServicoService.gerarPorProjeto(vendaProjeto.getProjetoId());
-            return "Ordem de serviço " + ordemServico.getNumero() + " gerada com sucesso!";
+            Venda venda = findById(vendaId);
+
+            if (venda.getDataFechamento() == null) {
+                throw new IllegalStateException("Venda deve estar efetivada para gerar ordem de serviço");
+            }
+
+            if (!venda.isVendaProjeto()) {
+                throw new IllegalStateException("Venda não é do tipo projeto");
+            }
+
+            if (venda.getProjetoId() == null) {
+                throw new IllegalStateException("Projeto não associado à venda");
+            }
+
+            if (ordemServicoService.existeOrdemServicoParaProjeto(venda.getProjetoId())) {
+                throw new IllegalStateException("Já existe ordem de serviço para este projeto");
+            }
+
+            OrdemServicoDTO os = ordemServicoService.gerarPorProjeto(venda.getProjetoId());
+            return "Ordem de serviço " + os.getNumero() + " gerada com sucesso";
+
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar ordem de serviço: " + e.getMessage());
+            throw new RuntimeException("Falha ao gerar ordem de serviço: " + e.getMessage());
         }
     }
 

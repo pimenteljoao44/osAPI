@@ -24,7 +24,7 @@ public class DBservice {
 	private ClienteRepository clienteRepository;
 
 	@Autowired
-	private OsRepository osRepository;
+	private OrdemServicoRepository osRepository;
 
 	@Autowired
 	private EnderecoRepository enderecoRepository;

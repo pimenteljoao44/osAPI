@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.repository;
 
 import com.joao.osMarmoraria.domain.ContaReceber;
+import com.joao.osMarmoraria.domain.Venda;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -55,4 +56,6 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Inte
 
     @Query("SELECT SUM(cr.valor) FROM ContaReceber cr WHERE cr.dataVencimento BETWEEN :dataInicio AND :dataFim")
     BigDecimal sumVencimentoNoPeriodo(@Param("dataInicio") Date dataInicio, @Param("dataFim") Date dataFim);
+
+    List<ContaReceber> findByVenda(Venda venda);
 }

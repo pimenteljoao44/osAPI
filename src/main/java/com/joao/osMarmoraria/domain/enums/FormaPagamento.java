@@ -25,6 +25,10 @@ public enum FormaPagamento {
         return descricao;
     }
 
+    public boolean permiteParcelamento() {
+        return this == CARTAO_DE_CREDITO || this == BOLETO_BANCARIO || this == CHEQUE;
+    }
+
     public static FormaPagamento toEnum(Integer cod) {
         if(cod == null) {
             return null;

@@ -43,6 +43,9 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
 
     List<Projeto> findByTipoProjeto(TipoProjeto tipoProjeto);
 
+    @Query("SELECT p FROM Projeto p WHERE p.cliente.cliId = :clienteId AND p.status = 'APROVADO'")
+    List<Projeto> findProjetosAprovadosByCliente(@Param("clienteId") Integer clienteId);
+
     List<Projeto> findByCliente_CliId(Integer clienteId);
     @Query("SELECT p FROM Projeto p WHERE p.cliente.cliId = :clienteId AND p.status = :status")
     List<Projeto> findByClienteIdAndStatus(@Param("clienteId") Integer clienteId,

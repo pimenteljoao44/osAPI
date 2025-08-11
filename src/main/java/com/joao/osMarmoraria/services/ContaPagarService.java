@@ -43,8 +43,14 @@ public class ContaPagarService {
         return convertToDTO(contaPagar);
     }
 
-    public ContaPagarDTO criar(ContaPagarDTO contaPagarDTO) {
-        // Verificar se a compra existe
+    public List<ContaPagar> buscarPorCompra(Integer compraId) {
+        Compra compra = compraRepository.findById(compraId)
+                .orElseThrow(() -> new ObjectNotFoundException("Compra não encontrada com ID: " + compraId));
+
+        return contaPagarRepository.findByCompraId(compraId);
+    }
+
+    public ContaPagar criar(ContaPagarDTO contaPagarDTO) {
         Compra compra = compraRepository.findById(contaPagarDTO.getCompraId())
                 .orElseThrow(() -> new ObjectNotFoundException("Compra não encontrada com ID: " + contaPagarDTO.getCompraId()));
 
@@ -55,7 +61,7 @@ public class ContaPagarService {
         contaPagar.setStatus(contaPagarDTO.getStatus());
 
         contaPagar = contaPagarRepository.save(contaPagar);
-        return convertToDTO(contaPagar);
+        return contaPagar;
     }
 
     public ContaPagar insert(ContaPagar contaPagar) {
@@ -154,4 +160,3 @@ public class ContaPagarService {
         return dto;
     }
 }
-

@@ -61,6 +61,12 @@ public class ProjetoController {
         return ResponseEntity.ok(projetos);
     }
 
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<ProjetoDTO>> listarProjetosAprovadosPorCliente(@PathVariable Integer clienteId) {
+        List<ProjetoDTO> projetos = projetoService.listarProjetosAprovadosPorCliente(clienteId);
+        return ResponseEntity.ok(projetos);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProjetoDTO> buscarPorId(@PathVariable Integer id) {
         ProjetoDTO projeto = projetoService.buscarPorId(id);

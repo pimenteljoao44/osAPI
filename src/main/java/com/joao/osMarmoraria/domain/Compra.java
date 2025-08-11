@@ -26,22 +26,22 @@ public class Compra implements Serializable {
     private BigDecimal valorTotal;
     private BigDecimal quantidadeTotal;
     private Date dataCompra = new Date();
-    
+
     @ManyToOne
     @JoinColumn(name = "fornecedor_id")
     private Fornecedor fornecedor;
-    
+
     @ManyToOne
     @JoinColumn(name = "funcionario_funcionario_id")
     private Funcionario funcionario;
 
     @Enumerated(EnumType.STRING)
     private FormaPagamento formaPagamento = FormaPagamento.DINHEIRO;
-    
+
     // Novos campos para suporte a parcelamento
     @Column(name = "numero_parcelas")
     private Integer numeroParcelas = 1;
-    
+
     @Column(name = "intervalo_parcelas")
     private Integer intervaloParcelas = 30; // dias entre parcelas
 
@@ -65,12 +65,24 @@ public class Compra implements Serializable {
         this.formaPagamento = formaPagamento;
         this.itensCompra = itensCompra;
     }
-    
+
     // Métodos de conveniência para parcelamento
+    public BigDecimal calculaTotal() {
+        return itensCompra.stream()
+                .map(item -> item.getValor().multiply(new BigDecimal(String.valueOf(item.getQuantidade()))))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal calculaQuantidadeTotal() {
+        return itensCompra.stream()
+                .map(item -> new BigDecimal(String.valueOf(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public boolean isParcelado() {
         return numeroParcelas != null && numeroParcelas > 1;
     }
-    
+
     public BigDecimal getValorParcela() {
         if (numeroParcelas != null && numeroParcelas > 0 && valorTotal != null) {
             return valorTotal.divide(BigDecimal.valueOf(numeroParcelas), 2, BigDecimal.ROUND_HALF_UP);
