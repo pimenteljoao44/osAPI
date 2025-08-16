@@ -24,6 +24,37 @@ public class ParcelaService {
     @Autowired
     private ParcelaRepository parcelaRepository;
 
+    /**
+     * Gera parcelas a partir de uma ContaReceber já existente.
+     * Usado pelo VendaService para criar o parcelamento de uma venda.
+     */
+    public List<ParcelaDTO> gerarParcelasParaContaReceber(ContaReceber contaReceber, InstallmentRequestDTO request) {
+        validateInstallmentRequest(request);
+
+        List<Parcela> parcelas = new ArrayList<>();
+        LocalDate dataVencimento = request.getDataPrimeiroVencimento();
+
+        for (int i = 1; i <= request.getNumeroParcelas(); i++) {
+            BigDecimal valorParcela = calculateInstallmentAmount(request.getValorTotal(), request.getNumeroParcelas(), i);
+
+            Parcela parcela = new Parcela();
+            parcela.setNumeroParcela(i);
+            parcela.setTotalParcelas(request.getNumeroParcelas());
+            parcela.setValorParcela(valorParcela);
+            parcela.setDataVencimento(dataVencimento);
+            parcela.setStatus("PENDENTE");
+            parcela.setObservacoes(request.getObservacoes());
+            parcela.setContaReceber(contaReceber); // Associa a parcela à conta principal
+
+            parcelas.add(parcela);
+            // Avança para a data da próxima parcela
+            dataVencimento = dataVencimento.plusDays(request.getIntervaloDias() != null ? request.getIntervaloDias() : 30);
+        }
+
+        List<Parcela> parcelasSalvas = parcelaRepository.saveAll(parcelas);
+        return parcelasSalvas.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
     // CRUD Operations
     public List<ParcelaDTO> listarTodas() {
         return parcelaRepository.findAllWithDetails().stream()
@@ -80,7 +111,6 @@ public class ParcelaService {
             parcela.setStatus("PENDENTE");
             parcela.setObservacoes(request.getObservacoes());
 
-            // Associar com ContaPagar (assumindo que já existe)
             if (!compra.getContasPagar().isEmpty()) {
                 parcela.setContaPagar(compra.getContasPagar().get(0));
             }
@@ -110,7 +140,6 @@ public class ParcelaService {
             parcela.setStatus("PENDENTE");
             parcela.setObservacoes(request.getObservacoes());
 
-            // Associar com ContaReceber (assumindo que já existe)
             if (venda.getContasReceber() != null && !venda.getContasReceber().isEmpty()) {
                 parcela.setContaReceber(venda.getContasReceber().get(0));
             }
@@ -194,32 +223,22 @@ public class ParcelaService {
 
     // Utility Methods
     private void validateInstallmentRequest(InstallmentRequestDTO request) {
-        if (request == null) {
-            throw new IllegalArgumentException("Request de parcelamento não pode ser nulo");
+        if (request == null || !request.isValid()) {
+            throw new IllegalArgumentException("Request de parcelamento inválido ou nulo");
         }
-
-        if (!request.isValid()) {
-            throw new IllegalArgumentException("Request de parcelamento inválido");
-        }
-
         if (request.getNumeroParcelas() > 24) {
             throw new IllegalArgumentException("Número máximo de parcelas é 24");
         }
     }
 
-    private BigDecimal calculateInstallmentAmount(BigDecimal valorTotal, Integer numeroParcelas) {
-        return valorTotal.divide(BigDecimal.valueOf(numeroParcelas), 2, RoundingMode.HALF_UP);
-    }
-
     private BigDecimal calculateInstallmentAmount(BigDecimal valorTotal, Integer numeroParcelas, Integer parcelaAtual) {
         BigDecimal valorParcela = valorTotal.divide(BigDecimal.valueOf(numeroParcelas), 2, RoundingMode.HALF_UP);
 
-        // Ajustar a última parcela para compensar arredondamentos
+        // Ajusta a última parcela para compensar arredondamentos
         if (parcelaAtual.equals(numeroParcelas)) {
             BigDecimal totalParcelasAnteriores = valorParcela.multiply(BigDecimal.valueOf(numeroParcelas - 1));
             return valorTotal.subtract(totalParcelasAnteriores);
         }
-
         return valorParcela;
     }
 
@@ -237,7 +256,6 @@ public class ParcelaService {
         dto.setDataCriacao(parcela.getDataCriacao());
         dto.setDataAtualizacao(parcela.getDataAtualizacao());
 
-        // Definir IDs das contas relacionadas
         if (parcela.getContaPagar() != null) {
             dto.setContaPagarId(parcela.getContaPagar().getId());
             if (parcela.getContaPagar().getCompra() != null &&
@@ -254,7 +272,6 @@ public class ParcelaService {
             }
         }
 
-        // Campos calculados
         dto.setVencida(parcela.isVencida());
         dto.setPaga(parcela.isPaga());
 
@@ -265,9 +282,7 @@ public class ParcelaService {
         return dto;
     }
 
-    // Método para salvar parcela simples
     public Parcela salvar(Parcela parcela) {
         return parcelaRepository.save(parcela);
     }
 }
-

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -15,6 +16,7 @@ import java.util.Date;
 @Entity
 @Table(name = "endereco")
 @Data
+@EqualsAndHashCode(of = "enderecoId")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "enderecoId")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor

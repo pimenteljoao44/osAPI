@@ -70,11 +70,11 @@ public class Pessoa implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Pessoa pessoa = (Pessoa) o;
-        return Objects.equals(id, pessoa.id) && Objects.equals(nome, pessoa.nome) && Objects.equals(endereco, pessoa.endereco) && Objects.equals(telefone, pessoa.telefone);
+        return Objects.equals(id, pessoa.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, nome, endereco, telefone);
+        return Objects.hash(id);
     }
 }

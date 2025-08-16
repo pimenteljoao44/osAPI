@@ -1,8 +1,10 @@
 package com.joao.osMarmoraria.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.joao.osMarmoraria.domain.ItemVenda;
 import com.joao.osMarmoraria.domain.Venda;
+import com.joao.osMarmoraria.domain.enums.VendaTipo;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -24,12 +26,11 @@ public class VendaDTO implements Serializable {
     private BigDecimal total = BigDecimal.ZERO;
     private BigDecimal valorTotal = BigDecimal.ZERO;
     private BigDecimal desconto = BigDecimal.ZERO;
-
     private Integer vendaTipo;
     private Integer formaPagamento;
 
     private List<ItemVendaDTO> itensVenda = new ArrayList<>();
-
+    @JsonProperty("clienteId")
     private Integer cliente;
     private String clienteNome;
     private Integer funcionario;
@@ -59,8 +60,6 @@ public class VendaDTO implements Serializable {
         this.dataAbertura = obj.getDataAbertura();
         this.dataVenda = obj.getDataAbertura();
         this.dataFechamento = obj.getDataFechamento();
-        this.vendaTipo = obj.getVendaTipo().getCod();
-        this.formaPagamento = obj.getFormaPagamento().getCod();
         this.desconto = obj.getDesconto();
         this.total = obj.calculaTotal();
         this.valorTotal = obj.calculaTotal();
@@ -68,13 +67,15 @@ public class VendaDTO implements Serializable {
         this.projetoId = obj.getProjetoId();
         this.numeroParcelas = obj.getNumeroParcelas();
 
-        // Determinar status baseado na data de fechamento
+        if (obj.getVendaTipo() != null) {
+            this.vendaTipo = obj.getVendaTipo().getCod();
+        }
+        if (obj.getFormaPagamento() != null) {
+            this.formaPagamento = obj.getFormaPagamento().getCod();
+        }
+
         this.efetivada = obj.getDataFechamento() != null;
         this.status = this.efetivada ? "Efetivada" : "Pendente";
-
-        // Por enquanto, assumir que contas e OS não foram geradas (pode ser melhorado com consultas específicas)
-        this.contaReceberGerada = false;
-        this.ordemServicoGerada = false;
 
         this.itensVenda = obj.getItensVenda().stream()
                 .map(ItemVendaDTO::new)
@@ -148,9 +149,18 @@ public class VendaDTO implements Serializable {
     public void setDesconto(BigDecimal desconto) {
         this.desconto = desconto;
     }
-
+    @JsonProperty("tipo")
     public Integer getVendaTipo() {
         return vendaTipo;
+    }
+
+    @JsonProperty("tipo")
+    public void setVendaTipoFromString(String tipo) {
+        if ("PRODUTO".equalsIgnoreCase(tipo) || "VENDA".equalsIgnoreCase(tipo)) {
+            this.vendaTipo = VendaTipo.VENDA.getCod();
+        } else if ("PROJETO".equalsIgnoreCase(tipo) || "ORCAMENTO".equalsIgnoreCase(tipo)) {
+            this.vendaTipo = VendaTipo.ORCAMENTO.getCod();
+        }
     }
 
     public void setVendaTipo(Integer vendaTipo) {

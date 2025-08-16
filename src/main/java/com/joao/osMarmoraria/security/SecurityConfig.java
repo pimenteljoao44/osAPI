@@ -83,6 +83,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                 .antMatchers(HttpMethod.DELETE, "/pessoas/{id}").permitAll().antMatchers(HttpMethod.GET, "/venda").permitAll()
                                 .antMatchers(HttpMethod.POST, "/venda").permitAll()
                                 .antMatchers(HttpMethod.PUT, "/venda/{id}").permitAll()
+                                .antMatchers(HttpMethod.GET, "/venda").permitAll()
                                 .antMatchers(HttpMethod.DELETE, "/venda/{id}").permitAll()
                                 .antMatchers(HttpMethod.GET, "/venda/itens").permitAll()
                                 .antMatchers(HttpMethod.POST, "/venda/{id}/addItem").permitAll()
@@ -143,8 +144,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                 .antMatchers(HttpMethod.GET, "/api/parcelas/dashboard/resumo").permitAll()
                                 .antMatchers(HttpMethod.GET, "/api/parcelas/vencidas").permitAll()
                                 .antMatchers(HttpMethod.GET, "/api/parcelas/proximas-vencer").permitAll()
-                                .antMatchers("/api/venda-unificada/**").permitAll()
                                 .antMatchers("/error").permitAll()
+
+                                .antMatchers(HttpMethod.POST,"/api/venda-unificada/**").permitAll()
                                 .anyRequest().authenticated()).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
     }
 

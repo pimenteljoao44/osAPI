@@ -1,21 +1,23 @@
 package com.joao.osMarmoraria.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonBackReference; // <-- IMPORT ADICIONADO
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"venda"})
 public class ItemVenda implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
     private BigDecimal quantidade;
-
     private BigDecimal preco;
     private BigDecimal subTotal;
 
@@ -23,6 +25,7 @@ public class ItemVenda implements Serializable {
     @JoinColumn(name = "prod_id", nullable = false)
     private Produto produto;
 
+    @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "venda_id")
     private Venda venda;

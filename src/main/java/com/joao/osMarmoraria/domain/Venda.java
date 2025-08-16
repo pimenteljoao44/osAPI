@@ -1,11 +1,10 @@
 package com.joao.osMarmoraria.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference; // <-- IMPORT ADICIONADO
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
 import com.joao.osMarmoraria.domain.enums.VendaTipo;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import javax.persistence.*;
@@ -15,8 +14,10 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"itensVenda", "contasReceber"})
 public class Venda {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,6 +38,7 @@ public class Venda {
     @Enumerated(EnumType.STRING)
     private FormaPagamento formaPagamento = FormaPagamento.DINHEIRO;
 
+    @JsonManagedReference
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "venda", orphanRemoval = true)
     private List<ItemVenda> itensVenda = new ArrayList<>();
 
@@ -49,13 +51,11 @@ public class Venda {
     @JoinColumn(name ="cliente_id")
     private Cliente cliente;
 
-    // Campo para funcionário responsável pela venda
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name ="funcionario_id")
     private Funcionario funcionario;
 
-    // Novo campo para vendas de projeto
     @Column(name = "projeto_id")
     private Integer projetoId;
 
@@ -63,7 +63,6 @@ public class Venda {
     @JoinColumn(name = "projeto_id", insertable = false, updatable = false)
     private Projeto projeto;
 
-    // Campos adicionais para vendas de projeto
     private Integer numeroParcelas = 1;
     private String observacoes;
 
@@ -103,10 +102,8 @@ public class Venda {
 
     public BigDecimal calculaTotal() {
         if (isVendaProjeto() && projeto != null) {
-            // Para vendas de projeto, usar o valor do projeto
             total = projeto.getValorTotal();
         } else {
-            // Para vendas de produtos, calcular baseado nos itens
             total = itensVenda.stream()
                     .map(item -> item.getPreco().multiply(new BigDecimal(String.valueOf(item.getQuantidade()))))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -125,7 +122,6 @@ public class Venda {
         calculaTotal();
     }
 
-    // Métodos específicos para vendas de projeto
     public boolean isVendaProjeto() {
         return vendaTipo == VendaTipo.ORCAMENTO && projetoId != null;
     }
