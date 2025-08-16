@@ -14,7 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 public class OrcamentoPDFDTO {
 
-    @NotNull(message = "ID do projeto é obrigatório")
     private Integer projetoId;
 
     // Dados do cliente

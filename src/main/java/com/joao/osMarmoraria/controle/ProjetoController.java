@@ -1,13 +1,13 @@
 package com.joao.osMarmoraria.controle;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.TipoProjeto;
 import com.joao.osMarmoraria.dtos.*;
-
-
 import com.joao.osMarmoraria.services.ProjetoService;
 import com.joao.osMarmoraria.services.RelatorioService;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource; // IMPORT NECESSÁRIO
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,10 +22,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
-import java.net.URI;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/projetos-personalizados")
@@ -38,6 +38,61 @@ public class ProjetoController {
 
     @Autowired
     private RelatorioService relatorioService;
+
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+
+    @PostMapping("/orcamento-pdf")
+    public ResponseEntity<byte[]> gerarOrcamentoPDF(@Valid @RequestBody OrcamentoPDFDTO orcamento) {
+        try {
+            // --- LOG DE DEPURAÇÃO ADICIONADO ---
+            // Este bloco irá imprimir na consola os dados exatos recebidos do front-end.
+            System.out.println("==========================================================");
+            System.out.println("=== DADOS RECEBIDOS PARA GERAR PDF DO ORÇAMENTO ===");
+            System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(orcamento));
+
+            if (orcamento.getItens() == null || orcamento.getItens().isEmpty()) {
+                System.err.println("AVISO: A lista de itens do orçamento está vazia ou nula. O PDF será gerado em branco.");
+            }
+            System.out.println("==========================================================");
+            // --- FIM DO LOG DE DEPURAÇÃO ---
+
+            Map<String, Object> parametros = new HashMap<>();
+            parametros.put("clienteNome", orcamento.getClienteNome());
+            parametros.put("clienteEmail", orcamento.getClienteEmail());
+            parametros.put("clienteTelefone", orcamento.getClienteTelefone());
+            parametros.put("clienteEndereco", orcamento.getClienteEndereco());
+            parametros.put("projetoNome", orcamento.getProjetoNome());
+            parametros.put("projetoDescricao", orcamento.getProjetoDescricao());
+            parametros.put("dataOrcamento", orcamento.getDataOrcamento());
+            parametros.put("dataValidade", orcamento.getDataValidade());
+            parametros.put("largura", orcamento.getLargura());
+            parametros.put("comprimento", orcamento.getComprimento());
+            parametros.put("area", orcamento.getArea());
+            parametros.put("espessura", orcamento.getEspessura());
+            parametros.put("valorMateriais", orcamento.getValorMateriais());
+            parametros.put("valorMaoObra", orcamento.getValorMaoObra());
+            parametros.put("margemLucro", orcamento.getMargemLucro());
+            parametros.put("valorTotal", orcamento.getValorTotal());
+            parametros.put("observacoes", orcamento.getObservacoes());
+
+            JRBeanCollectionDataSource itensDataSource = new JRBeanCollectionDataSource(orcamento.getItens());
+            parametros.put("ITENS_DATA_SOURCE", itensDataSource);
+
+            byte[] pdfRelatorio = relatorioService.gerarOrcamentoPDF(parametros);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("inline", "Orcamento.pdf");
+
+            return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
+        } catch (Throwable t) {
+            System.err.println("ERRO GRAVE AO GERAR ORÇAMENTO PDF: " + t.getMessage());
+            t.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     @GetMapping
     public ResponseEntity<Page<ProjetoDTO>> listarProjetos(
@@ -117,76 +172,18 @@ public class ProjetoController {
         List<ProjetoDTO> projetos = projetoService.obterProjetosPorPeriodo(dataInicio, dataFim);
         return ResponseEntity.ok(projetos);
     }
-
-
-    @PostMapping("/orcamento-pdf")
-    public ResponseEntity<byte[]> gerarOrcamentoPDF(@Valid @RequestBody OrcamentoPDFDTO orcamento) {
-        try {
-            Map<String, Object> parametros = new HashMap<>();
-            parametros.put("projetoId", orcamento.getProjetoId());
-            parametros.put("clienteNome", orcamento.getClienteNome());
-            parametros.put("clienteEmail", orcamento.getClienteEmail());
-            parametros.put("clienteTelefone", orcamento.getClienteTelefone());
-            parametros.put("clienteEndereco", orcamento.getClienteEndereco());
-            parametros.put("projetoNome", orcamento.getProjetoNome());
-            parametros.put("projetoDescricao", orcamento.getProjetoDescricao());
-            parametros.put("dataOrcamento", orcamento.getDataOrcamento());
-            parametros.put("dataValidade", orcamento.getDataValidade());
-            parametros.put("largura", orcamento.getLargura());
-            parametros.put("comprimento", orcamento.getComprimento());
-            parametros.put("area", orcamento.getArea());
-            parametros.put("espessura", orcamento.getEspessura());
-            parametros.put("valorMateriais", orcamento.getValorMateriais());
-            parametros.put("valorMaoObra", orcamento.getValorMaoObra());
-            parametros.put("margemLucro", orcamento.getMargemLucro());
-            parametros.put("valorTotal", orcamento.getValorTotal());
-            parametros.put("observacoes", orcamento.getObservacoes());
-
-            byte[] pdfRelatorio = relatorioService.gerarOrcamentoPDF(parametros);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("inline", "Orcamento.pdf");
-
-            return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
-        } catch (Exception e) {
-            System.out.println("Erro ao gerar o orçamento: " + e.getMessage());
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    // Classes internas para requests
     public static class StatusUpdateRequest {
         private StatusProjeto status;
-
-        public StatusProjeto getStatus() {
-            return status;
-        }
-
-        public void setStatus(StatusProjeto status) {
-            this.status = status;
-        }
+        public StatusProjeto getStatus() { return status; }
+        public void setStatus(StatusProjeto status) { this.status = status; }
     }
 
     public static class MaterialSugeridoRequest {
         private TipoProjeto tipoProjeto;
         private MedidasProjetoDTO medidas;
-
-        public TipoProjeto getTipoProjeto() {
-            return tipoProjeto;
-        }
-
-        public void setTipoProjeto(TipoProjeto tipoProjeto) {
-            this.tipoProjeto = tipoProjeto;
-        }
-
-        public MedidasProjetoDTO getMedidas() {
-            return medidas;
-        }
-
-        public void setMedidas(MedidasProjetoDTO medidas) {
-            this.medidas = medidas;
-        }
+        public TipoProjeto getTipoProjeto() { return tipoProjeto; }
+        public void setTipoProjeto(TipoProjeto tipoProjeto) { this.tipoProjeto = tipoProjeto; }
+        public MedidasProjetoDTO getMedidas() { return medidas; }
+        public void setMedidas(MedidasProjetoDTO medidas) { this.medidas = medidas; }
     }
 }

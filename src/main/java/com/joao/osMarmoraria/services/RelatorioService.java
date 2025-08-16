@@ -96,10 +96,8 @@ public class RelatorioService {
                 resourceLoader.getResource("classpath:relatorios/orcamento/orcamento.jrxml").getInputStream()
         );
 
-        try (var connection = DataSourceUtils.getConnection(dataSource)) {
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, connection);
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, new JREmptyDataSource());
 
-            return JasperExportManager.exportReportToPdf(jasperPrint);
-        }
+        return JasperExportManager.exportReportToPdf(jasperPrint);
     }
 }
