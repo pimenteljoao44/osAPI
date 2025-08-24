@@ -7,6 +7,7 @@ import com.joao.osMarmoraria.domain.enums.VendaTipo;
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -64,15 +65,22 @@ public class VendaService {
         }
 
         Venda venda = fromDTO(objDto);
-        venda.setTotal(venda.calculaTotal()); // Calcula o total antes de salvar
+
+        // Para vendas de produto, o total é calculado. Para projetos, já foi definido no fromDTO.
+        if (venda.getVendaTipo() == VendaTipo.VENDA) {
+            venda.setTotal(venda.calculaTotal());
+        }
+
         Venda savedVenda = vendaRepository.save(venda);
 
-        for (ItemVenda item : savedVenda.getItensVenda()) {
-            item.setVenda(savedVenda); // Garante a associação bidirecional
-            itemVendaRepository.save(item);
-            Produto produto = item.getProduto();
-            produto.baixarEstoque(item.getQuantidade());
-            produtoRepository.save(produto);
+        if (savedVenda.getVendaTipo() == VendaTipo.VENDA) {
+            for (ItemVenda item : savedVenda.getItensVenda()) {
+                item.setVenda(savedVenda); // Garante a associação bidirecional
+                itemVendaRepository.save(item);
+                Produto produto = item.getProduto();
+                produto.baixarEstoque(item.getQuantidade());
+                produtoRepository.save(produto);
+            }
         }
 
         return savedVenda;
@@ -197,24 +205,39 @@ public class VendaService {
         venda.setVenId(objDTO.getId());
         venda.setDataAbertura(new Date());
         venda.setCliente(cliente);
-        venda.setVendaTipo(VendaTipo.toEnum(objDTO.getVendaTipo()));
+
+        VendaTipo tipo = VendaTipo.toEnum(objDTO.getVendaTipo());
+        venda.setVendaTipo(tipo);
+
         venda.setFormaPagamento(FormaPagamento.toEnum(objDTO.getFormaPagamento()));
-        venda.setDesconto(objDTO.getDesconto());
         venda.setNumeroParcelas(objDTO.getNumeroParcelas() != null ? objDTO.getNumeroParcelas() : 1);
+        venda.setDesconto(objDTO.getDesconto());
         venda.setObservacoes(objDTO.getObservacoes());
 
-        if (objDTO.getItensVenda() != null) {
-            List<ItemVenda> itensVenda = objDTO.getItensVenda().stream().map(itemDTO -> {
-                Produto produto = produtoRepository.findById(itemDTO.getProduto())
-                        .orElseThrow(() -> new ObjectNotFoundException("Produto não encontrado! ID: " + itemDTO.getProduto()));
-                return new ItemVenda(null, itemDTO.getQuantidade(), itemDTO.getPreco(), null, produto, venda);
-            }).collect(Collectors.toList());
-            venda.setItensVenda(itensVenda);
+        if (tipo == VendaTipo.ORCAMENTO) {
+            // Se a venda é de um projeto, busca o projeto para obter o valor total
+            if (objDTO.getProjetoId() == null) {
+                throw new DataIntegrityViolationException("Venda de projeto precisa de um ID de projeto.");
+            }
+            Projeto projeto = projetoRepository.findById(objDTO.getProjetoId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + objDTO.getProjetoId()));
+
+            venda.setProjetoId(projeto.getId());
+            venda.setTotal(projeto.getValorTotal());
+            venda.setItensVenda(new ArrayList<>()); // Garante que não haverá itens
+        } else if (tipo == VendaTipo.VENDA) {
+            // Se a venda é de produto, processa os itens
+            if (objDTO.getItensVenda() != null) {
+                List<ItemVenda> itensVenda = objDTO.getItensVenda().stream().map(itemDTO -> {
+                    Produto produto = produtoRepository.findById(itemDTO.getProduto())
+                            .orElseThrow(() -> new ObjectNotFoundException("Produto não encontrado! ID: " + itemDTO.getProduto()));
+                    return new ItemVenda(null, itemDTO.getQuantidade(), itemDTO.getPreco(), null, produto, venda);
+                }).collect(Collectors.toList());
+                venda.setItensVenda(itensVenda);
+            }
         }
         return venda;
     }
-
-    // --- MÉTODOS DE OUTROS MÓDULOS (Mantidos para compatibilidade) ---
 
     @Transactional
     public Venda update(VendaDTO objDto) {
@@ -281,7 +304,6 @@ public class VendaService {
         }
     }
 
-    // --- MÉTODOS DE VENDA DE PROJETO (Mantidos integralmente para compatibilidade) ---
 
     @Transactional
     public VendaProjetoDTO criarVendaProjeto(VendaProjetoCreateDTO createDTO) {
@@ -307,41 +329,8 @@ public class VendaService {
         projeto.setStatus(StatusProjeto.VENDIDO);
         projetoRepository.save(projeto);
 
-        // A geração de contas a receber será feita pelo processamento completo
 
         return convertVendaToProjetoDTO(venda, projeto);
-    }
-
-    private VendaProjetoDTO convertVendaToProjetoDTO(Venda venda, Projeto projeto) {
-        VendaProjetoDTO dto = new VendaProjetoDTO();
-        dto.setId(venda.getVenId());
-        dto.setClienteId(venda.getCliente().getCliId());
-        dto.setCliente(venda.getCliente());
-        dto.setDataVenda(venda.getDataAbertura().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-
-        if (venda.getDataFechamento() != null) {
-            dto.setDataEfetivacao(venda.getDataFechamento().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-        }
-
-        dto.setValorTotal(venda.getTotal());
-        dto.setDesconto(venda.getDesconto());
-        dto.setValorFinal(venda.getTotal().subtract(venda.getDesconto()));
-        dto.setFormaPagamento(venda.getFormaPagamento().name());
-        dto.setNumeroParcelas(venda.getNumeroParcelas());
-        dto.setObservacoes(venda.getObservacoes());
-        dto.setStatus(venda.getDataFechamento() != null ? "VENDIDO" : "ORCAMENTO");
-        dto.setNomeCliente(venda.getCliente().getPessoa().getNome());
-
-        if (projeto != null) {
-            dto.setProjetoId(projeto.getId());
-            dto.setProjeto(projeto);
-            dto.setNomeProjeto(projeto.getNome());
-            dto.setTipoProjeto(projeto.getTipoProjeto().getDescricao());
-            dto.setDataPrevistaConclusao(projeto.getDataPrevista());
-            dto.setPodeGerarOS("VENDIDO".equals(dto.getStatus()));
-            dto.setPodeGerarContaReceber("VENDIDO".equals(dto.getStatus()));
-        }
-        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -421,46 +410,155 @@ public class VendaService {
         return convertVendaToProjetoDTO(venda, projeto);
     }
 
+    private VendaProjetoDTO convertVendaToProjetoDTO(Venda venda, Projeto projeto) {
+        VendaProjetoDTO dto = new VendaProjetoDTO();
+        dto.setId(venda.getVenId());
+        dto.setClienteId(venda.getCliente().getCliId());
+        dto.setDataVenda(venda.getDataAbertura().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+
+        if (venda.getDataFechamento() != null) {
+            dto.setDataEfetivacao(venda.getDataFechamento().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        }
+
+        dto.setValorTotal(venda.getTotal());
+        dto.setDesconto(venda.getDesconto());
+        dto.setValorFinal(venda.getTotal().subtract(venda.getDesconto()));
+        dto.setFormaPagamento(venda.getFormaPagamento().name());
+        dto.setNumeroParcelas(venda.getNumeroParcelas());
+        dto.setObservacoes(venda.getObservacoes());
+        dto.setStatus(venda.getDataFechamento() != null ? "VENDIDO" : "ORCAMENTO");
+        dto.setNomeCliente(venda.getCliente().getPessoa().getNome());
+
+        if (projeto != null) {
+            dto.setProjetoId(projeto.getId());
+            dto.setNomeProjeto(projeto.getNome());
+            dto.setTipoProjeto(projeto.getTipoProjeto().getDescricao());
+            dto.setDataPrevistaConclusao(projeto.getDataPrevista());
+            dto.setPodeGerarOS(true);
+            dto.setPodeGerarContaReceber(true);
+
+            List<ProjetoItem> itens = new ArrayList<>();
+            if (projeto.getItens() != null) {
+                for (ProjetoItem item : projeto.getItens()) {
+                    ProjetoItem itemCopia = new ProjetoItem();
+                    itemCopia.setId(item.getId());
+                    itemCopia.setQuantidade(item.getQuantidade());
+                    itemCopia.setValorUnitario(item.getValorUnitario());
+
+                    if (item.getProduto() != null) {
+                        Produto produtoCopia = new Produto();
+                        produtoCopia.setProdId(item.getProduto().getProdId());
+                        produtoCopia.setNome(item.getProduto().getNome());
+                        produtoCopia.setNome(item.getProduto().getNome());
+                        itemCopia.setProduto(produtoCopia);
+                    }
+                    itens.add(itemCopia);
+                }
+            }
+
+            Projeto projetoLeve = new Projeto();
+            projetoLeve.setId(projeto.getId());
+            projetoLeve.setNome(projeto.getNome());
+            projetoLeve.setDescricao(projeto.getDescricao());
+            projetoLeve.setDataPrevista(projeto.getDataPrevista());
+            projetoLeve.setItens(itens);
+            dto.setProjeto(projetoLeve);
+        }
+
+        Cliente clienteLeve = new Cliente();
+        clienteLeve.setCliId(venda.getCliente().getCliId());
+        clienteLeve.setPessoa(venda.getCliente().getPessoa());
+        dto.setCliente(clienteLeve);
+        dto.setNomeCliente(venda.getCliente().getPessoa().getNome());
+
+        return dto;
+    }
     @Transactional
     public VendaProjetoDTO efetuarVendaProjeto(Integer id) {
         Venda venda = findById(id);
+
         if (!venda.isVendaProjeto()) {
-            throw new IllegalArgumentException("Esta venda não é uma venda de projeto");
+            throw new IllegalArgumentException("Esta venda não é uma venda de projeto.");
         }
         if (venda.getDataFechamento() != null) {
-            throw new IllegalStateException("Esta venda já foi efetivada");
+            throw new IllegalStateException("Esta venda já foi efetivada anteriormente.");
         }
+
+        Venda finalVenda = venda;
+        Projeto projeto = projetoRepository.findById(venda.getProjetoId())
+                .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + finalVenda.getProjetoId()));
+
+        if (venda.getCliente() != null) {
+            venda.getCliente().getCliId(); // força inicialização
+            venda.getCliente().getPessoa().getNome();
+            if (venda.getCliente().getPessoa() != null) {
+                venda.getCliente().getPessoa().getId();
+                venda.getCliente().getPessoa().getNome();
+            }
+
+        }
+
+        if (projeto.getCliente() != null) {
+            projeto.getCliente().getCliId();
+            projeto.getCliente().getPessoa().getNome();
+            if (projeto.getCliente().getPessoa() != null) {
+                projeto.getCliente().getPessoa().getId();
+                projeto.getCliente().getPessoa().getNome();
+            }
+        }
+
+        if (projeto.getTipoProjeto() != null) {
+            projeto.getTipoProjeto();
+            projeto.getTipoProjeto().getDescricao();
+        }
+
+        // 4. Itens do projeto
+        if (projeto.getItens() != null) {
+            for (ProjetoItem item : projeto.getItens()) {
+                item.getId();
+                item.getQuantidade();
+                item.getValorUnitario();
+                if (item.getProduto() != null) {
+                    item.getProduto().getProdId();
+                    item.getProduto().getNome();
+                    item.getProduto().getNome();
+                }
+            }
+        }
+
+
         venda.setDataFechamento(new Date());
         venda = vendaRepository.save(venda);
-        Venda finalVenda = venda;
-        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
-                .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + finalVenda.getProjetoId()));
+
         projeto.setStatus(StatusProjeto.VENDIDO);
-        projetoRepository.save(projeto);
+        projeto = projetoRepository.save(projeto);
+
+        try {
+            gerarContasReceberParceladas(venda.getVenId());
+        } catch (IllegalStateException e) {
+            if (!e.getMessage().contains("já foram geradas")) {
+                throw e;
+            }
+        }
+
         return convertVendaToProjetoDTO(venda, projeto);
     }
 
     @Transactional
     public String gerarOrdemServicoParaVendaProjeto(Integer vendaId) {
-        try {
-            Venda venda = findById(vendaId);
-            if (venda.getDataFechamento() == null) {
-                throw new IllegalStateException("Venda deve estar efetivada para gerar ordem de serviço");
-            }
-            if (!venda.isVendaProjeto()) {
-                throw new IllegalStateException("Venda não é do tipo projeto");
-            }
-            if (venda.getProjetoId() == null) {
-                throw new IllegalStateException("Projeto não associado à venda");
-            }
-            if (ordemServicoService.existeOrdemServicoParaProjeto(venda.getProjetoId())) {
-                throw new IllegalStateException("Já existe ordem de serviço para este projeto");
-            }
-            OrdemServicoDTO os = ordemServicoService.gerarPorProjeto(venda.getProjetoId());
-            return "Ordem de serviço " + os.getNumero() + " gerada com sucesso";
-        } catch (Exception e) {
-            throw new RuntimeException("Falha ao gerar ordem de serviço: " + e.getMessage());
+        Venda venda = findById(vendaId);
+        if (venda.getDataFechamento() == null) {
+            throw new IllegalStateException("A Venda deve estar efetivada para gerar uma Ordem de Serviço.");
         }
+        if (!venda.isVendaProjeto() || venda.getProjetoId() == null) {
+            throw new IllegalStateException("Esta venda não é de um projeto ou não tem um projeto associado.");
+        }
+        if (ordemServicoService.existeOrdemServicoParaProjeto(venda.getProjetoId())) {
+            throw new IllegalStateException("Já existe uma Ordem de Serviço para este projeto.");
+        }
+
+        OrdemServicoDTO os = ordemServicoService.gerarPorProjeto(venda.getProjetoId());
+        return "Ordem de Serviço " + os.getNumero() + " gerada com sucesso!";
     }
 
     @Transactional

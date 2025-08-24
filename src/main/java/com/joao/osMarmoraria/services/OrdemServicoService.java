@@ -40,11 +40,11 @@ public class OrdemServicoService {
 	private ProjetoService projetoService;
 
 	// CRUD Operations
-	public List<OrdemServicoDTO> listarTodas() {
-		return ordemServicoRepository.findAll().stream()
-				.map(this::convertToDTO)
-				.collect(Collectors.toList());
-	}
+    public List<OrdemServicoDTO> listarTodas() {
+        return ordemServicoRepository.findAllWithDetails().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 
 	public OrdemServicoDTO buscarPorId(Integer id) {
 		OrdemServico ordemServico = ordemServicoRepository.findByIdWithDetails(id)
@@ -58,70 +58,74 @@ public class OrdemServicoService {
 		return convertToDTO(ordemServico);
 	}
 
-	public OrdemServicoDTO gerarPorProjeto(Integer projetoId) {
-		// Verificar se projeto existe
-		Projeto projeto = projetoRepository.findByIdWithDetails(projetoId)
-				.orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado com ID: " + projetoId));
+    public OrdemServicoDTO gerarPorProjeto(Integer projetoId) {
+        Projeto projeto = projetoRepository.findByIdWithDetails(projetoId)
+                .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado com ID: " + projetoId));
 
-		// Verificar se projeto pode gerar O.S.
-		if (!projeto.podeGerarOrdemServico()) {
-			throw new IllegalStateException("Projeto deve estar em status 'Orçamento' ou 'Aprovado' para gerar O.S.");
-		}
+        if (projeto.getStatus() != StatusProjeto.ORCAMENTO &&
+                projeto.getStatus() != StatusProjeto.APROVADO &&
+                projeto.getStatus() != StatusProjeto.VENDIDO) {
 
-		// Verificar se já existe O.S. para este projeto
-		if (ordemServicoRepository.existsByProjetoId(projetoId)) {
-			throw new IllegalStateException("Já existe uma ordem de serviço para este projeto");
-		}
+            throw new IllegalStateException(
+                    "Projeto deve estar em status 'Orçamento', 'Aprovado' ou 'Vendido' para gerar Ordem de Serviço."
+            );
+        }
 
-		// Criar a ordem de serviço
-		OrdemServico ordemServico = new OrdemServico();
-		ordemServico.setNumero(gerarNumeroOS());
-		ordemServico.setProjetoId(projetoId);
-		ordemServico.setClienteId(projeto.getCliente().getCliId());
-		ordemServico.setDataEmissao(LocalDate.now());
-		ordemServico.setDataPrevistaConclusao(projeto.getDataPrevista());
-		ordemServico.setValorTotal(projeto.getValorTotal());
-		ordemServico.setObservacoes("Ordem de serviço gerada automaticamente do projeto: " + projeto.getNome());
-		ordemServico.setUsuarioCriacao(projeto.getUsuarioCriacao().getId());
+        // Verificar se já existe O.S. para este projeto
+        if (ordemServicoRepository.existsByProjetoId(projetoId)) {
+            throw new IllegalStateException("Já existe uma ordem de serviço para este projeto");
+        }
 
-		// Montar instruções técnicas
-		StringBuilder instrucoes = new StringBuilder();
-		instrucoes.append("PROJETO: ").append(projeto.getNome()).append("\n");
-		instrucoes.append("TIPO: ").append(projeto.getTipoProjeto().getDescricao()).append("\n");
-		if (projeto.getProfundidade() != null && projeto.getLargura() != null && projeto.getAltura() != null) {
-			instrucoes.append("MEDIDAS: ")
-					.append(projeto.getProfundidade()).append("m x ")
-					.append(projeto.getLargura()).append("m x ")
-					.append(projeto.getAltura()).append("m\n");
-		}
-		if (projeto.getArea() != null) {
-			instrucoes.append("ÁREA: ").append(projeto.getArea()).append("m²\n");
-		}
-		if (projeto.getObservacoes() != null) {
-			instrucoes.append("OBSERVAÇÕES: ").append(projeto.getObservacoes()).append("\n");
-		}
+        // Criar a ordem de serviço
+        OrdemServico ordemServico = new OrdemServico();
+        ordemServico.setNumero(gerarNumeroOS());
+        ordemServico.setProjetoId(projetoId);
+        ordemServico.setClienteId(projeto.getCliente().getCliId());
+        ordemServico.setDataEmissao(LocalDate.now());
+        ordemServico.setDataPrevistaConclusao(projeto.getDataPrevista());
+        ordemServico.setValorTotal(projeto.getValorTotal());
+        ordemServico.setObservacoes("Ordem de serviço gerada automaticamente do projeto: " + projeto.getNome());
+        ordemServico.setUsuarioCriacao(projeto.getUsuarioCriacao().getId());
 
-		ordemServico.setInstrucoesTecnicas(instrucoes.toString());
+        // Montar instruções técnicas
+        StringBuilder instrucoes = new StringBuilder();
+        instrucoes.append("PROJETO: ").append(projeto.getNome()).append("\n");
+        instrucoes.append("TIPO: ").append(projeto.getTipoProjeto().getDescricao()).append("\n");
+        if (projeto.getProfundidade() != null && projeto.getLargura() != null && projeto.getAltura() != null) {
+            instrucoes.append("MEDIDAS: ")
+                    .append(projeto.getProfundidade()).append("m x ")
+                    .append(projeto.getLargura()).append("m x ")
+                    .append(projeto.getAltura()).append("m\n");
+        }
+        if (projeto.getArea() != null) {
+            instrucoes.append("ÁREA: ").append(projeto.getArea()).append("m²\n");
+        }
+        if (projeto.getObservacoes() != null) {
+            instrucoes.append("OBSERVAÇÕES: ").append(projeto.getObservacoes()).append("\n");
+        }
 
-		ordemServico = ordemServicoRepository.save(ordemServico);
+        ordemServico.setInstrucoesTecnicas(instrucoes.toString());
 
-		// Criar itens da O.S. baseados no projeto
-		List<ProjetoItem> itensJProjeto = projetoItemRepository.findByProjetoId(projetoId);
-		for (ProjetoItem itemProjeto : itensJProjeto) {
-			ItemOrdemServico itemOS = new ItemOrdemServico();
-			itemOS.setOrdemServicoId(ordemServico.getId());
-			itemOS.setProdutoId(itemProjeto.getProdutoId());
-			itemOS.setQuantidade(itemProjeto.getQuantidade());
-			itemOS.setValorUnitario(itemProjeto.getValorUnitario());
-			itemOS.setObservacoes(itemProjeto.getObservacoes());
-			itemOrdemServicoRepository.save(itemOS);
-		}
+        ordemServico = ordemServicoRepository.save(ordemServico);
 
-		// Atualizar status do projeto para APROVADO
-		projetoService.atualizarStatus(projetoId, StatusProjeto.APROVADO);
+        List<ProjetoItem> itensJProjeto = projetoItemRepository.findByProjetoId(projetoId);
+        for (ProjetoItem itemProjeto : itensJProjeto) {
+            ItemOrdemServico itemOS = new ItemOrdemServico();
+            itemOS.setOrdemServicoId(ordemServico.getId());
+            itemOS.setProdutoId(itemProjeto.getProdutoId());
+            itemOS.setQuantidade(itemProjeto.getQuantidade());
+            itemOS.setValorUnitario(itemProjeto.getValorUnitario());
+            itemOS.setObservacoes(itemProjeto.getObservacoes());
+            itemOrdemServicoRepository.save(itemOS);
+        }
 
-		return convertToDTO(ordemServicoRepository.findByIdWithDetails(ordemServico.getId()).get());
-	}
+
+        if (projeto.getStatus() == StatusProjeto.ORCAMENTO || projeto.getStatus() == StatusProjeto.APROVADO) {
+            projetoService.atualizarStatus(projetoId, StatusProjeto.EM_PRODUCAO);
+        }
+
+        return convertToDTO(ordemServicoRepository.findByIdWithDetails(ordemServico.getId()).get());
+    }
 
 	public OrdemServicoDTO atualizarOrdemServico(Integer id, OrdemServicoDTO ordemServicoDTO) {
 		OrdemServico ordemExistente = ordemServicoRepository.findById(id)

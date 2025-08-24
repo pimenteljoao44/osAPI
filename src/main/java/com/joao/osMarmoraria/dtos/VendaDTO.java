@@ -149,7 +149,6 @@ public class VendaDTO implements Serializable {
     public void setDesconto(BigDecimal desconto) {
         this.desconto = desconto;
     }
-    @JsonProperty("tipo")
     public Integer getVendaTipo() {
         return vendaTipo;
     }

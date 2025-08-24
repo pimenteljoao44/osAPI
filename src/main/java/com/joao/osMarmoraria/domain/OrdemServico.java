@@ -2,6 +2,7 @@ package com.joao.osMarmoraria.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
 
 import javax.persistence.*;
@@ -82,6 +83,7 @@ public class OrdemServico implements Serializable {
 
     // Relacionamentos
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<ItemOrdemServico> itens = new ArrayList<>();
 
     // Auditoria

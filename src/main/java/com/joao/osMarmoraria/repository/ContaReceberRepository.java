@@ -14,10 +14,19 @@ import java.util.List;
 @Repository
 public interface ContaReceberRepository extends JpaRepository<ContaReceber, Integer> {
 
-    @Query("SELECT cr FROM ContaReceber cr LEFT JOIN FETCH cr.venda v LEFT JOIN FETCH v.cliente LEFT JOIN FETCH cr.projeto p WHERE cr.id = :id")
+    @Query("SELECT cr FROM ContaReceber cr " +
+            "LEFT JOIN FETCH cr.venda v " +
+            "LEFT JOIN FETCH v.cliente " + // Cliente da Venda
+            "LEFT JOIN FETCH v.projeto p " + // Projeto DENTRO da Venda
+            "LEFT JOIN FETCH p.usuarioCriacao " + // Usuario DENTRO do Projeto
+            "WHERE cr.id = :id")
     ContaReceber findByIdWithDetails(@Param("id") Integer id);
 
-    @Query("SELECT cr FROM ContaReceber cr LEFT JOIN FETCH cr.venda v LEFT JOIN FETCH v.cliente LEFT JOIN FETCH cr.projeto p")
+    @Query("SELECT cr FROM ContaReceber cr " +
+            "LEFT JOIN FETCH cr.venda v " +
+            "LEFT JOIN FETCH v.cliente " +
+            "LEFT JOIN FETCH v.projeto p " +
+            "LEFT JOIN FETCH p.usuarioCriacao")
     List<ContaReceber> findAllWithDetails();
 
     List<ContaReceber> findByStatus(String status);

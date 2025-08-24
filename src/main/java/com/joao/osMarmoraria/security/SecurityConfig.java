@@ -34,142 +34,146 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().authorizeRequests(authorize ->
                         authorize.antMatchers(HttpMethod.POST, "/auth/login").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/recovery").permitAll()
-                                .antMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                                .antMatchers(HttpMethod.POST, "/auth/register").hasRole("ADMIN")
                                 .antMatchers(HttpMethod.GET, "/localidades/**").permitAll()
-                                .antMatchers(HttpMethod.GET, "/produto").permitAll()
-                                .antMatchers(HttpMethod.POST, "/produto").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/produto").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/produto").permitAll()
-                                .antMatchers(HttpMethod.GET, "/grupo").permitAll()
-                                .antMatchers(HttpMethod.POST, "/grupo").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/grupo/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/grupo/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/funcionarios").permitAll()
-                                .antMatchers(HttpMethod.GET, "/funcionarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/funcionarios").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/funcionarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/funcionarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/clientes").permitAll()
-                                .antMatchers(HttpMethod.GET, "/clientes/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/clientes").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/clientes/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/clientes/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/fornecedores").permitAll()
-                                .antMatchers(HttpMethod.GET, "/fornecedores/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/fornecedores").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/fornecedores/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/fornecedores{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/os").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/os/{id}").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/os/{id/concluir-os}").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/os/{id}/iniciar-os}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/usuarios").permitAll()
-                                .antMatchers(HttpMethod.POST, "/usuarios").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/usuarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/usuarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/usuarios/{id}/update-password").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/estado").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/estado").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/estado/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/estado/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/cidade").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/cidade/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/cidade").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/cidade/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/cidade/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/pessoas").permitAll()
-                                .antMatchers(HttpMethod.POST, "/pessoas").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/pessoas/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/pessoas/{id}").permitAll().antMatchers(HttpMethod.GET, "/venda").permitAll()
-                                .antMatchers(HttpMethod.POST, "/venda").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/venda/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/venda").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/venda/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/venda/itens").permitAll()
-                                .antMatchers(HttpMethod.POST, "/venda/{id}/addItem").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/venda/{id}/removeItem/{itemId}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/compra").permitAll()
-                                .antMatchers(HttpMethod.POST, "/compra").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/compra/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/compra/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/compra/itens").permitAll()
-                                .antMatchers(HttpMethod.POST, "/compra/{id}/addItem")
-                                .permitAll().antMatchers(HttpMethod.DELETE, "/compra/{id}/removeItem/{itemId}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/relatorios/gerar/relatorioDeVendasResumido").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/projetos-personalizados").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/projetos-personalizados/{id}").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/projetos-personalizados/{id}/status").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/projetos-personalizados/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/projetos-personalizados/calcular-orcamento").permitAll()
-                                .antMatchers(HttpMethod.POST, "/projetos-personalizados/materiais-sugeridos").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/relatorio/periodo").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/cliente/{id}").permitAll()
 
-                                // Endpoints de tipos e status (se existirem)
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/tipos").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/status").permitAll()
-                                // Configuração para Contas a Receber
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/contas-receber/venda").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/contas-receber/projeto").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/contas-receber/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/contas-receber/{id}").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-receber/{id}/receber").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-receber/{id}/cancelar").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/status/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/cliente/{clienteId}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/vencidas").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/vencendo").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/total/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/total-vencido").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/total-recebido").permitAll()
+                                // Produtos - funcionários podem visualizar, apenas admins podem modificar
+                                .antMatchers(HttpMethod.GET, "/produto").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/produto").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/produto").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/produto").hasRole("ADMIN")
 
-                                // Configuração para Contas a Pagar
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/contas-pagar").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/contas-pagar/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/contas-pagar/{id}").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-pagar/{id}/pagar").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-pagar/{id}/cancelar").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/status/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/fornecedor/{fornecedorId}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/vencidas").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/vencendo").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/total/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/total-vencido").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/parcelas/dashboard/resumo").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/parcelas/vencidas").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/parcelas/proximas-vencer").permitAll()
-                                .antMatchers("/error").permitAll()
+                                // Grupos - funcionários podem visualizar, apenas admins podem modificar
+                                .antMatchers(HttpMethod.GET, "/grupo").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/grupo").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/grupo/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/grupo/{id}").hasRole("ADMIN")
 
-                                .antMatchers(HttpMethod.POST,"/api/venda-unificada/**").permitAll()
-                                .anyRequest().authenticated()).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
-    }
+                                // Funcionários - apenas admins podem gerenciar
+                                .antMatchers(HttpMethod.GET, "/funcionarios").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.GET, "/funcionarios/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.POST, "/funcionarios").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/funcionarios/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/funcionarios/{id}").hasRole("ADMIN")
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                                // Clientes - funcionários podem visualizar e criar, apenas admins podem deletar
+                                .antMatchers(HttpMethod.GET, "/clientes").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.GET, "/clientes/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/clientes").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PUT, "/clientes/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.DELETE, "/clientes/{id}").hasRole("ADMIN")
 
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+                                // Fornecedores - apenas admins podem gerenciar
+                                .antMatchers(HttpMethod.GET, "/fornecedores").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.GET, "/fornecedores/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.POST, "/fornecedores").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/fornecedores/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/fornecedores/{id}").hasRole("ADMIN")
+
+                                // Ordens de Serviço - funcionários podem visualizar, apenas admins podem aprovar
+                                .antMatchers(HttpMethod.GET, "/api/os").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/api/os").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PUT, "/api/os/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PATCH, "/api/os/{id}/aprovar").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PATCH, "/api/os/{id}/aprovar-e-agendar").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PATCH, "/api/os/{id}/**").hasAnyRole("ADMIN", "USER")
+
+                                // Usuários - apenas admins podem gerenciar
+                                .antMatchers(HttpMethod.GET, "/usuarios").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.POST, "/usuarios").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/usuarios/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/usuarios/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/usuarios/{id}/update-password").hasRole("ADMIN")
+
+                                // Estados e Cidades - funcionários podem visualizar, apenas admins podem modificar
+                                .antMatchers(HttpMethod.GET, "/api/estado").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/api/estado").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/api/estado/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/api/estado/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.GET, "/api/cidade").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.GET, "/api/cidade/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/api/cidade").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/api/cidade/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/api/cidade/{id}").hasRole("ADMIN")
+
+                                // Pessoas - funcionários podem visualizar e criar, apenas admins podem deletar
+                                .antMatchers(HttpMethod.GET, "/pessoas").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/pessoas").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PUT, "/pessoas/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.DELETE, "/pessoas/{id}").hasRole("ADMIN")
+
+                                // Vendas - funcionários podem visualizar e criar, apenas admins podem deletar
+                                .antMatchers(HttpMethod.GET, "/venda").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/venda").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PUT, "/venda/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.DELETE, "/venda/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.GET, "/venda/itens").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/venda/{id}/addItem").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.DELETE, "/venda/{id}/removeItem/{itemId}").hasAnyRole("ADMIN", "USER")
+
+                                // Vendas Unificadas - funcionários podem visualizar e criar, apenas admins podem deletar
+                                .antMatchers(HttpMethod.GET, "/api/venda-unificada/**").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/api/venda-unificada/**").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PUT, "/api/venda-unificada/**").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PATCH, "/api/venda-unificada/**").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.DELETE, "/api/venda-unificada/**").hasRole("ADMIN")
+
+                                // Compras - apenas admins podem gerenciar
+                                .antMatchers(HttpMethod.GET, "/compra").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.POST, "/compra").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PUT, "/compra/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/compra/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.GET, "/compra/itens").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.POST, "/compra/{id}/addItem").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/compra/{id}/removeItem/{itemId}").hasRole("ADMIN")
+
+                                // Relatórios - apenas admins podem gerar
+                                .antMatchers(HttpMethod.POST, "/relatorios/gerar/relatorioDeVendasResumido").hasRole("ADMIN")
+
+                                // Projetos - funcionários podem visualizar, apenas admins podem aprovar/rejeitar
+                                .antMatchers(HttpMethod.GET, "/projetos-personalizados").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/projetos-personalizados").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PUT, "/projetos-personalizados/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.PATCH, "/projetos-personalizados/{id}/aprovar").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.PATCH, "/projetos-personalizados/{id}/rejeitar").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.DELETE, "/projetos-personalizados/{id}").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.POST, "/projetos-personalizados/calcular-orcamento").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.POST, "/projetos-personalizados/materiais-sugeridos").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/relatorio/periodo").hasRole("ADMIN")
+                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/cliente/{id}").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/tipos").hasAnyRole("ADMIN", "USER")
+                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/status").hasAnyRole("ADMIN", "USER")
+
+                                // Contas a Pagar/Receber - apenas admins podem gerenciar
+                                .antMatchers("/api/contas-pagar/**").hasRole("ADMIN")
+                                .antMatchers("/api/contas-receber/**").hasRole("ADMIN")
+
+                                .anyRequest().authenticated()
+                )
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
+

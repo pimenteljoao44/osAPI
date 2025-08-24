@@ -1,4 +1,5 @@
 package com.joao.osMarmoraria.domain;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.joao.osMarmoraria.domain.Fornecedor;
 import com.joao.osMarmoraria.domain.Grupo;
 
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 @Entity
 @Data
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Produto implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

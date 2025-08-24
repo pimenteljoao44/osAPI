@@ -152,6 +152,16 @@ public class ProjetoController {
         return ResponseEntity.ok(projeto);
     }
 
+    @PatchMapping("/{id}/aprovar")
+    public ResponseEntity<ProjetoDTO> aprovarProjeto(
+            @PathVariable Integer id,
+            @RequestBody(required = false) Map<String, String> request) {
+
+        String observacoes = request != null ? request.get("observacoes") : null;
+        ProjetoDTO projeto = projetoService.aprovarProjeto(id, observacoes);
+        return ResponseEntity.ok(projeto);
+    }
+
     @PostMapping("/calcular-orcamento")
     public ResponseEntity<CalculoOrcamentoDTO> calcularOrcamento(@Valid @RequestBody ProjetoDTO projetoDTO) {
         CalculoOrcamentoDTO calculo = projetoService.calcularOrcamento(projetoDTO);

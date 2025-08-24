@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.joao.osMarmoraria.domain.enums.NivelAcesso;
 
@@ -18,6 +19,7 @@ import javax.validation.constraints.NotEmpty;
 
 @Entity
 @Cacheable(false)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Usuario implements UserDetails {
 
     private static final long serialVersionUID = 1L;

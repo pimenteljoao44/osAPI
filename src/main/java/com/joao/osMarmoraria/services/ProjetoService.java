@@ -138,6 +138,7 @@ public class ProjetoService {
         }
 
         projeto.setStatus(novoStatus);
+        System.out.println("STATUS DO PROJETO ATUALIZADO COM SUCESSO!");
 
         // Definir datas baseadas no status
         switch (novoStatus) {
@@ -147,6 +148,44 @@ public class ProjetoService {
             case ENTREGUE:
                 projeto.setDataFinalizacao(LocalDate.now());
                 break;
+        }
+
+        projeto = projetoRepository.save(projeto);
+        return convertToDTO(projeto);
+    }
+
+    /**
+     * Aprova um projeto, alterando seu status para APROVADO e definindo a data de início
+     * @param id ID do projeto
+     * @param observacoes Observações sobre a aprovação (opcional)
+     * @return ProjetoDTO atualizado
+     */
+    @Transactional
+    public ProjetoDTO aprovarProjeto(Integer id, String observacoes) {
+        Projeto projeto = projetoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado com ID: " + id));
+
+        // Verificar se o projeto pode ser aprovado
+        if (projeto.getStatus() != StatusProjeto.ORCAMENTO) {
+            throw new IllegalStateException("Apenas projetos com status ORCAMENTO podem ser aprovados. Status atual: " + projeto.getStatus());
+        }
+
+        // Verificar se o projeto tem valor total calculado
+        if (projeto.getValorTotal() == null || projeto.getValorTotal().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Projeto deve ter valor total calculado antes da aprovação");
+        }
+
+        // Atualizar status e data de início
+        projeto.setStatus(StatusProjeto.APROVADO);
+        projeto.setDataInicio(LocalDate.now());
+
+        // Adicionar observações se fornecidas
+        if (observacoes != null && !observacoes.trim().isEmpty()) {
+            String observacoesExistentes = projeto.getObservacoes();
+            String novasObservacoes = observacoesExistentes != null ?
+                    observacoesExistentes + "\n\nAprovação em " + LocalDate.now() + ": " + observacoes :
+                    "Aprovação em " + LocalDate.now() + ": " + observacoes;
+            projeto.setObservacoes(novasObservacoes);
         }
 
         projeto = projetoRepository.save(projeto);

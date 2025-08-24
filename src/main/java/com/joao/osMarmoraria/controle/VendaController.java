@@ -4,6 +4,7 @@ import com.joao.osMarmoraria.domain.ItemCompra;
 import com.joao.osMarmoraria.domain.ItemVenda;
 import com.joao.osMarmoraria.dtos.CompraDTO;
 import com.joao.osMarmoraria.dtos.VendaDTO;
+import com.joao.osMarmoraria.dtos.VendaProjetoDTO;
 import com.joao.osMarmoraria.services.VendaService;
 import com.joao.osMarmoraria.services.ContaReceberService;
 import com.joao.osMarmoraria.services.OrdemServicoService;
@@ -127,6 +128,12 @@ public class VendaController {
 			return ResponseEntity.badRequest().body(response);
 		}
 	}
+
+    @PostMapping("/{id}/efetivar-projeto")
+    public ResponseEntity<VendaProjetoDTO> efetivarVendaProjeto(@PathVariable Integer id) {
+        VendaProjetoDTO vendaDTO = vendaService.efetuarVendaProjeto(id);
+        return ResponseEntity.ok(vendaDTO);
+    }
 
 	@PostMapping(value = "/{id}/gerar-conta-receber")
 	public ResponseEntity<Map<String, Object>> gerarContaReceber(@PathVariable Integer id) {

@@ -168,7 +168,7 @@ public class Projeto implements Serializable {
     }
 
     public boolean podeGerarOrdemServico() {
-        return status == StatusProjeto.ORCAMENTO || status == StatusProjeto.APROVADO;
+        return status == StatusProjeto.ORCAMENTO || status == StatusProjeto.APROVADO || status == StatusProjeto.VENDIDO;
     }
 
     public boolean podeSerCancelado() {

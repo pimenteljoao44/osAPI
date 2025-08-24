@@ -1,4 +1,5 @@
 package com.joao.osMarmoraria.domain;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
@@ -21,6 +22,7 @@ public class ItemOrdemServico implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ordem_servico_id", insertable = false, updatable = false)
+    @JsonBackReference
     private OrdemServico ordemServico;
 
     @Column(name = "produto_id", nullable = false)

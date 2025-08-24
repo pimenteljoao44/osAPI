@@ -15,6 +15,9 @@ import java.util.Optional;
 @Repository
 public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Integer> {
 
+    @Query("SELECT os FROM OrdemServico os LEFT JOIN FETCH os.cliente LEFT JOIN FETCH os.projeto")
+    List<OrdemServico> findAllWithDetails();
+
     @Query("SELECT os FROM OrdemServico os LEFT JOIN FETCH os.cliente LEFT JOIN FETCH os.projeto WHERE os.id = :id")
     Optional<OrdemServico> findByIdWithDetails(@Param("id") Integer id);
 
