@@ -23,7 +23,6 @@ public class ProdutoDTO implements Serializable {
     @JsonProperty("grupo")
     private Grupo grupo;
     private Integer fornecedor;
-    private Integer ordemDeServico;
 
     public ProdutoDTO(Produto obj) {
         this.id = obj.getProdId();
@@ -38,9 +37,6 @@ public class ProdutoDTO implements Serializable {
             this.fornecedor = obj.getFornecedor().getId();
         }
 
-        if (obj.getOrdemDeServico() != null) {
-            this.ordemDeServico = obj.getOrdemDeServico().getId();
-        }
     }
 
 
@@ -111,11 +107,5 @@ public class ProdutoDTO implements Serializable {
         this.fornecedor = fornecedor;
     }
 
-    public Integer getOrdemDeServico() {
-        return ordemDeServico;
-    }
 
-    public void setOrdemDeServico(Integer ordemDeServico) {
-        this.ordemDeServico = ordemDeServico;
-    }
 }

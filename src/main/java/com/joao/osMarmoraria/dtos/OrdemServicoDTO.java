@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.joao.osMarmoraria.domain.Cliente;
 
 import com.joao.osMarmoraria.domain.Projeto;
@@ -28,6 +30,7 @@ public class OrdemServicoDTO {
     @NotNull(message = "Cliente é obrigatório")
     private Integer clienteId;
 
+    @JsonBackReference("cliente-ordemservico")
     private Cliente cliente;
 
     @NotNull(message = "Data de emissão é obrigatória")
@@ -54,6 +57,7 @@ public class OrdemServicoDTO {
     @DecimalMin(value = "0.0", inclusive = false, message = "Valor total deve ser maior que zero")
     private BigDecimal valorTotal;
 
+    @JsonManagedReference("os-items")
     private List<ItemOrdemServicoDTO> itens;
 
     private LocalDateTime dataCriacao;

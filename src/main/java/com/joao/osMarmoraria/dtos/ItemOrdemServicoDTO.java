@@ -1,5 +1,6 @@
 package com.joao.osMarmoraria.dtos;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.joao.osMarmoraria.domain.Produto;
 
 import javax.validation.constraints.DecimalMin;
@@ -12,6 +13,9 @@ public class ItemOrdemServicoDTO {
     private Integer id;
 
     private Integer ordemServicoId;
+
+    @JsonBackReference("os-items")
+    private OrdemServicoDTO ordemServico;
 
     @NotNull(message = "Produto é obrigatório")
     private Integer produtoId;

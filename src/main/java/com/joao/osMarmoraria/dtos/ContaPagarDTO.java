@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.joao.osMarmoraria.domain.Compra;
 import com.joao.osMarmoraria.domain.ContaPagar;
 import com.joao.osMarmoraria.domain.Fornecedor;
@@ -37,6 +38,7 @@ public class ContaPagarDTO {
 
     private String status; // PENDENTE, PAGO, VENCIDO, CANCELADO
 
+    @JsonProperty("descricao")
     private String observacoes;
 
     private String numeroDocumento;

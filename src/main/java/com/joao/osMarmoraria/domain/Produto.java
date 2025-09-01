@@ -1,4 +1,5 @@
 package com.joao.osMarmoraria.domain;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.joao.osMarmoraria.domain.Fornecedor;
 import com.joao.osMarmoraria.domain.Grupo;
@@ -40,9 +41,6 @@ public class Produto implements Serializable {
     @JoinColumn(name = "fornecedor_id")
     private Fornecedor fornecedor;
 
-    @ManyToOne
-    @JoinColumn(name = "os_id")
-    private OrdemServico ordemDeServico;
 
     @ManyToOne
     @JoinColumn(name = "ven_id")

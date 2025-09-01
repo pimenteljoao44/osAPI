@@ -154,6 +154,7 @@ public class ContaReceberService {
 
     private ContaReceberDTO convertToDTO(ContaReceber contaReceber) {
         ContaReceberDTO dto = new ContaReceberDTO();
+        dto.setObservacoes(contaReceber.getDescricao());
         dto.setId(contaReceber.getId());
         dto.setValor(contaReceber.getValor());
         dto.setDataVencimento(contaReceber.getDataVencimento());

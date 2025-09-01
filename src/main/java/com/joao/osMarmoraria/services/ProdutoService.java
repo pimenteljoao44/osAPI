@@ -57,10 +57,6 @@ public class ProdutoService {
             newProd.setFornecedor(fornecedor);
         }
 
-        if (produtoDTO.getOrdemDeServico() != null) {
-            OrdemServico os = findOSById(produtoDTO.getOrdemDeServico());
-            newProd.setOrdemDeServico(os);
-        }
 
         produtoRepository.save(newProd);
 
@@ -82,19 +78,13 @@ public class ProdutoService {
             Fornecedor fornecedor = findFornecedorById(produtoDTO.getFornecedor());
             produto.setFornecedor(fornecedor);
         }
-        if (produtoDTO.getOrdemDeServico() != null) {
-            OrdemServico os = findOSById(produtoDTO.getOrdemDeServico());
-            produto.setOrdemDeServico(os);
-        }
         return produtoRepository.save(produto);
     }
 
 
     public void delete(Integer id) {
         Produto produto = findById(id);
-        if(produto.getOrdemDeServico() != null) {
-            throw new DataIntegratyViolationException("O Produto é pertencente a uma ordem de serviço, não pode ser deletado!");
-        }
+
         if (produto.getVenda() != null) {
             throw new DataIntegrityViolationException("O produto é pertencnente a uma venda, não pode ser desletado!");
         }
@@ -114,7 +104,6 @@ public class ProdutoService {
     }
 
     public Produto fromDTO(ProdutoDTO obj) {
-        OrdemServico os = findOSById(obj.getOrdemDeServico());
         Fornecedor fornecedor = findFornecedorById(obj.getFornecedor());
         Produto newProduto = new Produto();
         newProduto.setNome(obj.getNome());
@@ -124,7 +113,6 @@ public class ProdutoService {
         newProduto.setPrecoCusto(obj.getPreco());
         newProduto.setQuantidade(obj.getQuantidade());
         newProduto.setFornecedor(fornecedor);
-        newProduto.setOrdemDeServico(os);
         return newProduto;
     }
 }

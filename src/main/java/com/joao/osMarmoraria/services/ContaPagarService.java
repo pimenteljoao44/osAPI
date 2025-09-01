@@ -137,6 +137,7 @@ public class ContaPagarService {
     // Conversão DTO
     private ContaPagarDTO convertToDTO(ContaPagar contaPagar) {
         ContaPagarDTO dto = new ContaPagarDTO();
+        dto.setObservacoes(contaPagar.getObservacoes());
         dto.setId(contaPagar.getId());
         dto.setValor(contaPagar.getValor());
         dto.setDataVencimento(contaPagar.getDataVencimento());
