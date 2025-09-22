@@ -47,6 +47,9 @@ public class VendaService {
     @Autowired
     private ContaReceberRepository contaReceberRepository;
 
+    @Autowired
+    private EstoqueService estoqueService;
+
     @Transactional(readOnly = true)
     public Venda findById(Integer id) {
         return vendaRepository.findById(id)
@@ -329,6 +332,13 @@ public class VendaService {
         projeto.setStatus(StatusProjeto.VENDIDO);
         projetoRepository.save(projeto);
 
+        // Reservar materiais automaticamente após criar a venda do projeto
+        try {
+            estoqueService.reservarMaterialParaVenda(venda.getVenId(), projeto.getId());
+        } catch (Exception e) {
+            // Log do erro, mas não falha a venda
+            System.err.println("Erro ao reservar materiais para venda " + venda.getVenId() + ": " + e.getMessage());
+        }
 
         return convertVendaToProjetoDTO(venda, projeto);
     }

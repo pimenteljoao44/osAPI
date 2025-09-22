@@ -70,6 +70,18 @@ public class Produto implements Serializable {
         }
     }
 
+    public boolean temEstoqueSuficiente(BigDecimal quantidadeNecessaria) {
+        return estoque.compareTo(quantidadeNecessaria) >= 0;
+    }
+
+    public boolean isEstoqueBaixo(BigDecimal estoqueMinimo) {
+        return estoque.compareTo(estoqueMinimo) <= 0;
+    }
+
+    public boolean isSemEstoque() {
+        return estoque.compareTo(BigDecimal.ZERO) <= 0;
+    }
+
     @Override
     public String toString() {
         return "Produto{" +

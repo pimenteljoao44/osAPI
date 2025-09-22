@@ -90,7 +90,7 @@ public class OrdemServicoController {
         return ResponseEntity.ok(ordemServico);
     }
 
-    @PatchMapping("/{id}/iniciar-os")
+    @PatchMapping("/{id}/iniciar")
     public ResponseEntity<OrdemServicoDTO> iniciarExecucao(@PathVariable Integer id) {
         OrdemServicoDTO ordemServico = ordemServicoService.iniciarExecucao(id);
         return ResponseEntity.ok(ordemServico);
@@ -108,7 +108,7 @@ public class OrdemServicoController {
         return ResponseEntity.ok(ordemServico);
     }
 
-    @PatchMapping("/{id}/concluir-os")
+    @PatchMapping("/{id}/concluir")
     public ResponseEntity<OrdemServicoDTO> concluirExecucao(@PathVariable Integer id) {
         OrdemServicoDTO ordemServico = ordemServicoService.concluirExecucao(id);
         return ResponseEntity.ok(ordemServico);

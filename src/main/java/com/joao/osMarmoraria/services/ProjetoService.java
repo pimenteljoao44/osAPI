@@ -365,6 +365,8 @@ public class ProjetoService {
                 return novoStatus == StatusProjeto.PRONTO || novoStatus == StatusProjeto.CANCELADO;
             case PRONTO:
                 return novoStatus == StatusProjeto.ENTREGUE;
+            case VENDIDO:
+                return novoStatus == StatusProjeto.EM_PRODUCAO || novoStatus == StatusProjeto.CANCELADO;
             case ENTREGUE:
             case CANCELADO:
                 return false; // Estados finais
