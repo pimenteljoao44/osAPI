@@ -1,15 +1,10 @@
 package com.joao.osMarmoraria.dtos;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.joao.osMarmoraria.domain.Fornecedor;
 import com.joao.osMarmoraria.domain.Grupo;
 import com.joao.osMarmoraria.domain.Produto;
+import com.joao.osMarmoraria.domain.enums.UnidadeDeMedida;
 
-import javax.persistence.CascadeType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -20,6 +15,8 @@ public class ProdutoDTO implements Serializable {
     private Boolean ativo;
     private BigDecimal estoque;
     private BigDecimal quantidade;
+    private String unidadeDeMedida;
+
     @JsonProperty("grupo")
     private Grupo grupo;
     private Integer fornecedor;
@@ -32,13 +29,14 @@ public class ProdutoDTO implements Serializable {
         this.estoque = obj.getEstoque();
         this.quantidade = obj.getQuantidade();
         this.grupo = obj.getGrupo();
+        if (obj.getUnidadeDeMedida() != null) {
+            this.unidadeDeMedida = obj.getUnidadeDeMedida().name();
+        }
 
         if (obj.getFornecedor() != null) {
             this.fornecedor = obj.getFornecedor().getId();
         }
-
     }
-
 
     public ProdutoDTO() {
     }
@@ -91,6 +89,14 @@ public class ProdutoDTO implements Serializable {
         this.quantidade = quantidade;
     }
 
+    public String getUnidadeDeMedida() {
+        return unidadeDeMedida;
+    }
+
+    public void setUnidadeDeMedida(String unidadeDeMedida) {
+        this.unidadeDeMedida = unidadeDeMedida;
+    }
+
     public Grupo getGrupo() {
         return grupo;
     }
@@ -106,6 +112,4 @@ public class ProdutoDTO implements Serializable {
     public void setFornecedor(Integer fornecedor) {
         this.fornecedor = fornecedor;
     }
-
-
 }
