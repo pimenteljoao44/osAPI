@@ -11,6 +11,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Data
 public class ContaReceberDTO {
 
@@ -47,10 +49,10 @@ public class ContaReceberDTO {
     private String formaPagamento;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDate dataCriacao;
+    private LocalDateTime dataCriacao;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDate dataAtualizacao;
+    private LocalDateTime dataAtualizacao;
 
     private String usuarioCriacao;
 
@@ -65,8 +67,12 @@ public class ContaReceberDTO {
     private String nomeCliente;
     private String documentoCliente;
 
+    private Boolean parcelado;
+
+    private Integer numeroParcelas;
+
+
     public void setDiasAtraso(int diasAtraso) {
         this.diasAtraso = diasAtraso;
     }
 }
-

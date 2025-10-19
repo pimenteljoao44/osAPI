@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -215,9 +216,13 @@ public class CompraService {
             conta.setValor(parcela.getValorParcela());
             conta.setDataVencimento(parcela.getDataVencimento());
             conta.setStatus("PENDENTE");
+            conta.setObservacoes(compra.getObservacoes());
+            if(compra.getFormaPagamento() != null) {
+                conta.setFormaPagamento(compra.getFormaPagamento().toString());
+            }
+            conta.setDataCriacao(LocalDateTime.now());
 
-            ContaPagarDTO contaDTO = new ContaPagarDTO(conta);
-            ContaPagar contaSalva = contaPagarService.criar(contaDTO);
+            ContaPagar contaSalva = contaPagarService.insert(conta);
 
             parcela.setContaPagar(contaSalva);
             parcelaService.salvar(parcela);

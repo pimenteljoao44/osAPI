@@ -38,7 +38,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and().csrf().disable().sessionManagement().sessionCreationPolicy(
                         SessionCreationPolicy.IF_REQUIRED)
                 .and().authorizeRequests(authorize ->
-                        authorize.antMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        authorize.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .antMatchers(HttpMethod.POST, "/auth/login").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/recovery").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/register").hasRole("ADMIN")
                                 .antMatchers(HttpMethod.GET, "/localidades/**").permitAll()
@@ -151,9 +152,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                 .antMatchers(HttpMethod.GET, "/projetos-personalizados/tipos").hasAnyRole("ADMIN", "USER")
                                 .antMatchers(HttpMethod.GET, "/projetos-personalizados/status").hasAnyRole("ADMIN", "USER")
 
-                                // Contas a Pagar/Receber - apenas admins podem gerenciar
-                                .antMatchers("/api/contas-pagar/**").hasRole("ADMIN")
-                                .antMatchers("/api/contas-receber/**").hasRole("ADMIN")
+                                // Contas a Pagar/Receber - funcionários podem gerenciar
+                                .antMatchers("/api/contas-pagar/**").hasAnyRole("ADMIN", "USER")
+                                .antMatchers("/api/contas-receber/**").hasAnyRole("ADMIN", "USER")
 
                                 .anyRequest().authenticated()
                 )
@@ -186,4 +187,3 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 }
-

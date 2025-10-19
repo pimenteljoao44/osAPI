@@ -1,5 +1,6 @@
 package com.joao.osMarmoraria.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -27,7 +28,9 @@ public class ItemProjeto implements Serializable {
     @JoinColumn(name = "prod_id", nullable = false)
     private Produto produto;
 
+    @JsonBackReference("projeto-itens")
     @ManyToOne
+    @JoinColumn(name = "projeto_id")
     private Projeto projeto;
 
 

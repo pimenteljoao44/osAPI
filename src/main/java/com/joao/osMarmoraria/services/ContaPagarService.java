@@ -12,9 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,6 @@ public class ContaPagarService {
     @Autowired
     private CompraRepository compraRepository;
 
-    // CRUD Operations
     public List<ContaPagarDTO> listarTodas() {
         return contaPagarRepository.findAllWithDetails().stream()
                 .map(this::convertToDTO)
@@ -51,17 +49,8 @@ public class ContaPagarService {
     }
 
     public ContaPagar criar(ContaPagarDTO contaPagarDTO) {
-        Compra compra = compraRepository.findById(contaPagarDTO.getCompraId())
-                .orElseThrow(() -> new ObjectNotFoundException("Compra não encontrada com ID: " + contaPagarDTO.getCompraId()));
-
-        ContaPagar contaPagar = new ContaPagar();
-        contaPagar.setCompra(compra);
-        contaPagar.setValor(contaPagarDTO.getValor());
-        contaPagar.setDataVencimento(contaPagarDTO.getDataVencimento());
-        contaPagar.setStatus(contaPagarDTO.getStatus());
-
-        contaPagar = contaPagarRepository.save(contaPagar);
-        return contaPagar;
+        ContaPagar contaPagar = fromDTO(contaPagarDTO);
+        return contaPagarRepository.save(contaPagar);
     }
 
     public ContaPagar insert(ContaPagar contaPagar) {
@@ -77,6 +66,17 @@ public class ContaPagarService {
         contaPagar.setDataVencimento(contaPagarDTO.getDataVencimento());
         contaPagar.setStatus(contaPagarDTO.getStatus());
         contaPagar.setDataPagamento(contaPagarDTO.getDataPagamento());
+        contaPagar.setObservacoes(contaPagarDTO.getObservacoes());
+        contaPagar.setNumeroDocumento(contaPagarDTO.getNumeroDocumento());
+        contaPagar.setFormaPagamento(contaPagarDTO.getFormaPagamento());
+        contaPagar.setDataAtualizacao(LocalDateTime.now());
+
+        if (contaPagarDTO.getCompraId() != null && (contaPagar.getCompra() == null || !contaPagarDTO.getCompraId().equals(contaPagar.getCompra().getComprId()))) {
+            Compra compra = compraRepository.findById(contaPagarDTO.getCompraId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Compra não encontrada com ID: " + contaPagarDTO.getCompraId()));
+            contaPagar.setCompra(compra);
+        }
+
 
         contaPagar = contaPagarRepository.save(contaPagar);
         return convertToDTO(contaPagar);
@@ -104,7 +104,6 @@ public class ContaPagarService {
         contaPagarRepository.deleteById(id);
     }
 
-    // Consultas específicas
     public List<ContaPagarDTO> buscarPorStatus(String status) {
         return contaPagarRepository.findByStatus(status).stream()
                 .map(this::convertToDTO)
@@ -134,24 +133,58 @@ public class ContaPagarService {
         return total != null ? total : BigDecimal.ZERO;
     }
 
-    // Conversão DTO
+    private ContaPagar fromDTO(ContaPagarDTO dto) {
+        ContaPagar contaPagar = new ContaPagar();
+
+        if (dto.getCompraId() != null) {
+            Compra compra = compraRepository.findById(dto.getCompraId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Compra não encontrada com ID: " + dto.getCompraId()));
+            contaPagar.setCompra(compra);
+        }
+
+        contaPagar.setValor(dto.getValor());
+        contaPagar.setDataVencimento(dto.getDataVencimento());
+        contaPagar.setObservacoes(dto.getObservacoes());
+        contaPagar.setNumeroDocumento(dto.getNumeroDocumento());
+        contaPagar.setFormaPagamento(dto.getFormaPagamento());
+        contaPagar.setDataCriacao(LocalDateTime.now());
+
+        if(dto.getStatus() == null || dto.getStatus().isEmpty()){
+            contaPagar.setStatus("PENDENTE");
+        } else {
+            contaPagar.setStatus(dto.getStatus());
+        }
+
+        return contaPagar;
+    }
+
     private ContaPagarDTO convertToDTO(ContaPagar contaPagar) {
         ContaPagarDTO dto = new ContaPagarDTO();
-        dto.setObservacoes(contaPagar.getObservacoes());
         dto.setId(contaPagar.getId());
         dto.setValor(contaPagar.getValor());
         dto.setDataVencimento(contaPagar.getDataVencimento());
         dto.setDataPagamento(contaPagar.getDataPagamento());
         dto.setStatus(contaPagar.getStatus());
+        dto.setObservacoes(contaPagar.getObservacoes());
+        dto.setNumeroDocumento(contaPagar.getNumeroDocumento());
+        dto.setFormaPagamento(contaPagar.getFormaPagamento());
+        dto.setDataCriacao(contaPagar.getDataCriacao());
+        dto.setDataAtualizacao(contaPagar.getDataAtualizacao());
+        dto.setUsuarioCriacao(contaPagar.getUsuarioCriacao());
+        dto.setDiasVencimento(contaPagar.getDiasVencimento());
+        dto.setVencida(contaPagar.getVencida());
+        dto.setValorPago(contaPagar.getValorPago());
+        dto.setValorPendente(contaPagar.getValorPendente());
 
         if (contaPagar.getCompra() != null) {
             dto.setCompraId(contaPagar.getCompra().getComprId());
             dto.setCompra(contaPagar.getCompra());
+            dto.setFornecedor(contaPagar.getCompra().getFornecedor());
         }
 
         dto.setDiasAtraso(0);
 
-        if ("PENDENTE".equals(contaPagar.getStatus()) && contaPagar.getDataVencimento() != null) {
+        if (("PENDENTE".equals(contaPagar.getStatus()) || "VENCIDO".equals(contaPagar.getStatus())) && contaPagar.getDataVencimento() != null) {
             LocalDate dataVencimento = contaPagar.getDataVencimento();
             LocalDate hoje = LocalDate.now();
 

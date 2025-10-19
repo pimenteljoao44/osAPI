@@ -37,6 +37,7 @@ public class Produto implements Serializable {
     @JoinColumn(name = "grupo_id", nullable = true)
     private Grupo grupo;
 
+    @JsonBackReference("fornecedor-produtos")
     @ManyToOne
     @JoinColumn(name = "fornecedor_id")
     private Fornecedor fornecedor;

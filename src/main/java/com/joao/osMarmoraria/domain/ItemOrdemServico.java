@@ -22,7 +22,7 @@ public class ItemOrdemServico implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ordem_servico_id", insertable = false, updatable = false)
-    @JsonBackReference
+    @JsonBackReference("ordemservico-itens")
     private OrdemServico ordemServico;
 
     @Column(name = "produto_id", nullable = false)
@@ -148,4 +148,3 @@ public class ItemOrdemServico implements Serializable {
         this.observacoes = observacoes;
     }
 }
-

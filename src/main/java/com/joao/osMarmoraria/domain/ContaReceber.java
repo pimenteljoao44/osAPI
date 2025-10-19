@@ -1,5 +1,6 @@
 package com.joao.osMarmoraria.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +9,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +22,7 @@ public class ContaReceber implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @JsonManagedReference
+    @JsonBackReference("venda-contasreceber")
     @ManyToOne
     @JoinColumn(name = "venda_id")
     private Venda venda;
@@ -41,7 +43,8 @@ public class ContaReceber implements Serializable {
     @Column(name = "numero_parcelas")
     private Integer numeroParcelas = 1;
 
-    private LocalDate dataCriacao;
+    private LocalDateTime dataCriacao;
+    private LocalDateTime dataAtualizacao;
 
 
     // Relacionamento com parcelas

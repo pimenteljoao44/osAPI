@@ -1,6 +1,5 @@
 package com.joao.osMarmoraria.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
 import lombok.AllArgsConstructor;
@@ -49,7 +48,7 @@ public class Compra implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "compra", orphanRemoval = true)
     private List<ItemCompra> itensCompra = new ArrayList<>();
 
-    @JsonBackReference("compra-contapagar")
+    @JsonManagedReference("compra-contapagar")
     @OneToMany(mappedBy = "compra")
     private List<ContaPagar> contasPagar = new ArrayList<>();
 

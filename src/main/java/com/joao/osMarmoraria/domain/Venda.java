@@ -1,7 +1,7 @@
 package com.joao.osMarmoraria.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference; // <-- IMPORT ADICIONADO
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
 import com.joao.osMarmoraria.domain.enums.VendaTipo;
 import lombok.*;
@@ -38,20 +38,20 @@ public class Venda {
     @Enumerated(EnumType.STRING)
     private FormaPagamento formaPagamento = FormaPagamento.DINHEIRO;
 
-    @JsonManagedReference
+    @JsonManagedReference("venda-itens")
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "venda", orphanRemoval = true)
     private List<ItemVenda> itensVenda = new ArrayList<>();
 
-    @JsonBackReference
+    @JsonManagedReference("venda-contasreceber")
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL)
     private List<ContaReceber> contasReceber;
 
-    @JsonBackReference
+    @JsonBackReference("cliente-vendas")
     @ManyToOne
     @JoinColumn(name ="cliente_id")
     private Cliente cliente;
 
-    @JsonBackReference
+    @JsonBackReference("funcionario-vendas")
     @ManyToOne
     @JoinColumn(name ="funcionario_id")
     private Funcionario funcionario;

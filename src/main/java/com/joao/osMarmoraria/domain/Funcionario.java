@@ -38,6 +38,10 @@ public class Funcionario implements Serializable {
     @OneToMany(mappedBy = "funcionario")
     private List<OrdemServico> listOs = new ArrayList<>();
 
+    @JsonManagedReference("funcionario-vendas")
+    @OneToMany(mappedBy = "funcionario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Venda> vendas = new ArrayList<>();
+
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm", timezone = "America/Sao_Paulo")
     private Date dataCriacao;
@@ -47,7 +51,7 @@ public class Funcionario implements Serializable {
     private Date dataAtualizacao;
 
     @OneToOne(mappedBy = "funcionario")
-    @JsonManagedReference
+    @JsonManagedReference("funcionario-usuario")
     private Usuario usuario;
 
     public Funcionario() {
@@ -134,5 +138,13 @@ public class Funcionario implements Serializable {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    public List<Venda> getVendas() {
+        return vendas;
+    }
+
+    public void setVendas(List<Venda> vendas) {
+        this.vendas = vendas;
     }
 }

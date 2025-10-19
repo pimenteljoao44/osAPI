@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -34,6 +33,12 @@ public class ContaReceberController {
     public ResponseEntity<ContaReceberDTO> buscarPorId(@PathVariable Integer id) {
         ContaReceberDTO contaReceber = contaReceberService.buscarPorId(id);
         return ResponseEntity.ok(contaReceber);
+    }
+
+    @PostMapping
+    public ResponseEntity<ContaReceberDTO> criar(@Valid @RequestBody ContaReceberDTO contaReceberDTO) {
+        ContaReceberDTO contaCriada = contaReceberService.criar(contaReceberDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(contaCriada);
     }
 
     @PostMapping("/venda")
@@ -88,8 +93,8 @@ public class ContaReceberController {
 
     @GetMapping("/periodo")
     public ResponseEntity<List<ContaReceberDTO>> buscarPorPeriodo(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dataInicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dataFim) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
         List<ContaReceberDTO> contas = contaReceberService.buscarPorPeriodo(dataInicio, dataFim);
         return ResponseEntity.ok(contas);
     }

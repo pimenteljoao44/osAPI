@@ -83,7 +83,7 @@ public class OrdemServico implements Serializable {
 
     // Relacionamentos
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference("ordemservico-itens")
     private List<ItemOrdemServico> itens = new ArrayList<>();
 
     // Auditoria

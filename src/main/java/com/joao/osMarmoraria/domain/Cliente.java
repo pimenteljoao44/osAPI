@@ -24,6 +24,10 @@ public class Cliente implements Serializable {
 	@OneToMany(mappedBy = "cliente", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
 	private List<Projeto> projetos = new ArrayList<>();
 
+	@JsonManagedReference("cliente-vendas")
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Venda> vendas = new ArrayList<>();
+
 	@OneToOne(cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
 	@JoinColumn(name = "pessoa_id", nullable = false)
 	private Pessoa pessoa;
@@ -89,4 +93,12 @@ public class Cliente implements Serializable {
 	public void setDataAtualizacao(Date dataAtualizacao) {
 		this.dataAtualizacao = dataAtualizacao;
 	}
+
+	public List<Venda> getVendas() {
+        return vendas;
+    }
+
+    public void setVendas(List<Venda> vendas) {
+        this.vendas = vendas;
+    }
 }

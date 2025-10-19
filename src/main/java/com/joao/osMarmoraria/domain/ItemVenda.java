@@ -1,6 +1,6 @@
 package com.joao.osMarmoraria.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference; // <-- IMPORT ADICIONADO
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
 
 import javax.persistence.*;
@@ -25,7 +25,7 @@ public class ItemVenda implements Serializable {
     @JoinColumn(name = "prod_id", nullable = false)
     private Produto produto;
 
-    @JsonBackReference
+    @JsonBackReference("venda-itens")
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "venda_id")
     private Venda venda;

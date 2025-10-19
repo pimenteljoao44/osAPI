@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -165,7 +166,7 @@ public class VendaService {
             conta.setValor(parcela.getValorParcela());
             conta.setDataVencimento(parcela.getDataVencimento());
             conta.setStatus("PENDENTE");
-            conta.setDataCriacao(LocalDate.now());
+            conta.setDataCriacao(LocalDateTime.now());
 
             ContaReceber contaSalva = contaReceberRepository.save(conta);
 

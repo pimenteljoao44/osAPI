@@ -42,7 +42,7 @@ public class Usuario implements UserDetails {
 
     @OneToOne(cascade = {CascadeType.ALL, CascadeType.REMOVE})
     @JoinColumn(name = "funcionario_id", nullable = true)
-    @JsonBackReference
+    @JsonBackReference("funcionario-usuario")
     private Funcionario funcionario;
 
     private Integer nivelAcesso;

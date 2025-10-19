@@ -12,9 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,8 +45,13 @@ public class ContaReceberService {
         return convertToDTO(contaReceber);
     }
 
+    public ContaReceberDTO criar(ContaReceberDTO contaReceberDTO) {
+        ContaReceber contaReceber = fromDTO(contaReceberDTO);
+        contaReceber = contaReceberRepository.save(contaReceber);
+        return convertToDTO(contaReceber);
+    }
+
     public ContaReceberDTO criarPorVenda(ContaReceberDTO contaReceberDTO) {
-        // Verificar se a venda existe
         Venda venda = vendaRepository.findById(contaReceberDTO.getVendaId())
                 .orElseThrow(() -> new ObjectNotFoundException("Venda não encontrada com ID: " + contaReceberDTO.getVendaId()));
 
@@ -56,13 +60,15 @@ public class ContaReceberService {
         contaReceber.setValor(contaReceberDTO.getValor());
         contaReceber.setDataVencimento(contaReceberDTO.getDataVencimento());
         contaReceber.setStatus(contaReceberDTO.getStatus());
+        contaReceber.setDescricao(contaReceberDTO.getObservacoes());
+        contaReceber.setDataCriacao(LocalDateTime.now());
+        // dataPagamento is null by default for new accounts
 
         contaReceber = contaReceberRepository.save(contaReceber);
         return convertToDTO(contaReceber);
     }
 
     public ContaReceberDTO criarPorProjeto(ContaReceberDTO contaReceberDTO) {
-        // Verificar se o projeto existe
         Projeto projeto = projetoRepository.findById(contaReceberDTO.getProjetoId())
                 .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado com ID: " + contaReceberDTO.getProjetoId()));
 
@@ -71,6 +77,9 @@ public class ContaReceberService {
         contaReceber.setValor(contaReceberDTO.getValor());
         contaReceber.setDataVencimento(contaReceberDTO.getDataVencimento());
         contaReceber.setStatus(contaReceberDTO.getStatus());
+        contaReceber.setDescricao(contaReceberDTO.getObservacoes());
+        contaReceber.setDataCriacao(LocalDateTime.now());
+        // dataPagamento is null by default for new accounts
 
         contaReceber = contaReceberRepository.save(contaReceber);
         return convertToDTO(contaReceber);
@@ -88,7 +97,27 @@ public class ContaReceberService {
         contaReceber.setValor(contaReceberDTO.getValor());
         contaReceber.setDataVencimento(contaReceberDTO.getDataVencimento());
         contaReceber.setStatus(contaReceberDTO.getStatus());
-        contaReceber.setDataPagamento(contaReceberDTO.getDataPagamento());
+        contaReceber.setDataPagamento(contaReceberDTO.getDataPagamento()); // Allow null
+        contaReceber.setDescricao(contaReceberDTO.getObservacoes());
+        contaReceber.setDataAtualizacao(LocalDateTime.now()); // Set dataAtualizacao
+
+        // Handle Venda association update
+        if (contaReceberDTO.getVendaId() != null && (contaReceber.getVenda() == null || !contaReceberDTO.getVendaId().equals(contaReceber.getVenda().getVenId()))) {
+            Venda venda = vendaRepository.findById(contaReceberDTO.getVendaId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Venda não encontrada com ID: " + contaReceberDTO.getVendaId()));
+            contaReceber.setVenda(venda);
+        } else if (contaReceberDTO.getVendaId() == null) {
+            contaReceber.setVenda(null);
+        }
+
+        // Handle Projeto association update
+        if (contaReceberDTO.getProjetoId() != null && (contaReceber.getProjeto() == null || !contaReceberDTO.getProjetoId().equals(contaReceber.getProjeto().getId()))) {
+            Projeto projeto = projetoRepository.findById(contaReceberDTO.getProjetoId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado com ID: " + contaReceberDTO.getProjetoId()));
+            contaReceber.setProjeto(projeto);
+        } else if (contaReceberDTO.getProjetoId() == null) {
+            contaReceber.setProjeto(null);
+        }
 
         contaReceber = contaReceberRepository.save(contaReceber);
         return convertToDTO(contaReceber);
@@ -130,13 +159,13 @@ public class ContaReceberService {
     }
 
     public List<ContaReceberDTO> buscarVencidas() {
-        Date hoje = new Date();
+        LocalDate hoje = LocalDate.now();
         return contaReceberRepository.findContasVencidas(hoje).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    public List<ContaReceberDTO> buscarPorPeriodo(Date dataInicio, Date dataFim) {
+    public List<ContaReceberDTO> buscarPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         return contaReceberRepository.findByPeriodoVencimento(dataInicio, dataFim).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -152,14 +181,44 @@ public class ContaReceberService {
         return total != null ? total : BigDecimal.ZERO;
     }
 
+    private ContaReceber fromDTO(ContaReceberDTO dto) {
+        ContaReceber contaReceber = new ContaReceber();
+        contaReceber.setValor(dto.getValor());
+        contaReceber.setDataVencimento(dto.getDataVencimento()); // @NotNull in DTO, so won't be null
+        contaReceber.setDataPagamento(dto.getDataPagamento()); // Can be null, handled by direct assignment
+        contaReceber.setStatus(dto.getStatus() != null && !dto.getStatus().isEmpty() ? dto.getStatus() : "PENDENTE");
+        contaReceber.setDescricao(dto.getObservacoes());
+        contaReceber.setDataCriacao(LocalDateTime.now());
+        contaReceber.setParcelado(dto.getParcelado());
+        contaReceber.setNumeroParcelas(dto.getNumeroParcelas());
+
+        if (dto.getVendaId() != null) {
+            Venda venda = vendaRepository.findById(dto.getVendaId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Venda não encontrada com ID: " + dto.getVendaId()));
+            contaReceber.setVenda(venda);
+        }
+
+        if (dto.getProjetoId() != null) {
+            Projeto projeto = projetoRepository.findById(dto.getProjetoId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado com ID: " + dto.getProjetoId()));
+            contaReceber.setProjeto(projeto);
+        }
+
+        return contaReceber;
+    }
+
     private ContaReceberDTO convertToDTO(ContaReceber contaReceber) {
         ContaReceberDTO dto = new ContaReceberDTO();
         dto.setObservacoes(contaReceber.getDescricao());
         dto.setId(contaReceber.getId());
         dto.setValor(contaReceber.getValor());
         dto.setDataVencimento(contaReceber.getDataVencimento());
-        dto.setDataPagamento(contaReceber.getDataPagamento());
+        dto.setDataPagamento(contaReceber.getDataPagamento()); // Can be null, handled by direct assignment
         dto.setStatus(contaReceber.getStatus());
+        dto.setDataCriacao(contaReceber.getDataCriacao());
+        dto.setParcelado(contaReceber.getParcelado());
+        dto.setNumeroParcelas(contaReceber.getNumeroParcelas());
+        dto.setDataAtualizacao(contaReceber.getDataAtualizacao()); // Added this line
 
         if (contaReceber.getVenda() != null) {
             dto.setVendaId(contaReceber.getVenda().getVenId());
@@ -171,10 +230,9 @@ public class ContaReceberService {
             dto.setProjeto(contaReceber.getProjeto());
         }
 
-
         dto.setDiasAtraso(0);
 
-        if ("PENDENTE".equals(contaReceber.getStatus()) && contaReceber.getDataVencimento() != null) {
+        if (("PENDENTE".equals(contaReceber.getStatus()) || "VENCIDO".equals(contaReceber.getStatus())) && contaReceber.getDataVencimento() != null) {
             LocalDate dataVencimento = contaReceber.getDataVencimento();
             LocalDate hoje = LocalDate.now();
 

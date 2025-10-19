@@ -37,7 +37,6 @@ public class OrcamentoPDFDTO {
     // Valores
     private BigDecimal valorMateriais;
     private BigDecimal valorMaoObra;
-    private BigDecimal margemLucro;
     private BigDecimal valorTotal;
 
     // Observações

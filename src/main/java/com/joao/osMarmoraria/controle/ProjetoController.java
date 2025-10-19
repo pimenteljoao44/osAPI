@@ -72,7 +72,6 @@ public class ProjetoController {
             parametros.put("espessura", orcamento.getEspessura());
             parametros.put("valorMateriais", orcamento.getValorMateriais());
             parametros.put("valorMaoObra", orcamento.getValorMaoObra());
-            parametros.put("margemLucro", orcamento.getMargemLucro());
             parametros.put("valorTotal", orcamento.getValorTotal());
             parametros.put("observacoes", orcamento.getObservacoes());
 

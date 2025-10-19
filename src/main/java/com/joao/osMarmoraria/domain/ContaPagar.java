@@ -1,5 +1,6 @@
 package com.joao.osMarmoraria.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +9,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +21,9 @@ public class ContaPagar implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @JsonManagedReference
+    @JsonBackReference("compra-contapagar")
     @ManyToOne
+    @JoinColumn(name = "compra_id")
     private Compra compra;
 
     private BigDecimal valor;
@@ -38,14 +41,15 @@ public class ContaPagar implements Serializable {
     private String observacoes;
     private String numeroDocumento;
     private String formaPagamento;
-    private LocalDate dataCriacao;
-    private LocalDate dataAtualizacao;
+    private LocalDateTime dataCriacao;
+    private LocalDateTime dataAtualizacao;
     private String usuarioCriacao;
     private Integer diasVencimento;
     private Integer diasAtraso;
     private Boolean vencida;
 
     // Relacionamento com parcelas
+    @JsonManagedReference("contapagar-parcelas")
     @OneToMany(mappedBy = "contaPagar", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Parcela> parcelas = new ArrayList<>();
 
