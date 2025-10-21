@@ -24,4 +24,6 @@ public interface ItemOrdemServicoRepository extends JpaRepository<ItemOrdemServi
     Double sumValorTotalByOrdemServicoId(@Param("ordemServicoId") Integer ordemServicoId);
 
     boolean existsByOrdemServicoIdAndProdutoId(Integer ordemServicoId, Integer produtoId);
+
+    boolean existsByProdutoId(Integer produtoId); // Adicionado para verificar relações com Produto
 }

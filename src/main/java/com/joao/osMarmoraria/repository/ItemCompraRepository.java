@@ -11,4 +11,6 @@ import java.util.List;
 public interface ItemCompraRepository extends JpaRepository<ItemCompra,Integer> {
     @Query("SELECT it FROM ItemCompra it WHERE it.compra.comprId = ?1")
     List<ItemCompra> buscarPorvenda(Integer id);
+
+    boolean existsByProduto_ProdId(Integer prodId); // Adicionado para verificar relações com Produto
 }

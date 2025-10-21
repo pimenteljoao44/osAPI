@@ -8,6 +8,7 @@ import java.util.Optional;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.TipoPessoa;
 import com.joao.osMarmoraria.dtos.*;
+import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
@@ -32,6 +33,15 @@ public class ClienteService {
 
 	@Autowired
 	private EstadoRepository estadoRepository;
+
+	@Autowired
+	private OrdemServicoRepository ordemServicoRepository; // Injetando OrdemServicoRepository
+
+	@Autowired
+	private ProjetoRepository projetoRepository; // Injetando ProjetoRepository
+
+	@Autowired
+	private VendaRepository vendaRepository; // Injetando VendaRepository
 
 	public List<Cliente> findAll() {
 		return clienteRepository.findAll();
@@ -161,11 +171,16 @@ public class ClienteService {
 
 	@Transactional
 	public void delete(Integer id) {
-		Cliente cliente = clienteRepository.findById(id)
-				.orElseThrow(() -> new ObjectNotFoundException("Cliente não encontrado! Id: " + id));
+		Cliente cliente = findById(id);
 
-		if (!cliente.getListOs().isEmpty()) {
-			throw new DataIntegratyViolationException("O Cliente possui ordens de serviço, não pode ser deletado!");
+		if (ordemServicoRepository.existsByCliente_CliId(id)) { // CORRIGIDO: Usando existsByCliente_CliId
+			throw new DeletionRestrictedException("Não é possível excluir este cliente pois ele possui ordens de serviço. Por favor, remova as ordens de serviço associadas antes de tentar excluir o cliente.");
+		}
+		if (projetoRepository.existsByCliente_CliId(id)) {
+			throw new DeletionRestrictedException("Não é possível excluir este cliente pois ele possui projetos. Por favor, remova os projetos associados antes de tentar excluir o cliente.");
+		}
+		if (vendaRepository.existsByCliente_CliId(id)) {
+			throw new DeletionRestrictedException("Não é possível excluir este cliente pois ele possui vendas. Por favor, remova as vendas associadas antes de tentar excluir o cliente.");
 		}
 
 		clienteRepository.delete(cliente);

@@ -64,4 +64,7 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Inte
     BigDecimal sumVencimentoNoPeriodo(@Param("dataInicio") LocalDate dataInicio, @Param("dataFim") LocalDate dataFim);
 
     List<ContaReceber> findByVenda(Venda venda);
+
+    boolean existsByProjeto_Id(Integer projetoId); // Adicionado para verificar relações com Projeto
+    boolean existsByVenda_VenId(Integer vendaId); // Adicionado para verificar relações com Venda
 }

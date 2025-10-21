@@ -62,4 +62,8 @@ public interface VendaRepository extends JpaRepository<Venda, Integer> {
     List<Venda> findRecentProjectSales(@Param("vendaTipo") VendaTipo vendaTipo);
     List<Venda> findByVendaTipoAndDataFechamentoIsNull(@Param("vendaTipo") VendaTipo vendaTipo);
 
+    boolean existsByFuncionario_Id(Integer funcionarioId);
+
+    boolean existsByCliente_CliId(Integer clienteId);
+
 }

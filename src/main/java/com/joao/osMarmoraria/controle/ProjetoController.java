@@ -168,8 +168,8 @@ public class ProjetoController {
     }
 
     @PostMapping("/materiais-sugeridos")
-    public ResponseEntity<List<MaterialSugeridoDTO>> obterMateriaisSugeridos(@RequestBody MaterialSugeridoRequest request) {
-        List<MaterialSugeridoDTO> materiais = projetoService.obterMateriaisSugeridos(request.getTipoProjeto(), request.getMedidas());
+    public ResponseEntity<List<MaterialSugeridoDTO>> obterMateriaisSugeridos(@RequestBody ProjetoDTO projetoDTO) { // Alterado para receber ProjetoDTO
+        List<MaterialSugeridoDTO> materiais = projetoService.obterMateriaisSugeridos(projetoDTO); // Passa o ProjetoDTO completo
         return ResponseEntity.ok(materiais);
     }
 
@@ -187,12 +187,5 @@ public class ProjetoController {
         public void setStatus(StatusProjeto status) { this.status = status; }
     }
 
-    public static class MaterialSugeridoRequest {
-        private TipoProjeto tipoProjeto;
-        private MedidasProjetoDTO medidas;
-        public TipoProjeto getTipoProjeto() { return tipoProjeto; }
-        public void setTipoProjeto(TipoProjeto tipoProjeto) { this.tipoProjeto = tipoProjeto; }
-        public MedidasProjetoDTO getMedidas() { return medidas; }
-        public void setMedidas(MedidasProjetoDTO medidas) { this.medidas = medidas; }
-    }
+    // Removida a classe MaterialSugeridoRequest, pois o endpoint agora recebe ProjetoDTO diretamente
 }

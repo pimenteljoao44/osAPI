@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto,Integer> {
     boolean existsByNome(String nome);
+    boolean existsByFornecedor_Id(Integer fornecedorId);
 }

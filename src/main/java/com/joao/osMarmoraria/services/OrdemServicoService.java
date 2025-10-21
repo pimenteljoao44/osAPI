@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -90,21 +91,38 @@ public class OrdemServicoService {
         ordemServico.setObservacoes("Ordem de serviço gerada automaticamente do projeto: " + projeto.getNome());
         ordemServico.setUsuarioCriacao(projeto.getUsuarioCriacao().getId());
 
-        // Montar instruções técnicas
+        // Montar instruções técnicas com base nas peças
         StringBuilder instrucoes = new StringBuilder();
         instrucoes.append("PROJETO: ").append(projeto.getNome()).append("\n");
         instrucoes.append("TIPO: ").append(projeto.getTipoProjeto().getDescricao()).append("\n");
-        if (projeto.getProfundidade() != null && projeto.getLargura() != null && projeto.getAltura() != null) {
-            instrucoes.append("MEDIDAS: ")
-                    .append(projeto.getProfundidade()).append("m x ")
-                    .append(projeto.getLargura()).append("m x ")
-                    .append(projeto.getAltura()).append("m\n");
+
+        if (projeto.getPecas() != null && !projeto.getPecas().isEmpty()) {
+            instrucoes.append("MEDIDAS DAS PEÇAS:\n");
+            for (int i = 0; i < projeto.getPecas().size(); i++) {
+                Peca peca = projeto.getPecas().get(i);
+                instrucoes.append("  ").append(i + 1).append(". ").append(peca.getNome() != null ? peca.getNome() : "Peça " + (i + 1)).append(": ");
+                if (peca.getLargura() != null && peca.getAltura() != null) {
+                    instrucoes.append(peca.getLargura()).append(peca.getUnidade()).append(" x ").append(peca.getAltura()).append(peca.getUnidade());
+                    instrucoes.append(" (Área: ").append(calcularAreaPeca(peca)).append("m²)");
+                }
+                if (peca.getEspessura() != null) {
+                    instrucoes.append(" Espessura: ").append(peca.getEspessura()).append(peca.getUnidade());
+                }
+                instrucoes.append("\n");
+                if (peca.getRecortes() != null && !peca.getRecortes().isEmpty()) {
+                    instrucoes.append("    Recortes:\n");
+                    for (Recorte recorte : peca.getRecortes()) {
+                        instrucoes.append("      - ").append(recorte.getTipo() != null ? recorte.getTipo() : "Recorte").append(": ");
+                        instrucoes.append(recorte.getLargura()).append(peca.getUnidade()).append(" x ").append(recorte.getAltura()).append(peca.getUnidade());
+                        instrucoes.append(" (Posição: ").append(recorte.getPosicaoX()).append(", ").append(recorte.getPosicaoY()).append(")\n");
+                    }
+                }
+            }
+            instrucoes.append("ÁREA TOTAL DO PROJETO: ").append(calcularAreaTotalPecas(projeto)).append("m²\n");
         }
-        if (projeto.getArea() != null) {
-            instrucoes.append("ÁREA: ").append(projeto.getArea()).append("m²\n");
-        }
-        if (projeto.getObservacoes() != null) {
-            instrucoes.append("OBSERVAÇÕES: ").append(projeto.getObservacoes()).append("\n");
+
+        if (projeto.getObservacoes() != null && !projeto.getObservacoes().isEmpty()) {
+            instrucoes.append("OBSERVAÇÕES GERAIS DO PROJETO: ").append(projeto.getObservacoes()).append("\n");
         }
 
         ordemServico.setInstrucoesTecnicas(instrucoes.toString());
@@ -337,6 +355,35 @@ public class OrdemServicoService {
             numero = "OS" + System.currentTimeMillis();
         } while (ordemServicoRepository.existsByNumero(numero));
         return numero;
+    }
+
+    private BigDecimal calcularAreaPeca(Peca peca) {
+        if (peca.getLargura() == null || peca.getAltura() == null) {
+            return BigDecimal.ZERO;
+        }
+        // Converter para metros antes de calcular a área
+        Double larguraMetros = converterParaMetros(peca.getLargura(), peca.getUnidade());
+        Double alturaMetros = converterParaMetros(peca.getAltura(), peca.getUnidade());
+        return BigDecimal.valueOf(larguraMetros * alturaMetros).setScale(4, RoundingMode.HALF_UP);
+    }
+
+    private Double converterParaMetros(Double valor, String unidade) {
+        if (valor == null) return 0.0;
+        switch (unidade) {
+            case "cm": return valor / 100.0;
+            case "in": return valor * 0.0254;
+            case "m":
+            default: return valor;
+        }
+    }
+
+    private BigDecimal calcularAreaTotalPecas(Projeto projeto) {
+        if (projeto.getPecas() == null || projeto.getPecas().isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        return projeto.getPecas().stream()
+                .map(this::calcularAreaPeca)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // Conversão DTO

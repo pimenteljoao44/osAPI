@@ -35,4 +35,6 @@ public interface EstoqueReservadoRepository extends JpaRepository<EstoqueReserva
     boolean existsByOrdemServicoIdAndAtivoTrue(Integer ordemServicoId);
 
     boolean existsByProjetoIdAndAtivoTrue(Integer projetoId);
+
+    boolean existsByProduto_ProdId(Integer prodId); // Adicionado para verificar relações com Produto
 }

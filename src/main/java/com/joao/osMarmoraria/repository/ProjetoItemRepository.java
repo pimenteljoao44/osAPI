@@ -27,5 +27,6 @@ public interface ProjetoItemRepository extends JpaRepository<ProjetoItem, Intege
     Integer countByProjetoId(@Param("projetoId") Integer projetoId);
 
     boolean existsByProjetoIdAndProdutoId(Integer projetoId, Integer produtoId);
-}
 
+    boolean existsByProdutoId(Integer produtoId); // Adicionado para verificar relações com Produto
+}

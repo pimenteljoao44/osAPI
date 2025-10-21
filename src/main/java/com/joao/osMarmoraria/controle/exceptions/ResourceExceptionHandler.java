@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.joao.osMarmoraria.exceptions.DeletionRestrictedException; // Importe sua DeletionRestrictedException
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import com.joao.osMarmoraria.services.exceptions.ValidationError;
@@ -39,5 +40,14 @@ public class ResourceExceptionHandler {
 			error.addError(err.getField(), err.getDefaultMessage());
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	// Novo handler para DeletionRestrictedException
+	@ExceptionHandler(DeletionRestrictedException.class)
+	private ResponseEntity<StandardError> deletionRestricted(DeletionRestrictedException e) {
+		StandardError error = new StandardError(System.currentTimeMillis(),
+				HttpStatus.CONFLICT.value(), e.getMessage()); // Use HttpStatus.CONFLICT (409)
+		
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
 	}
 }

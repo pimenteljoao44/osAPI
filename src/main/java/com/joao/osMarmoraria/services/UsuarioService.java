@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import com.joao.osMarmoraria.domain.Funcionario;
+import com.joao.osMarmoraria.domain.Projeto;
+import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.FuncionarioRepository;
+import com.joao.osMarmoraria.repository.ProjetoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,9 @@ public class UsuarioService {
 
     @Autowired
     private FuncionarioRepository funcionarioRepository;
+
+    @Autowired
+    private ProjetoRepository projetoRepository; // Injetando ProjetoRepository
 
     private Usuario findByLogin(UsuarioDTO objDTO) {
         Usuario obj = repository.findByLogin(objDTO.getLogin());
@@ -78,10 +84,15 @@ public class UsuarioService {
 
     public void delete(Integer id) {
         Usuario usuario = findById(id);
+
         if(usuario.getFuncionario() != null) {
-            throw new DataIntegratyViolationException("Usuario não pode ser deletado pois possui funcionário associado.");
+            throw new DeletionRestrictedException("Não é possível excluir este usuário pois ele possui um funcionário vinculado. Por favor, desvincule o funcionário antes de tentar excluir o usuário.");
         }
-            repository.deleteById(id);
+        if (projetoRepository.existsByUsuarioCriacao_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este usuário pois ele criou projetos. Por favor, remova os projetos criados por este usuário antes de tentar excluí-lo.");
+        }
+
+        repository.deleteById(id);
     }
 
     public Funcionario findFuncionarioById(Integer id) {
@@ -100,9 +111,9 @@ public class UsuarioService {
         newObj.setEmail(obj.getEmail());
         newObj.setNivelAcesso(NivelAcesso.toEnum(obj.getNivelAcesso().getCod()));
         newObj.setFuncionario(obj.getFuncionario());
-        Funcionario funcionario = findFuncionarioById(obj.getFuncionario().getId());
+        Funcionario funcionario = obj.getFuncionario() != null ? findFuncionarioById(obj.getFuncionario().getId()) : null;
         if (funcionario != null) {
-            funcionarioRepository.save(funcionario);
+            // Não é necessário salvar o funcionário aqui, apenas associá-lo ao usuário
             newObj.setFuncionario(funcionario);
         } else {
             newObj.setFuncionario(null);

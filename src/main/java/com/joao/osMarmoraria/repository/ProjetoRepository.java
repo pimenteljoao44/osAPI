@@ -19,7 +19,7 @@ import java.util.Optional;
 @Repository
 public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
 
-    @Query("SELECT p FROM Projeto p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.itens WHERE p.id = :id")
+    @Query("SELECT p FROM Projeto p WHERE p.id = :id")
     Optional<Projeto> findByIdWithDetails(@Param("id") Integer id);
 
     @Query(value = "SELECT p FROM Projeto p LEFT JOIN FETCH p.cliente",
@@ -65,6 +65,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
     @Query("SELECT COUNT(p) > 0 FROM Projeto p WHERE p.nome = :nome AND p.cliente.cliId = :clienteId")
     boolean existsByNomeAndClienteId(@Param("nome") String nome, @Param("clienteId") Integer clienteId);
 
+    boolean existsByUsuarioCriacao_Id(Integer usuarioId); // Adicionado para verificar relações com Usuario
+
+    boolean existsByCliente_CliId(Integer clienteId); // Adicionado para verificar relações com Cliente
 
 }
-

@@ -36,8 +36,11 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
             @Param("dataInicio") LocalDateTime dataInicio,
             @Param("dataFim") LocalDateTime dataFim);
 
-    @Query("SELECT COALESCE(SUM(CASE WHEN m.tipo IN ('ENTRADA_COMPRA', 'ENTRADA_AJUSTE', 'ENTRADA_DEVOLUCAO', 'TRANSFERENCIA_ENTRADA', 'LIBERACAO_RESERVA') THEN m.quantidade ELSE 0 END), 0) - " +
-            "COALESCE(SUM(CASE WHEN m.tipo IN ('SAIDA_VENDA', 'SAIDA_AJUSTE', 'SAIDA_PERDA', 'TRANSFERENCIA_SAIDA', 'BAIXA_ORDEM_SERVICO', 'RESERVA_VENDA') THEN m.quantidade ELSE 0 END), 0) " +
+    @Query("SELECT COALESCE(SUM(CASE WHEN m.tipo IN (\'ENTRADA_COMPRA\', \'ENTRADA_AJUSTE\', \'ENTRADA_DEVOLUCAO\', \'TRANSFERENCIA_ENTRADA\', \'LIBERACAO_RESERVA\') THEN m.quantidade ELSE 0 END), 0) - " +
+            "COALESCE(SUM(CASE WHEN m.tipo IN (\'SAIDA_VENDA\', \'SAIDA_AJUSTE\', \'SAIDA_PERDA\', \'TRANSFERENCIA_SAIDA\', \'BAIXA_ORDEM_SERVICO\', \'RESERVA_VENDA\') THEN m.quantidade ELSE 0 END), 0) " +
             "FROM MovimentacaoEstoque m WHERE m.produto.prodId = :produtoId")
     BigDecimal calcularEstoqueAtualPorMovimentacoes(@Param("produtoId") Integer produtoId);
+
+    boolean existsByProduto_ProdId(Integer prodId); // Adicionado para verificar relações com Produto
+    boolean existsByVendaId(Integer vendaId); // Adicionado para verificar relações com Venda (campo direto)
 }

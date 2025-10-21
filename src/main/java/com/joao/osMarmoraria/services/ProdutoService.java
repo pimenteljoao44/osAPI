@@ -3,9 +3,17 @@ package com.joao.osMarmoraria.services;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.UnidadeDeMedida;
 import com.joao.osMarmoraria.dtos.ProdutoDTO;
+import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.FornecedorRepository;
 import com.joao.osMarmoraria.repository.GrupoRepository;
+import com.joao.osMarmoraria.repository.ItemCompraRepository;
+import com.joao.osMarmoraria.repository.ItemOrdemServicoRepository;
+import com.joao.osMarmoraria.repository.ItemVendaRepository;
+import com.joao.osMarmoraria.repository.MovimentacaoEstoqueRepository;
 import com.joao.osMarmoraria.repository.ProdutoRepository;
+import com.joao.osMarmoraria.repository.ProjetoItemRepository;
+import com.joao.osMarmoraria.repository.ProjetoMaterialRepository;
+import com.joao.osMarmoraria.repository.EstoqueReservadoRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +36,27 @@ public class ProdutoService {
     @Autowired
     private GrupoRepository grupoRepository;
 
+    @Autowired
+    private ProjetoItemRepository projetoItemRepository; // Injetando ProjetoItemRepository
+
+    @Autowired
+    private ProjetoMaterialRepository projetoMaterialRepository; // Injetando ProjetoMaterialRepository
+
+    @Autowired
+    private ItemCompraRepository itemCompraRepository; // Injetando ItemCompraRepository
+
+    @Autowired
+    private ItemOrdemServicoRepository itemOrdemServicoRepository; // Injetando ItemOrdemServicoRepository
+
+    @Autowired
+    private ItemVendaRepository itemVendaRepository; // Injetando ItemVendaRepository
+
+    @Autowired
+    private EstoqueReservadoRepository estoqueReservadoRepository; // Injetando EstoqueReservadoRepository
+
+    @Autowired
+    private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository; // Injetando MovimentacaoEstoqueRepository
+
     public List<Produto> findAll() {
         return produtoRepository.findAll();
     }
@@ -40,7 +69,7 @@ public class ProdutoService {
 
     public Produto create(@Valid ProdutoDTO produtoDTO) {
         if (produtoRepository.existsByNome(produtoDTO.getNome())) {
-            throw new DataIntegrityViolationException("Este produto já está cadastrado na base de dados!");
+            throw new DataIntegratyViolationException("Este produto já está cadastrado na base de dados!");
         }
 
         Produto newProd = new Produto();
@@ -74,7 +103,7 @@ public class ProdutoService {
                 UnidadeDeMedida um = UnidadeDeMedida.valueOf(produtoDTO.getUnidadeDeMedida());
                 produto.setUnidadeDeMedida(um);
             } catch (IllegalArgumentException e) {
-                throw new DataIntegrityViolationException("Unidade de medida inválida: " + produtoDTO.getUnidadeDeMedida());
+                throw new DataIntegratyViolationException("Unidade de medida inválida: " + produtoDTO.getUnidadeDeMedida());
             }
         }
 
@@ -88,8 +117,9 @@ public class ProdutoService {
         Produto produto = findById(id);
 
         if (produto.getVenda() != null) {
-            throw new DataIntegrityViolationException("O produto é pertencente a uma venda, não pode ser deletado!");
+            throw new DeletionRestrictedException("Não é possível excluir este produto pois ele é pertencente a uma venda.");
         }
+
         produtoRepository.deleteById(produto.getProdId());
     }
 

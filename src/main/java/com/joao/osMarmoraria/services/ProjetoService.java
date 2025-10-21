@@ -32,6 +32,9 @@ public class ProjetoService {
     private ProjetoItemRepository projetoItemRepository;
 
     @Autowired
+    private PecaRepository pecaRepository;
+
+    @Autowired
     private ProdutoRepository produtoRepository;
 
     @Autowired
@@ -68,14 +71,17 @@ public class ProjetoService {
             throw new IllegalArgumentException("Já existe um projeto com este nome para o cliente informado");
         }
         Projeto projeto = convertToEntity(projetoDTO);
-        calcularMedidasProjeto(projeto);
-
-        // Removido: projeto.setValorTotal(BigDecimal.ONE); // Valor temporário incorreto
 
         projeto = projetoRepository.save(projeto);
+
         if (projetoDTO.getItens() != null && !projetoDTO.getItens().isEmpty()) {
             salvarItens(projeto.getId(), projetoDTO.getItens());
         }
+
+        if (projetoDTO.getPecas() != null && !projetoDTO.getPecas().isEmpty()) {
+            salvarPecas(projeto, projetoDTO.getPecas());
+        }
+
         List<ProjetoItem> itensSalvos = projetoItemRepository.findByProjetoId(projeto.getId());
         calcularValoresProjeto(projeto, itensSalvos);
 
@@ -94,23 +100,51 @@ public class ProjetoService {
         projetoExistente.setDataPrevista(projetoDTO.getDataPrevista());
         projetoExistente.setObservacoes(projetoDTO.getObservacoes());
         projetoExistente.setMargemLucro(projetoDTO.getMargemLucro());
-        if (projetoDTO.getMedidas() != null) {
-            projetoExistente.setProfundidade(projetoDTO.getMedidas().getProfundidade());
-            projetoExistente.setLargura(projetoDTO.getMedidas().getLargura());
-            projetoExistente.setAltura(projetoDTO.getMedidas().getAltura());
-            projetoExistente.setObservacoesMedidas(projetoDTO.getMedidas().getObservacoes());
-        }
-        calcularMedidasProjeto(projetoExistente);
+
+        // Atualizar itens
         projetoItemRepository.deleteByProjetoId(id);
         if (projetoDTO.getItens() != null && !projetoDTO.getItens().isEmpty()) {
             salvarItens(id, projetoDTO.getItens());
         }
 
+        // --- CORREÇÃO AQUI: Gerenciar a coleção de peças diretamente pelo Projeto ---
+        projetoExistente.getPecas().clear(); // Limpa a coleção existente, o Hibernate marcará as antigas para exclusão
+        if (projetoDTO.getPecas() != null && !projetoDTO.getPecas().isEmpty()) {
+            // Converte PecaDTOs para entidades Peca e as adiciona à coleção gerenciada
+            Projeto finalProjetoExistente = projetoExistente;
+            projetoDTO.getPecas().forEach(pecaDTO -> {
+                Peca peca = new Peca();
+                // Copia as propriedades do DTO para a entidade
+                peca.setNome(pecaDTO.getNome());
+                peca.setTipo(pecaDTO.getTipo());
+                peca.setLargura(pecaDTO.getLargura());
+                peca.setAltura(pecaDTO.getAltura());
+                peca.setEspessura(pecaDTO.getEspessura());
+                peca.setUnidade(pecaDTO.getUnidade());
+                peca.setX(pecaDTO.getX());
+                peca.setY(pecaDTO.getY());
+                peca.setProjeto(finalProjetoExistente); // Estabelece a relação bidirecional
+
+                if (pecaDTO.getRecortes() != null) {
+                    peca.setRecortes(pecaDTO.getRecortes().stream().map(recorteDTO -> {
+                        Recorte recorte = new Recorte();
+                        recorte.setTipo(recorteDTO.getTipo());
+                        recorte.setLargura(recorteDTO.getLargura());
+                        recorte.setAltura(recorteDTO.getAltura());
+                        recorte.setPosicaoX(recorteDTO.getPosicaoX());
+                        recorte.setPosicaoY(recorteDTO.getPosicaoY());
+                        return recorte;
+                    }).collect(Collectors.toList()));
+                }
+                finalProjetoExistente.getPecas().add(peca); // Adiciona à coleção gerenciada
+            });
+        }
+        // --- FIM DA CORREÇÃO ---
 
         List<ProjetoItem> itensAtualizados = projetoItemRepository.findByProjetoId(id);
         calcularValoresProjeto(projetoExistente, itensAtualizados);
 
-        projetoExistente = projetoRepository.save(projetoExistente); // Salva os valores calculados
+        projetoExistente = projetoRepository.save(projetoExistente);
         return convertToDTO(projetoRepository.findByIdWithDetails(projetoExistente.getId()).get());
     }
 
@@ -125,14 +159,12 @@ public class ProjetoService {
         projetoRepository.delete(projeto);
     }
 
-    // Operações de Status
     public ProjetoDTO atualizarStatus(Integer id, StatusProjeto novoStatus) {
         Projeto projeto = projetoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado com ID: " + id));
 
         StatusProjeto statusAtual = projeto.getStatus();
 
-        // Validar transição de status
         if (!isTransicaoStatusValida(statusAtual, novoStatus)) {
             throw new IllegalStateException("Transição de status inválida: " + statusAtual + " -> " + novoStatus);
         }
@@ -140,7 +172,6 @@ public class ProjetoService {
         projeto.setStatus(novoStatus);
         System.out.println("STATUS DO PROJETO ATUALIZADO COM SUCESSO!");
 
-        // Definir datas baseadas no status
         switch (novoStatus) {
             case APROVADO:
                 projeto.setDataInicio(LocalDate.now());
@@ -154,32 +185,22 @@ public class ProjetoService {
         return convertToDTO(projeto);
     }
 
-    /**
-     * Aprova um projeto, alterando seu status para APROVADO e definindo a data de início
-     * @param id ID do projeto
-     * @param observacoes Observações sobre a aprovação (opcional)
-     * @return ProjetoDTO atualizado
-     */
     @Transactional
     public ProjetoDTO aprovarProjeto(Integer id, String observacoes) {
         Projeto projeto = projetoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado com ID: " + id));
 
-        // Verificar se o projeto pode ser aprovado
         if (projeto.getStatus() != StatusProjeto.ORCAMENTO) {
             throw new IllegalStateException("Apenas projetos com status ORCAMENTO podem ser aprovados. Status atual: " + projeto.getStatus());
         }
 
-        // Verificar se o projeto tem valor total calculado
         if (projeto.getValorTotal() == null || projeto.getValorTotal().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalStateException("Projeto deve ter valor total calculado antes da aprovação");
         }
 
-        // Atualizar status e data de início
         projeto.setStatus(StatusProjeto.APROVADO);
         projeto.setDataInicio(LocalDate.now());
 
-        // Adicionar observações se fornecidas
         if (observacoes != null && !observacoes.trim().isEmpty()) {
             String observacoesExistentes = projeto.getObservacoes();
             String novasObservacoes = observacoesExistentes != null ?
@@ -195,7 +216,6 @@ public class ProjetoService {
     public CalculoOrcamentoDTO calcularOrcamento(ProjetoDTO projetoDTO) {
         CalculoOrcamentoDTO calculo = new CalculoOrcamentoDTO();
 
-        // 1. Calcular valor dos materiais
         BigDecimal valorMateriais = BigDecimal.ZERO;
         if (projetoDTO.getItens() != null && !projetoDTO.getItens().isEmpty()) {
             valorMateriais = projetoDTO.getItens().stream()
@@ -211,13 +231,14 @@ public class ProjetoService {
         BigDecimal valorMaoObra = BigDecimal.ZERO;
         BigDecimal taxaMaoObraPorM2 = this.getTaxaMaoObraPorTipo(projetoDTO.getTipoProjeto());
 
-        if (projetoDTO.getMedidas() != null &&
-                projetoDTO.getMedidas().getProfundidade() != null &&
-                projetoDTO.getMedidas().getLargura() != null) {
-            BigDecimal area = projetoDTO.getMedidas().getProfundidade()
-                    .multiply(projetoDTO.getMedidas().getLargura());
-            valorMaoObra = area.multiply(taxaMaoObraPorM2);
+        BigDecimal areaTotalPecas = BigDecimal.ZERO;
+        if (projetoDTO.getPecas() != null) {
+            areaTotalPecas = projetoDTO.getPecas().stream()
+                    .map(this::calcularAreaPeca)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
+
+        valorMaoObra = areaTotalPecas.multiply(taxaMaoObraPorM2);
 
         BigDecimal subtotal = valorMateriais.add(valorMaoObra);
         BigDecimal margemLucro = projetoDTO.getMargemLucro() != null ?
@@ -268,18 +289,22 @@ public class ProjetoService {
         BigDecimal valorMateriais = BigDecimal.ZERO;
         if (itensProjeto != null) {
             valorMateriais = itensProjeto.stream()
-                    .map(ProjetoItem::getValorTotal) // Assume que getValorTotal já foi calculado
+                    .map(ProjetoItem::getValorTotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
         BigDecimal valorMaoObra = BigDecimal.ZERO;
         BigDecimal taxaMaoObraPorM2 = this.getTaxaMaoObraPorTipo(projeto.getTipoProjeto());
 
-        if (projeto.getArea() != null) {
-            valorMaoObra = projeto.getArea().multiply(taxaMaoObraPorM2);
+        BigDecimal areaTotalPecas = BigDecimal.ZERO;
+        if (projeto.getPecas() != null) {
+            areaTotalPecas = projeto.getPecas().stream()
+                    .map(this::calcularAreaPeca)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
-        // Calcular valor total com margem de lucro
+        valorMaoObra = areaTotalPecas.multiply(taxaMaoObraPorM2);
+
         BigDecimal subtotal = valorMateriais.add(valorMaoObra);
         BigDecimal margemLucro = projeto.getMargemLucro() != null ?
                 projeto.getMargemLucro() : new BigDecimal("20.00");
@@ -294,18 +319,27 @@ public class ProjetoService {
         projeto.setValorTotal(valorTotal);
     }
 
-    public List<MaterialSugeridoDTO> obterMateriaisSugeridos(TipoProjeto tipoProjeto, MedidasProjetoDTO medidas) {
+    public List<MaterialSugeridoDTO> obterMateriaisSugeridos(ProjetoDTO projetoDTO) {
         List<MaterialSugeridoDTO> materiais = new ArrayList<>();
 
-        List<Integer> produtoIds = obterProdutosSugeridosPorTipo(tipoProjeto);
+        List<Integer> produtoIds = obterProdutosSugeridosPorTipo(projetoDTO.getTipoProjeto());
+
+        BigDecimal areaTotalPecas;
+        if (projetoDTO.getPecas() != null) {
+            areaTotalPecas = projetoDTO.getPecas().stream()
+                    .map(this::calcularAreaPeca)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        } else {
+            areaTotalPecas = BigDecimal.ZERO;
+        }
 
         for (Integer produtoId : produtoIds) {
             produtoRepository.findById(produtoId).ifPresent(produto -> {
                 MaterialSugeridoDTO material = new MaterialSugeridoDTO();
                 material.setProdutoId(produto.getProdId());
                 material.setProduto(produto);
-                material.setQuantidadeRecomendada(calcularQuantidadeRecomendada(produto, medidas, tipoProjeto));
-                material.setAplicacao(obterAplicacaoProduto(produto, tipoProjeto));
+                material.setQuantidadeRecomendada(calcularQuantidadeRecomendada(produto, areaTotalPecas, projetoDTO.getTipoProjeto()));
+                material.setAplicacao(obterAplicacaoProduto(produto, projetoDTO.getTipoProjeto()));
                 materiais.add(material);
             });
         }
@@ -313,13 +347,11 @@ public class ProjetoService {
         return materiais;
     }
 
-    // Relatórios
     public List<ProjetoDTO> obterProjetosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         List<Projeto> projetos = projetoRepository.findByPeriodo(dataInicio, dataFim);
         return projetos.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    // Métodos auxiliares privados
     private void salvarItens(Integer projetoId, List<ProjetoItemDTO> itensDTO) {
         for (ProjetoItemDTO itemDTO : itensDTO) {
             ProjetoItem item = new ProjetoItem();
@@ -332,30 +364,64 @@ public class ProjetoService {
         }
     }
 
-    private void calcularMedidasProjeto(Projeto projeto) {
-        if (projeto.getProfundidade() != null && projeto.getLargura() != null) {
-            projeto.setArea(projeto.getProfundidade().multiply(projeto.getLargura()));
-            projeto.setPerimetro(projeto.getProfundidade().add(projeto.getLargura()).multiply(new BigDecimal("2")));
-        }
+    private void salvarPecas(Projeto projeto, List<PecaDTO> pecasDTO) {
+        List<Peca> pecas = pecasDTO.stream().map(pecaDTO -> {
+            Peca peca = new Peca();
+            peca.setNome(pecaDTO.getNome());
+            peca.setTipo(pecaDTO.getTipo());
+            peca.setLargura(pecaDTO.getLargura());
+            peca.setAltura(pecaDTO.getAltura());
+            peca.setEspessura(pecaDTO.getEspessura());
+            peca.setUnidade(pecaDTO.getUnidade());
+            peca.setX(pecaDTO.getX());
+            peca.setY(pecaDTO.getY());
+            peca.setProjeto(projeto);
+            if (pecaDTO.getRecortes() != null) {
+                peca.setRecortes(pecaDTO.getRecortes().stream().map(recorteDTO -> {
+                    Recorte recorte = new Recorte();
+                    recorte.setTipo(recorteDTO.getTipo());
+                    recorte.setLargura(recorteDTO.getLargura());
+                    recorte.setAltura(recorteDTO.getAltura());
+                    recorte.setPosicaoX(recorteDTO.getPosicaoX());
+                    recorte.setPosicaoY(recorteDTO.getPosicaoY());
+                    return recorte;
+                }).collect(Collectors.toList()));
+            }
+            return peca;
+        }).collect(Collectors.toList());
+        pecaRepository.saveAll(pecas);
+        projeto.setPecas(pecas);
     }
 
-    private void calcularValoresItens(Projeto projeto) {
-        List<ProjetoItem> itens = projetoItemRepository.findByProjetoId(projeto.getId());
-        BigDecimal valorMateriais = itens.stream()
-                .map(ProjetoItem::getValorTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // Calcular mão de obra baseada na área
-        BigDecimal valorMaoObra = BigDecimal.ZERO;
-        if (projeto.getArea() != null) {
-            valorMaoObra = projeto.getArea().multiply(new BigDecimal("50.00"));
+    private BigDecimal calcularAreaPeca(PecaDTO pecaDTO) {
+        if (pecaDTO.getLargura() == null || pecaDTO.getAltura() == null) {
+            return BigDecimal.ZERO;
         }
+        Double larguraMetros = converterParaMetros(pecaDTO.getLargura(), pecaDTO.getUnidade());
+        Double alturaMetros = converterParaMetros(pecaDTO.getAltura(), pecaDTO.getUnidade());
+        return BigDecimal.valueOf(larguraMetros * alturaMetros).setScale(4, RoundingMode.HALF_UP);
+    }
 
-        projeto.setValorMaoObra(valorMaoObra);
+    private BigDecimal calcularAreaPeca(Peca peca) {
+        if (peca.getLargura() == null || peca.getAltura() == null) {
+            return BigDecimal.ZERO;
+        }
+        Double larguraMetros = converterParaMetros(peca.getLargura(), peca.getUnidade());
+        Double alturaMetros = converterParaMetros(peca.getAltura(), peca.getUnidade());
+        return BigDecimal.valueOf(larguraMetros * alturaMetros).setScale(4, RoundingMode.HALF_UP);
+    }
+
+    private Double converterParaMetros(Double valor, String unidade) {
+        if (valor == null) return 0.0;
+        switch (unidade) {
+            case "cm": return valor / 100.0;
+            case "in": return valor * 0.0254;
+            case "m":
+            default: return valor;
+        }
     }
 
     private boolean isTransicaoStatusValida(StatusProjeto statusAtual, StatusProjeto novoStatus) {
-        // Definir transições válidas
         switch (statusAtual) {
             case ORCAMENTO:
                 return novoStatus == StatusProjeto.APROVADO || novoStatus == StatusProjeto.CANCELADO;
@@ -369,14 +435,13 @@ public class ProjetoService {
                 return novoStatus == StatusProjeto.EM_PRODUCAO || novoStatus == StatusProjeto.CANCELADO;
             case ENTREGUE:
             case CANCELADO:
-                return false; // Estados finais
+                return false;
             default:
                 return false;
         }
     }
 
     private List<Integer> obterProdutosSugeridosPorTipo(TipoProjeto tipoProjeto) {
-        // Retornar IDs de produtos comumente usados por tipo de projeto
         switch (tipoProjeto) {
             case BANHEIRO:
                 return Arrays.asList(1, 2, 3);
@@ -389,12 +454,9 @@ public class ProjetoService {
         }
     }
 
-
-    private BigDecimal calcularQuantidadeRecomendada(Produto produto, MedidasProjetoDTO medidas, TipoProjeto tipoProjeto) {
-        // Lógica simples para calcular quantidade baseada na área
-        if (medidas.getProfundidade() != null && medidas.getLargura() != null) {
-            BigDecimal area = medidas.getProfundidade().multiply(medidas.getLargura());
-            return area.setScale(2, RoundingMode.HALF_UP);
+    private BigDecimal calcularQuantidadeRecomendada(Produto produto, BigDecimal areaTotalPecas, TipoProjeto tipoProjeto) {
+        if (areaTotalPecas.compareTo(BigDecimal.ZERO) > 0) {
+            return areaTotalPecas.setScale(2, RoundingMode.HALF_UP);
         }
         return BigDecimal.ONE;
     }
@@ -435,15 +497,31 @@ public class ProjetoService {
             dto.setClienteNome(projeto.getCliente().getPessoa().getNome());
         }
 
-        if (projeto.getProfundidade() != null || projeto.getLargura() != null || projeto.getAltura() != null) {
-            MedidasProjetoDTO medidas = new MedidasProjetoDTO();
-            medidas.setProfundidade(projeto.getProfundidade());
-            medidas.setLargura(projeto.getLargura());
-            medidas.setAltura(projeto.getAltura());
-            medidas.setArea(projeto.getArea());
-            medidas.setPerimetro(projeto.getPerimetro());
-            medidas.setObservacoes(projeto.getObservacoesMedidas());
-            dto.setMedidas(medidas);
+        if (projeto.getPecas() != null) {
+            dto.setPecas(projeto.getPecas().stream().map(peca -> {
+                PecaDTO pecaDTO = new PecaDTO();
+                pecaDTO.setId(peca.getId());
+                pecaDTO.setNome(peca.getNome());
+                pecaDTO.setTipo(peca.getTipo());
+                pecaDTO.setLargura(peca.getLargura());
+                pecaDTO.setAltura(peca.getAltura());
+                pecaDTO.setEspessura(peca.getEspessura());
+                pecaDTO.setUnidade(peca.getUnidade());
+                pecaDTO.setX(peca.getX());
+                pecaDTO.setY(peca.getY());
+                if (peca.getRecortes() != null) {
+                    pecaDTO.setRecortes(peca.getRecortes().stream().map(recorte -> {
+                        RecorteDTO recorteDTO = new RecorteDTO();
+                        recorteDTO.setTipo(recorte.getTipo());
+                        recorteDTO.setLargura(recorte.getLargura());
+                        recorteDTO.setAltura(recorte.getAltura());
+                        recorteDTO.setPosicaoX(recorte.getPosicaoX());
+                        recorteDTO.setPosicaoY(recorte.getPosicaoY());
+                        return recorteDTO;
+                    }).collect(Collectors.toList()));
+                }
+                return pecaDTO;
+            }).collect(Collectors.toList()));
         }
 
         List<ProjetoItem> itens = projetoItemRepository.findByProjetoIdWithProduto(projeto.getId());
@@ -456,14 +534,25 @@ public class ProjetoService {
     }
 
     private ProjetoItemDTO convertItemToDTO(ProjetoItem item) {
-        Optional<Produto> produto = produtoRepository.findById(item.getProdutoId());
-        produto.orElseThrow(() -> new RuntimeException("Produto não Encontrado ID: "));
+        Integer produtoId = item.getProdutoId();
+        if (produtoId == null) {
+            throw new IllegalArgumentException("ID do Produto não pode ser nulo para o item de projeto.");
+        }
+
+        Produto produto = produtoRepository.findById(produtoId)
+                                         .map(p -> {
+                                             if (p == null) {
+                                                 throw new RuntimeException("Erro interno: Produto com ID " + produtoId + " é nulo dentro do Optional.");
+                                             }
+                                             return p;
+                                         })
+                                         .orElseThrow(() -> new RuntimeException("Produto não encontrado para o ID: " + produtoId));
 
         ProjetoItemDTO dto = new ProjetoItemDTO();
         dto.setId(item.getId());
         dto.setProjetoId(item.getProjetoId());
-        dto.setProdutoId(item.getProdutoId());
-        dto.setProdutoNome(produto.get().getNome());
+        dto.setProdutoId(produto.getProdId());
+        dto.setProdutoNome(produto.getNome());
         dto.setQuantidade(item.getQuantidade());
         dto.setValorUnitario(item.getValorUnitario());
         dto.setValorTotal(item.getValorTotal());
@@ -496,7 +585,6 @@ public class ProjetoService {
             throw new ObjectNotFoundException("ID do Cliente é obrigatório.");
         }
 
-
         if (dto.getUsuarioCriacao() != null) {
             Usuario usuarioCriacao = usuarioRepository.findById(dto.getUsuarioCriacao())
                     .orElseThrow(() -> new ObjectNotFoundException("Usuário de criação não encontrado com ID: " + dto.getUsuarioCriacao()));
@@ -504,12 +592,6 @@ public class ProjetoService {
             projeto.setUsuarioCriacao(usuarioCriacao);
         } else {
             throw new ObjectNotFoundException("ID do Usuário de criação é obrigatório.");
-        }
-        if (dto.getMedidas() != null) {
-            projeto.setProfundidade(dto.getMedidas().getProfundidade());
-            projeto.setLargura(dto.getMedidas().getLargura());
-            projeto.setAltura(dto.getMedidas().getAltura());
-            projeto.setObservacoesMedidas(dto.getMedidas().getObservacoes());
         }
 
         return projeto;

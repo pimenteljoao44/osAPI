@@ -77,31 +77,13 @@ public class Projeto implements Serializable {
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
 
-    // Medidas do projeto
-    @Column(name = "profundidade", precision = 8, scale = 2)
-    @DecimalMin(value = "0.01", message = "Profundidade deve ser maior que zero")
-    private BigDecimal profundidade;
-
-    @Column(name = "largura", precision = 8, scale = 2)
-    @DecimalMin(value = "0.01", message = "Largura deve ser maior que zero")
-    private BigDecimal largura;
-
-    @Column(name = "altura", precision = 8, scale = 2)
-    @DecimalMin(value = "0.01", message = "Altura deve ser maior que zero")
-    private BigDecimal altura;
-
-    @Column(name = "area", precision = 10, scale = 4)
-    private BigDecimal area;
-
-    @Column(name = "perimetro", precision = 10, scale = 4)
-    private BigDecimal perimetro;
-
-    @Column(name = "observacoes_medidas", length = 500)
-    private String observacoesMedidas;
-
     @JsonManagedReference("projeto-itens")
     @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProjetoItem> itens = new ArrayList<>();
+
+    @JsonManagedReference("projeto-pecas") // Adicionado para lidar com a serialização bidirecional
+    @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Peca> pecas = new ArrayList<>(); // Nova lista de peças
 
     @JsonManagedReference("projeto-ordemservico")
     @OneToOne(mappedBy = "projeto", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -138,20 +120,11 @@ public class Projeto implements Serializable {
         if (status == null) {
             status = StatusProjeto.ORCAMENTO;
         }
-        calcularMedidas();
     }
 
     @PreUpdate
     protected void onUpdate() {
         dataAtualizacao = LocalDate.now();
-        calcularMedidas();
-    }
-
-    public void calcularMedidas() {
-        if (profundidade != null && largura != null) {
-            area = profundidade.multiply(largura);
-            perimetro = profundidade.add(largura).multiply(new BigDecimal("2"));
-        }
     }
 
     public BigDecimal calcularValorMateriais() {
@@ -280,60 +253,20 @@ public class Projeto implements Serializable {
         this.observacoes = observacoes;
     }
 
-    public BigDecimal getProfundidade() {
-        return profundidade;
-    }
-
-    public void setProfundidade(BigDecimal profundidade) {
-        this.profundidade = profundidade;
-    }
-
-    public BigDecimal getLargura() {
-        return largura;
-    }
-
-    public void setLargura(BigDecimal largura) {
-        this.largura = largura;
-    }
-
-    public BigDecimal getAltura() {
-        return altura;
-    }
-
-    public void setAltura(BigDecimal altura) {
-        this.altura = altura;
-    }
-
-    public BigDecimal getArea() {
-        return area;
-    }
-
-    public void setArea(BigDecimal area) {
-        this.area = area;
-    }
-
-    public BigDecimal getPerimetro() {
-        return perimetro;
-    }
-
-    public void setPerimetro(BigDecimal perimetro) {
-        this.perimetro = perimetro;
-    }
-
-    public String getObservacoesMedidas() {
-        return observacoesMedidas;
-    }
-
-    public void setObservacoesMedidas(String observacoesMedidas) {
-        this.observacoesMedidas = observacoesMedidas;
-    }
-
     public List<ProjetoItem> getItens() {
         return itens;
     }
 
     public void setItens(List<ProjetoItem> itens) {
         this.itens = itens;
+    }
+
+    public List<Peca> getPecas() {
+        return pecas;
+    }
+
+    public void setPecas(List<Peca> pecas) {
+        this.pecas = pecas;
     }
 
     public OrdemServico getOrdemServico() {

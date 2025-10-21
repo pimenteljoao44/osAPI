@@ -1,6 +1,5 @@
 package com.joao.osMarmoraria.dtos;
 
-import com.joao.osMarmoraria.domain.Cliente;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.TipoProjeto;
 import lombok.Data;
@@ -8,9 +7,9 @@ import lombok.Data;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDate;
 import java.util.List;
 
+@Data
 public class ProjetoDTO {
 
     private Integer id;
@@ -53,7 +52,7 @@ public class ProjetoDTO {
 
     private String observacoes;
 
-    private MedidasProjetoDTO medidas;
+    private List<PecaDTO> pecas; // Alterado de MedidasProjetoDTO para List<PecaDTO>
 
     private List<ProjetoItemDTO> itens;
 
@@ -64,160 +63,4 @@ public class ProjetoDTO {
     @NotNull(message = "Usuário de criação é obrigatório")
     private Integer usuarioCriacao;
 
-    // Construtores
-    public ProjetoDTO() {
-    }
-
-    // Getters e Setters
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public Integer getClienteId() {
-        return clienteId;
-    }
-
-    public void setClienteId(Integer clienteId) {
-        this.clienteId = clienteId;
-    }
-
-    public String getClienteNome() {
-        return clienteNome;
-    }
-
-    public void setClienteNome(String clienteNome) {
-        this.clienteNome = clienteNome;
-    }
-
-    public TipoProjeto getTipoProjeto() {
-        return tipoProjeto;
-    }
-
-    public void setTipoProjeto(TipoProjeto tipoProjeto) {
-        this.tipoProjeto = tipoProjeto;
-    }
-
-    public StatusProjeto getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusProjeto status) {
-        this.status = status;
-    }
-
-    public LocalDate getDataInicio() {
-        return dataInicio;
-    }
-
-    public void setDataInicio(LocalDate dataInicio) {
-        this.dataInicio = dataInicio;
-    }
-
-    public LocalDate getDataPrevista() {
-        return dataPrevista;
-    }
-
-    public void setDataPrevista(LocalDate dataPrevista) {
-        this.dataPrevista = dataPrevista;
-    }
-
-    public LocalDate getDataFinalizacao() {
-        return dataFinalizacao;
-    }
-
-    public void setDataFinalizacao(LocalDate dataFinalizacao) {
-        this.dataFinalizacao = dataFinalizacao;
-    }
-
-    public BigDecimal getValorTotal() {
-        return valorTotal;
-    }
-
-    public void setValorTotal(BigDecimal valorTotal) {
-        this.valorTotal = valorTotal;
-    }
-
-    public BigDecimal getValorMaoObra() {
-        return valorMaoObra;
-    }
-
-    public void setValorMaoObra(BigDecimal valorMaoObra) {
-        this.valorMaoObra = valorMaoObra;
-    }
-
-    public BigDecimal getMargemLucro() {
-        return margemLucro;
-    }
-
-    public void setMargemLucro(BigDecimal margemLucro) {
-        this.margemLucro = margemLucro;
-    }
-
-    public String getObservacoes() {
-        return observacoes;
-    }
-
-    public void setObservacoes(String observacoes) {
-        this.observacoes = observacoes;
-    }
-
-    public MedidasProjetoDTO getMedidas() {
-        return medidas;
-    }
-
-    public void setMedidas(MedidasProjetoDTO medidas) {
-        this.medidas = medidas;
-    }
-
-    public List<ProjetoItemDTO> getItens() {
-        return itens;
-    }
-
-    public void setItens(List<ProjetoItemDTO> itens) {
-        this.itens = itens;
-    }
-
-    public LocalDate getDataCriacao() {
-        return dataCriacao;
-    }
-
-    public void setDataCriacao(LocalDate dataCriacao) {
-        this.dataCriacao = dataCriacao;
-    }
-
-    public LocalDate getDataAtualizacao() {
-        return dataAtualizacao;
-    }
-
-    public void setDataAtualizacao(LocalDate dataAtualizacao) {
-        this.dataAtualizacao = dataAtualizacao;
-    }
-
-    public Integer getUsuarioCriacao() {
-        return usuarioCriacao;
-    }
-
-    public void setUsuarioCriacao(Integer usuarioCriacao) {
-        this.usuarioCriacao = usuarioCriacao;
-    }
 }

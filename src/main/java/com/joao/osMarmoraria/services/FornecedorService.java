@@ -3,10 +3,13 @@ package com.joao.osMarmoraria.services;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.TipoPessoa;
 import com.joao.osMarmoraria.dtos.*;
+import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.CidadeRepository;
+import com.joao.osMarmoraria.repository.CompraRepository;
 import com.joao.osMarmoraria.repository.EstadoRepository;
 import com.joao.osMarmoraria.repository.FornecedorRepository;
 import com.joao.osMarmoraria.repository.PessoaRepository;
+import com.joao.osMarmoraria.repository.ProdutoRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.hibernate.Hibernate;
@@ -34,6 +37,13 @@ public class FornecedorService {
 
     @Autowired
     private EstadoService estadoService;
+
+    @Autowired
+    private ProdutoRepository produtoRepository;
+
+    @Autowired
+    private CompraRepository compraRepository;
+
     public List<Fornecedor> findAll(){return fornecedorRepository.findAll();}
 
     public Fornecedor findById(Integer id){
@@ -156,8 +166,14 @@ public class FornecedorService {
 
     @Transactional
     public void delete(Integer id) {
-        Fornecedor fornecedor = fornecedorRepository.findById(id)
-                .orElseThrow(() -> new ObjectNotFoundException("Fornecedor não encontrado! Id: " + id));
+        Fornecedor fornecedor = findById(id); // Usa o findById existente que já lança ObjectNotFoundException
+
+        if (produtoRepository.existsByFornecedor_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este fornecedor pois ele possui produtos cadastrados.");
+        }
+        if (compraRepository.existsByFornecedor_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este fornecedor pois ele possui compras registradas.");
+        }
 
         fornecedorRepository.delete(fornecedor);
     }

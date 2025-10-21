@@ -45,6 +45,10 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Inte
 
     boolean existsByProjetoId(Integer projetoId);
 
+    boolean existsByFuncionario_Id(Integer funcionarioId); // Adicionado para verificar relações com Funcionario
+
+    boolean existsByCliente_CliId(Integer clienteId); // CORRIGIDO: Usando cliId para Cliente
+
     List<OrdemServico> findByStatusAndDataPrevistaInicioIsNull(StatusOrdemServico status);
 
     List<OrdemServico> findByStatusAndDataPrevistaInicio(StatusOrdemServico status, LocalDate dataPrevistaInicio);

@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.TipoPessoa;
 import com.joao.osMarmoraria.dtos.*;
+import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.*;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,19 @@ public class FuncionarioService {
     private PessoaRepository pessoaRepository;
 
     @Autowired
-    private UsuarioService usuarioService;
+    private UsuarioRepository usuarioRepository; // Injetando UsuarioRepository
+
+    @Autowired
+    private ServicoRepository servicoRepository; // Injetando ServicoRepository
+
+    @Autowired
+    private OrdemServicoRepository ordemServicoRepository; // Injetando OrdemServicoRepository
+
+    @Autowired
+    private CompraRepository compraRepository; // Injetando CompraRepository
+
+    @Autowired
+    private VendaRepository vendaRepository; // Injetando VendaRepository
 
     @Autowired
     private EstadoRepository estadoRepository;
@@ -169,11 +182,25 @@ public class FuncionarioService {
 
     @Transactional
     public void delete(Integer id) {
-        Funcionario obj = findById(id);
-        if (obj.getListOs().size() > 0) {
-            throw new DataIntegratyViolationException("A Pessoa possui ordens de serviço, não pode ser deletada!");
+        Funcionario funcionario = findById(id);
+
+        if (usuarioRepository.existsByFuncionario_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este funcionário pois ele possui um usuário vinculado. Por favor, remova o usuário antes de tentar excluir o funcionário.");
         }
-        funcionarioRepository.deleteById(id);
+        if (servicoRepository.existsByFuncionario_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este funcionário pois ele está associado a serviços. Por favor, remova os serviços associados antes de tentar excluir o funcionário.");
+        }
+        if (ordemServicoRepository.existsByFuncionario_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este funcionário pois ele está associado a ordens de serviço. Por favor, remova as ordens de serviço associadas antes de tentar excluir o funcionário.");
+        }
+        if (compraRepository.existsByFuncionario_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este funcionário pois ele está associado a compras. Por favor, remova as compras associadas antes de tentar excluir o funcionário.");
+        }
+        if (vendaRepository.existsByFuncionario_Id(id)) {
+            throw new DeletionRestrictedException("Não é possível excluir este funcionário pois ele está associado a vendas. Por favor, remova as vendas associadas antes de tentar excluir o funcionário.");
+        }
+
+        funcionarioRepository.delete(funcionario);
     }
 
     private Pessoa createPessoaFromDTO(FuncionarioDTO objDTO) {

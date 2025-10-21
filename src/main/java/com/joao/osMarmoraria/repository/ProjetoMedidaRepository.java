@@ -42,4 +42,6 @@ public interface ProjetoMedidaRepository extends JpaRepository<ProjetoMedida, In
      */
     @Query("SELECT pm FROM ProjetoMedida pm WHERE pm.projetoId = :projetoId AND pm.coordenadaX IS NOT NULL AND pm.coordenadaY IS NOT NULL")
     List<ProjetoMedida> findMedidasComCoordenadas(@Param("projetoId") Integer projetoId);
+
+    boolean existsByProjeto_Id(Integer projetoId); // Adicionado para verificar relações com Projeto
 }
