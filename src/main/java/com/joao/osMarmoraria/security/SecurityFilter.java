@@ -9,12 +9,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.core.GrantedAuthority; // Importar GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority; // Importar SimpleGrantedAuthority
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection; // Importar Collection
+import java.util.stream.Collectors; // Importar Collectors
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -31,7 +35,18 @@ public class SecurityFilter extends OncePerRequestFilter {
             UserDetails user = userRepository.findByLogin(login);
 
             if (user != null) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                // Garante que as roles tenham o prefixo "ROLE_"
+                Collection<? extends GrantedAuthority> authorities = user.getAuthorities().stream()
+                    .map(authority -> {
+                        String roleName = authority.getAuthority();
+                        if (!roleName.startsWith("ROLE_")) {
+                            return new SimpleGrantedAuthority("ROLE_" + roleName);
+                        }
+                        return authority;
+                    })
+                    .collect(Collectors.toList());
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

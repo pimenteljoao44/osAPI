@@ -1,21 +1,18 @@
 package com.joao.osMarmoraria.domain;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.joao.osMarmoraria.domain.enums.NivelAcesso;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.ArrayList; // Import ArrayList
 
 @Entity
 @Cacheable(false)
@@ -27,7 +24,6 @@ public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
 
     private String nome;
 
@@ -49,6 +45,8 @@ public class Usuario implements UserDetails {
 
     public Usuario() {
         super();
+        // Garante um padrão seguro para novos usuários
+        this.nivelAcesso = NivelAcesso.FUNCIONARIO.getCod();
     }
 
     public Usuario(Integer id, String nome, String login, String senha, String email, NivelAcesso nivelAcesso) {
@@ -58,16 +56,46 @@ public class Usuario implements UserDetails {
         this.login = login;
         this.senha = senha;
         this.email = email;
-        this.nivelAcesso = (nivelAcesso == null ? 0 : nivelAcesso.getCod());
+        // Lógica segura: se o nível for nulo, assume o padrão FUNCIONARIO
+        this.nivelAcesso = (nivelAcesso == null) ? NivelAcesso.FUNCIONARIO.getCod() : nivelAcesso.getCod();
     }
 
     public Usuario(String login, String senha, String email, Integer nivelAcesso) {
         this.login = login;
         this.senha = senha;
-        this.senha = senha;
+        this.email = email; // Correção: atribuindo email em vez de senha duas vezes
         this.nivelAcesso = nivelAcesso;
     }
 
+    // ... Getters e Setters ...
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        NivelAcesso nivel = NivelAcesso.toEnum(this.nivelAcesso);
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        if (nivel == null) {
+            // Fallback de segurança: se o nível não estiver definido, concede o mínimo (FUNCIONARIO)
+            authorities.add(new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
+        } else {
+            switch (nivel) {
+                case GERENTE:
+                    authorities.add(new SimpleGrantedAuthority("ROLE_GERENTE"));
+                    authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN")); // Assumindo que GERENTE também tem privilégios de ADMIN
+                    break;
+                case FUNCIONARIO:
+                    authorities.add(new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
+                    break;
+                default:
+                    // Caso um novo NivelAcesso seja criado e não tratado aqui, concede o mínimo.
+                    authorities.add(new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
+                    break;
+            }
+        }
+        return authorities;
+    }
+
+    // ... Restante da classe (getPassword, getUsername, etc.) ...
     public Integer getId() {
         return id;
     }
@@ -140,14 +168,6 @@ public class Usuario implements UserDetails {
         Usuario other = (Usuario) obj;
         return Objects.equals(id, other.id) && Objects.equals(login, other.login) && nivelAcesso == other.nivelAcesso
                 && Objects.equals(nome, other.nome) && Objects.equals(senha, other.senha);
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (Objects.equals(nivelAcesso, NivelAcesso.GERENTE.getCod()))
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
-                    new SimpleGrantedAuthority("ROLE_USER"));
-        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override

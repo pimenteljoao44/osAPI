@@ -23,6 +23,7 @@ public class TokenService {
             String token = JWT.create()
                     .withIssuer("auth-api")
                     .withSubject(user.getLogin())
+                    .withClaim("nivelAcesso", user.getNivelAcesso().name()) // Adicionado o nivelAcesso aqui
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
             return token;
