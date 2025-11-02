@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.repository;
 
 import com.joao.osMarmoraria.domain.EstoqueReservado;
+import com.joao.osMarmoraria.domain.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,7 +21,7 @@ public interface EstoqueReservadoRepository extends JpaRepository<EstoqueReserva
     List<EstoqueReservado> findByOrdemServicoIdAndAtivoTrue(Integer ordemServicoId);
 
     List<EstoqueReservado> findByProjetoIdAndAtivoTrue(Integer projetoId);
-
+    boolean existsByProduto(Produto produto);
     @Query("SELECT COALESCE(SUM(er.quantidade), 0) FROM EstoqueReservado er WHERE er.produto.prodId = :produtoId AND er.ativo = true")
     BigDecimal calcularQuantidadeReservada(@Param("produtoId") Integer produtoId);
 

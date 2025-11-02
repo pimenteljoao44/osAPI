@@ -3,7 +3,6 @@ package com.joao.osMarmoraria.services;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.UnidadeDeMedida;
 import com.joao.osMarmoraria.dtos.ProdutoDTO;
-import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.FornecedorRepository;
 import com.joao.osMarmoraria.repository.GrupoRepository;
 import com.joao.osMarmoraria.repository.ItemCompraRepository;
@@ -17,7 +16,6 @@ import com.joao.osMarmoraria.repository.EstoqueReservadoRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -115,12 +113,34 @@ public class ProdutoService {
 
     public void delete(Integer id) {
         Produto produto = findById(id);
-
-        if (produto.getVenda() != null) {
-            throw new DeletionRestrictedException("Não é possível excluir este produto pois ele é pertencente a uma venda.");
+        if (itemCompraRepository.existsByProduto(produto)) {
+            throw new DataIntegratyViolationException("Não é possível excluir o produto, pois ele está associado a uma compra.");
         }
 
-        produtoRepository.deleteById(produto.getProdId());
+        if (itemOrdemServicoRepository.existsByProduto(produto)) {
+            throw new DataIntegratyViolationException("Não é possível excluir o produto, pois ele está associado a uma ordem de serviço.");
+        }
+
+        if (itemVendaRepository.existsByProduto(produto)) {
+            throw new DataIntegratyViolationException("Não é possível excluir o produto, pois ele está associado a uma venda.");
+        }
+
+        if (movimentacaoEstoqueRepository.existsByProduto(produto)) {
+            throw new DataIntegratyViolationException("Não é possível excluir o produto, pois ele possui movimentações de estoque registradas.");
+        }
+
+        if (estoqueReservadoRepository.existsByProduto(produto)) {
+            throw new DataIntegratyViolationException("Não é possível excluir o produto, pois ele possui estoque reservado.");
+        }
+
+        if (projetoItemRepository.existsByProduto(produto)) {
+            throw new DataIntegratyViolationException("Não é possível excluir o produto, pois ele está associado a um item de projeto.");
+        }
+
+        if (projetoMaterialRepository.existsByProduto(produto)) {
+            throw new DataIntegratyViolationException("Não é possível excluir o produto, pois ele está associado a um material de projeto.");
+        }
+        produtoRepository.deleteById(id);
     }
 
     private Fornecedor findFornecedorById(Integer id) {

@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.repository;
 
 import com.joao.osMarmoraria.domain.MovimentacaoEstoque;
+import com.joao.osMarmoraria.domain.Produto;
 import com.joao.osMarmoraria.domain.enums.TipoMovimentacao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Repository
 public interface MovimentacaoEstoqueRepository extends JpaRepository<MovimentacaoEstoque, Integer> {
-
+    boolean existsByProduto(Produto produto);
     List<MovimentacaoEstoque> findByProdutoProdIdOrderByDataMovimentacaoDesc(Integer produtoId);
 
     List<MovimentacaoEstoque> findByTipoOrderByDataMovimentacaoDesc(TipoMovimentacao tipo);

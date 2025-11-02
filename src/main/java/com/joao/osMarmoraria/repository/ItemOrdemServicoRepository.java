@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.repository;
 
 import com.joao.osMarmoraria.domain.ItemOrdemServico;
+import com.joao.osMarmoraria.domain.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,5 +26,5 @@ public interface ItemOrdemServicoRepository extends JpaRepository<ItemOrdemServi
 
     boolean existsByOrdemServicoIdAndProdutoId(Integer ordemServicoId, Integer produtoId);
 
-    boolean existsByProdutoId(Integer produtoId); // Adicionado para verificar relações com Produto
+    boolean existsByProduto(Produto produto);
 }

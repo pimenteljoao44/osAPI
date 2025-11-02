@@ -1,5 +1,6 @@
 package com.joao.osMarmoraria.repository;
 
+import com.joao.osMarmoraria.domain.Produto;
 import com.joao.osMarmoraria.domain.ProjetoItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,6 @@ public interface ProjetoItemRepository extends JpaRepository<ProjetoItem, Intege
     Integer countByProjetoId(@Param("projetoId") Integer projetoId);
 
     boolean existsByProjetoIdAndProdutoId(Integer projetoId, Integer produtoId);
-
+    boolean existsByProduto(Produto produto);
     boolean existsByProdutoId(Integer produtoId); // Adicionado para verificar relações com Produto
 }

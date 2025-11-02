@@ -251,34 +251,7 @@
             <line>
                 <reportElement x="0" y="20" width="555" height="1" forecolor="#666666" uuid="b5f7f93d-b861-4c27-a731-8bedd2f7cae2"/>
             </line>
-            <staticText>
-                <reportElement x="0" y="30" width="60" height="15" uuid="57aed2b1-5e8c-4308-9a78-b79fbc814f13"/>
-                <textElement>
-                    <font size="10" isBold="true"/>
-                </textElement>
-                <text><![CDATA[Largura:]]></text>
-            </staticText>
-            <textField pattern="#,##0.00 m" isBlankWhenNull="true">
-                <reportElement x="60" y="30" width="80" height="15" uuid="1f8e6a59-5e8c-4308-9a78-b79fbc814f13"/>
-                <textElement>
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{largura}]]></textFieldExpression>
-            </textField>
-            <staticText>
-                <reportElement x="160" y="30" width="80" height="15" uuid="57aed2b1-5e8c-4308-9a78-b79fbc814f14"/>
-                <textElement>
-                    <font size="10" isBold="true"/>
-                </textElement>
-                <text><![CDATA[Comprimento:]]></text>
-            </staticText>
-            <textField pattern="#,##0.00 m" isBlankWhenNull="true">
-                <reportElement x="240" y="30" width="80" height="15" uuid="1f8e6a59-5e8c-4308-9a78-b79fbc814f14"/>
-                <textElement>
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{comprimento}]]></textFieldExpression>
-            </textField>
+
             <staticText>
                 <reportElement x="340" y="30" width="40" height="15" uuid="57aed2b1-5e8c-4308-9a78-b79fbc814f15"/>
                 <textElement>
@@ -293,20 +266,7 @@
                 </textElement>
                 <textFieldExpression><![CDATA[$P{area}]]></textFieldExpression>
             </textField>
-            <staticText>
-                <reportElement x="480" y="30" width="60" height="15" uuid="57aed2b1-5e8c-4308-9a78-b79fbc814f16"/>
-                <textElement>
-                    <font size="10" isBold="true"/>
-                </textElement>
-                <text><![CDATA[Espessura:]]></text>
-            </staticText>
-            <textField pattern="#,##0 mm" isBlankWhenNull="true">
-                <reportElement x="540" y="30" width="15" height="15" uuid="1f8e6a59-5e8c-4308-9a78-b79fbc814f16"/>
-                <textElement>
-                    <font size="10"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$P{espessura}]]></textFieldExpression>
-            </textField>
+
             <staticText>
                 <reportElement x="0" y="60" width="60" height="15" uuid="57aed2b1-5e8c-4308-9a78-b79fbc814f17"/>
                 <textElement>
@@ -441,14 +401,14 @@
                 <textElement textAlignment="Right">
                     <font size="10" isBold="true"/>
                 </textElement>
-                <text><![CDATA[Margem de Lucro (%):]]></text>
+
             </staticText>
             <textField pattern="#,##0.00" isBlankWhenNull="true">
                 <reportElement x="370" y="50" width="185" height="15" uuid="1f8e6a59-5e8c-4308-9a78-b79fbc814f20"/>
                 <textElement textAlignment="Right">
                     <font size="10"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$P{margemLucro}]]></textFieldExpression>
+
             </textField>
             <staticText>
                 <reportElement x="240" y="70" width="120" height="20" uuid="57aed2b1-5e8c-4308-9a78-b79fbc814f21"/>

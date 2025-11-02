@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.repository;
 
 import com.joao.osMarmoraria.domain.ItemCompra;
+import com.joao.osMarmoraria.domain.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,5 +13,6 @@ public interface ItemCompraRepository extends JpaRepository<ItemCompra,Integer> 
     @Query("SELECT it FROM ItemCompra it WHERE it.compra.comprId = ?1")
     List<ItemCompra> buscarPorvenda(Integer id);
 
-    boolean existsByProduto_ProdId(Integer prodId); // Adicionado para verificar relações com Produto
+    boolean existsByProduto_ProdId(Integer prodId);
+    boolean existsByProduto(Produto produto);
 }
