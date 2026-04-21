@@ -8,14 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate; // 2. Importe LocalDate
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/contas-pagar" )
-@CrossOrigin(origins = "*") // Lembre-se que em produção é melhor restringir a origem
 public class ContaPagarController {
 
     @Autowired

@@ -4,9 +4,9 @@ import com.joao.osMarmoraria.domain.ItemVenda;
 import com.joao.osMarmoraria.domain.Produto;
 import com.joao.osMarmoraria.domain.Venda;
 
-import javax.persistence.CascadeType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.io.Serializable;
 import java.math.BigDecimal;
 

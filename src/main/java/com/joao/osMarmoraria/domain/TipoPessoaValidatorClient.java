@@ -4,8 +4,8 @@ import com.joao.osMarmoraria.domain.enums.TipoPessoa;
 import com.joao.osMarmoraria.domain.interfaces.TipoPessoaValid;
 import com.joao.osMarmoraria.dtos.ClienteDTO;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class TipoPessoaValidatorClient implements ConstraintValidator<TipoPessoaValid, ClienteDTO> {
 

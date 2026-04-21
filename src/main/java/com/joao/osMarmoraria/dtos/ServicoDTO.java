@@ -4,8 +4,8 @@ import com.joao.osMarmoraria.domain.Funcionario;
 import com.joao.osMarmoraria.domain.OrdemServico;
 import com.joao.osMarmoraria.domain.Servico;
 
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;

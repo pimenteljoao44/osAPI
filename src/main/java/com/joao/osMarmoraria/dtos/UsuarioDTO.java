@@ -7,7 +7,7 @@ import com.joao.osMarmoraria.domain.Funcionario;
 import com.joao.osMarmoraria.domain.Usuario;
 import com.joao.osMarmoraria.domain.enums.NivelAcesso;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 public class UsuarioDTO implements Serializable {
     private static final long serialVersionUID = 1L;

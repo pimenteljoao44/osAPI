@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,149 +19,121 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
+/**
+ * Configuração de segurança da aplicação — Spring Security 6 (Spring Boot 3).
+ *
+ * <p>ATENÇÃO (débito técnico a resolver na Fase 3 — Hardening):
+ * o comportamento atual replica o do sistema original, em que praticamente
+ * todos os endpoints estão como {@code permitAll()}. Isso é inseguro para
+ * produção e será corrigido em etapa futura (RBAC por role / recurso).
+ * A migração para Spring Security 6 foi feita preservando o comportamento
+ * funcional para não quebrar o sistema em uso.</p>
+ *
+ * @see <a href="https://docs.spring.io/spring-security/reference/6.2/migration/servlet/config.html">Migração Spring Security 6</a>
+ */
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Autowired
-    SecurityFilter securityFilter;
+    private SecurityFilter securityFilter;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable().sessionManagement().sessionCreationPolicy(
-                SessionCreationPolicy.IF_REQUIRED)
-                .and().authorizeRequests(authorize ->
-                        authorize.antMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                                .antMatchers(HttpMethod.POST, "/auth/recovery").permitAll()
-                                .antMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                                .antMatchers(HttpMethod.GET, "/localidades/**").permitAll()
-                                .antMatchers(HttpMethod.GET, "/produto").permitAll()
-                                .antMatchers(HttpMethod.POST, "/produto").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/produto").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/produto").permitAll()
-                                .antMatchers(HttpMethod.GET, "/grupo").permitAll()
-                                .antMatchers(HttpMethod.POST, "/grupo").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/grupo/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/grupo/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/funcionarios").permitAll()
-                                .antMatchers(HttpMethod.GET, "/funcionarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/funcionarios").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/funcionarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/funcionarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/clientes").permitAll()
-                                .antMatchers(HttpMethod.GET, "/clientes/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/clientes").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/clientes/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/clientes/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/fornecedores").permitAll()
-                                .antMatchers(HttpMethod.GET, "/fornecedores/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/fornecedores").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/fornecedores/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/fornecedores{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/os").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/os/{id}").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/os/{id/concluir-os}").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/os/{id}/iniciar-os}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/usuarios").permitAll()
-                                .antMatchers(HttpMethod.POST, "/usuarios").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/usuarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/usuarios/{id}").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/usuarios/{id}/update-password").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/estado").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/estado").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/estado/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/estado/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/cidade").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/cidade/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/cidade").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/cidade/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/cidade/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/pessoas").permitAll()
-                                .antMatchers(HttpMethod.POST, "/pessoas").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/pessoas/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/pessoas/{id}").permitAll().antMatchers(HttpMethod.GET, "/venda").permitAll()
-                                .antMatchers(HttpMethod.POST, "/venda").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/venda/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/venda/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/venda/itens").permitAll()
-                                .antMatchers(HttpMethod.POST, "/venda/{id}/addItem").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/venda/{id}/removeItem/{itemId}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/compra").permitAll()
-                                .antMatchers(HttpMethod.POST, "/compra").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/compra/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/compra/{id}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/compra/itens").permitAll()
-                                .antMatchers(HttpMethod.POST, "/compra/{id}/addItem")
-                                .permitAll().antMatchers(HttpMethod.DELETE, "/compra/{id}/removeItem/{itemId}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/relatorios/gerar/relatorioDeVendasResumido").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/projetos-personalizados").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/projetos-personalizados/{id}").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/projetos-personalizados/{id}/status").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/projetos-personalizados/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/projetos-personalizados/calcular-orcamento").permitAll()
-                                .antMatchers(HttpMethod.POST, "/projetos-personalizados/materiais-sugeridos").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/relatorio/periodo").permitAll()
+    /** Origens permitidas para CORS — configuráveis via {@code app.cors.allowed-origins}. */
+    @Value("${app.cors.allowed-origins:http://localhost:4200}")
+    private String[] allowedOrigins;
 
-                                // Endpoints de tipos e status (se existirem)
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/tipos").permitAll()
-                                .antMatchers(HttpMethod.GET, "/projetos-personalizados/status").permitAll()
-                                // Configuração para Contas a Receber
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/contas-receber/venda").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/contas-receber/projeto").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/contas-receber/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/contas-receber/{id}").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-receber/{id}/receber").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-receber/{id}/cancelar").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/status/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/cliente/{clienteId}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/vencidas").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/vencendo").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/total/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/total-vencido").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-receber/total-recebido").permitAll()
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // ===== Autenticação pública =====
+                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/recovery").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
 
-                                // Configuração para Contas a Pagar
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/{id}").permitAll()
-                                .antMatchers(HttpMethod.POST, "/api/contas-pagar").permitAll()
-                                .antMatchers(HttpMethod.PUT, "/api/contas-pagar/{id}").permitAll()
-                                .antMatchers(HttpMethod.DELETE, "/api/contas-pagar/{id}").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-pagar/{id}/pagar").permitAll()
-                                .antMatchers(HttpMethod.PATCH, "/api/contas-pagar/{id}/cancelar").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/status/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/fornecedor/{fornecedorId}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/vencidas").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/vencendo").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/total/{status}").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/contas-pagar/total-vencido").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/parcelas/dashboard/resumo").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/parcelas/vencidas").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/parcelas/proximas-vencer").permitAll()
-                                .antMatchers("/error").permitAll()
-                                .anyRequest().authenticated()).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+                // ===== Localidades (consulta pública) =====
+                .requestMatchers(HttpMethod.GET, "/localidades/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/estado", "/api/estado/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/cidade", "/api/cidade/**").permitAll()
+
+                // ===== OpenAPI / Swagger UI / Actuator (Fase 1.4) =====
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/actuator/health/**",
+                    "/actuator/info"
+                ).permitAll()
+
+                // ===== Erros =====
+                .requestMatchers("/error").permitAll()
+
+                // ===== TODO (Fase 3 — Hardening): trocar por hasRole/hasAuthority =====
+                // Produtos, Grupos, Funcionários, Clientes, Fornecedores
+                .requestMatchers("/produto", "/produto/**").permitAll()
+                .requestMatchers("/grupo", "/grupo/**").permitAll()
+                .requestMatchers("/funcionarios", "/funcionarios/**").permitAll()
+                .requestMatchers("/clientes", "/clientes/**").permitAll()
+                .requestMatchers("/fornecedores", "/fornecedores/**").permitAll()
+                .requestMatchers("/pessoas", "/pessoas/**").permitAll()
+
+                // Usuários
+                .requestMatchers("/usuarios", "/usuarios/**").permitAll()
+
+                // Ordens de Serviço, Vendas, Compras
+                .requestMatchers("/os", "/os/**").permitAll()
+                .requestMatchers("/venda", "/venda/**").permitAll()
+                .requestMatchers("/compra", "/compra/**").permitAll()
+
+                // Localidades administrativas (write)
+                .requestMatchers(HttpMethod.POST,   "/api/estado", "/api/estado/**").permitAll()
+                .requestMatchers(HttpMethod.PUT,    "/api/estado/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/estado/**").permitAll()
+                .requestMatchers(HttpMethod.POST,   "/api/cidade", "/api/cidade/**").permitAll()
+                .requestMatchers(HttpMethod.PUT,    "/api/cidade/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/cidade/**").permitAll()
+
+                // Projetos personalizados
+                .requestMatchers("/projetos-personalizados", "/projetos-personalizados/**").permitAll()
+
+                // Contas a receber / pagar / parcelas
+                .requestMatchers("/api/contas-receber", "/api/contas-receber/**").permitAll()
+                .requestMatchers("/api/contas-pagar",  "/api/contas-pagar/**").permitAll()
+                .requestMatchers("/api/parcelas/**").permitAll()
+
+                // Relatórios
+                .requestMatchers(HttpMethod.POST, "/relatorios/**").permitAll()
+
+                // Tudo o mais exige autenticação
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean

@@ -3,7 +3,7 @@ package com.joao.osMarmoraria.dtos;
 import com.joao.osMarmoraria.domain.Endereco;
 import com.joao.osMarmoraria.domain.Pessoa;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
 

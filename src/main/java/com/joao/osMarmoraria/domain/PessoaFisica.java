@@ -1,14 +1,14 @@
 package com.joao.osMarmoraria.domain;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
+// Nota: Pessoa usa SINGLE_TABLE (default), portanto @Table em subclasse eh ignorado
+// e gera warning HHH000139 no Hibernate 6. As colunas abaixo vivem na tabela 'pessoa'.
 @Entity
-@Table(name = "pessoa_fisica")
 public class PessoaFisica extends Pessoa implements Serializable {
 
     private static final long serialVersionUID = 1L;

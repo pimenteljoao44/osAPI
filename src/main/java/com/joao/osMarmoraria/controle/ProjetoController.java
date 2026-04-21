@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -28,7 +28,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/projetos-personalizados")
-@CrossOrigin(origins = "*")
 @Validated
 public class ProjetoController {
 

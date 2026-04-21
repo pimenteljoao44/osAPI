@@ -1,7 +1,7 @@
 package com.joao.osMarmoraria.dtos;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 public class AcabamentoProjetoDTO {

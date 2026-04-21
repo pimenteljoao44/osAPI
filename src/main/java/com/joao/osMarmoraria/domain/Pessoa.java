@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import lombok.Data;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Data

@@ -7,9 +7,9 @@ import com.joao.osMarmoraria.domain.Fornecedor;
 import com.joao.osMarmoraria.domain.Grupo;
 import com.joao.osMarmoraria.domain.Produto;
 
-import javax.persistence.CascadeType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.io.Serializable;
 import java.math.BigDecimal;
 

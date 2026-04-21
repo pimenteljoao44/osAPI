@@ -3,8 +3,8 @@ package com.joao.osMarmoraria.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

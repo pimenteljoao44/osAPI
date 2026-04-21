@@ -5,7 +5,7 @@ import com.joao.osMarmoraria.domain.Cidade;
 import com.joao.osMarmoraria.domain.Estado;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.Date;
 @Data

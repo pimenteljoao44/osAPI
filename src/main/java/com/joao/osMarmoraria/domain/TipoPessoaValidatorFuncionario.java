@@ -5,8 +5,8 @@ import com.joao.osMarmoraria.domain.interfaces.TipoPessoaValid;
 import com.joao.osMarmoraria.dtos.ClienteDTO;
 import com.joao.osMarmoraria.dtos.FuncionarioDTO;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class TipoPessoaValidatorFuncionario implements ConstraintValidator<TipoPessoaValid, FuncionarioDTO> {
 

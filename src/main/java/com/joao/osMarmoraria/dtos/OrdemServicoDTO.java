@@ -10,7 +10,7 @@ import com.joao.osMarmoraria.domain.Cliente;
 import com.joao.osMarmoraria.domain.Projeto;
 import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 public class OrdemServicoDTO {
 

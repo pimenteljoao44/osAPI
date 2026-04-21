@@ -1,6 +1,6 @@
 package com.joao.osMarmoraria.dtos;
 
-import javax.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 
 public class MedidasProjetoDTO {

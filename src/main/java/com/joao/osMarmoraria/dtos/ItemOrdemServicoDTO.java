@@ -2,9 +2,9 @@ package com.joao.osMarmoraria.dtos;
 
 import com.joao.osMarmoraria.domain.Produto;
 
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public class ItemOrdemServicoDTO {

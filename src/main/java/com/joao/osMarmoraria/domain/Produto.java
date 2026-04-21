@@ -6,7 +6,7 @@ import com.joao.osMarmoraria.domain.enums.UnidadeDeMedida;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity

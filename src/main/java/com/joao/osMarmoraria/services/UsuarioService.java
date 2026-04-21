@@ -19,8 +19,8 @@ import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 
 
-import javax.transaction.Transactional;
-import javax.validation.Valid;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 @Service
 @Transactional
