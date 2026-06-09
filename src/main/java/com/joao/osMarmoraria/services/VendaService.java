@@ -9,6 +9,7 @@ import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.VendaTipo;
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
+import com.joao.osMarmoraria.services.exceptions.ContasReceberJaGeradasException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -104,15 +105,13 @@ public class VendaService {
             }
 
             try {
-                // A chamada agora usa o novo método corrigido que gera uma conta por parcela
                 gerarContasReceberParceladas(venda.getVenId());
                 sucessos.add("Contas a receber e parcelas geradas com sucesso");
+            } catch (ContasReceberJaGeradasException e) {
+                // Reprocessamento é idempotente: contas existentes não são erro.
+                sucessos.add("Contas a receber já existentes para esta venda.");
             } catch (Exception e) {
-                if (e.getMessage().contains("já foram geradas")) {
-                    sucessos.add("Contas a receber já existentes para esta venda.");
-                } else {
-                    erros.add("Falha ao gerar contas a receber: " + e.getMessage());
-                }
+                erros.add("Falha ao gerar contas a receber: " + e.getMessage());
             }
 
             try {
@@ -143,7 +142,7 @@ public class VendaService {
         }
 
         if (!contaReceberRepository.findByVenda(venda).isEmpty()) {
-            throw new IllegalStateException("Contas a receber já foram geradas para esta venda");
+            throw new ContasReceberJaGeradasException(vendaId);
         }
 
         boolean permiteParcelamento = venda.getFormaPagamento().permiteParcelamento();
@@ -542,10 +541,8 @@ public class VendaService {
 
         try {
             gerarContasReceberParceladas(venda.getVenId());
-        } catch (IllegalStateException e) {
-            if (!e.getMessage().contains("já foram geradas")) {
-                throw e;
-            }
+        } catch (ContasReceberJaGeradasException e) {
+            // Contas a receber já existiam; a efetivação da venda segue normalmente.
         }
 
         return convertVendaToProjetoDTO(venda, projeto);

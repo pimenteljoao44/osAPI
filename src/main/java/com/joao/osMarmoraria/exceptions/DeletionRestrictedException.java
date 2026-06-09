@@ -1,10 +1,16 @@
 package com.joao.osMarmoraria.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.joao.osMarmoraria.services.exceptions.RegraDeNegocioException;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST) // Ou HttpStatus.CONFLICT (409) dependendo da preferência
-public class DeletionRestrictedException extends RuntimeException {
+/**
+ * Lançada ao tentar excluir um registro que possui vínculos que impedem a
+ * exclusão (ex.: usuário com funcionário associado ou projetos criados).
+ *
+ * <p>Como toda regra de negócio, é respondida com HTTP 409 pelo handler único
+ * — o {@code @ResponseStatus} que existia aqui conflitava com os dois
+ * {@code @ControllerAdvice} antigos e tornava o status final imprevisível.</p>
+ */
+public class DeletionRestrictedException extends RegraDeNegocioException {
 
     private static final long serialVersionUID = 1L;
 

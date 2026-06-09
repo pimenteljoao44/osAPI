@@ -9,6 +9,7 @@ import com.joao.osMarmoraria.dtos.ContaPagarDTO;
 import com.joao.osMarmoraria.dtos.InstallmentRequestDTO;
 import com.joao.osMarmoraria.dtos.ItemCompraDTO;
 import com.joao.osMarmoraria.repository.*;
+import com.joao.osMarmoraria.services.exceptions.ContasPagarJaGeradasException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -189,7 +190,7 @@ public class CompraService {
         Compra compra = findById(compraId);
 
         if (!contaPagarService.buscarPorCompra(compraId).isEmpty()) {
-            throw new IllegalStateException("Contas a pagar já foram geradas para esta compra");
+            throw new ContasPagarJaGeradasException(compraId);
         }
 
         boolean permiteParcelamento = compra.getFormaPagamento().permiteParcelamento();
