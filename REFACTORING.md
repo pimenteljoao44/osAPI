@@ -168,6 +168,15 @@ caracterização entra antes.
 2. Serviços param de montar DTOs inline; construtores de DTO param de conter lógica de consulta.
 - **Aceitação:** conversões centralizadas e testadas; serviços só orquestram.
 
+> **Status: ✅ CONCLUÍDA (fatia de maior valor).** Pacote `mapper/` criado com
+> `VendaProjetoMapper` (cópias "leves" extraídas do `VendaService`),
+> `ProjetoMapper` (peças/recortes/itens, antes em `ProjetoService`) e
+> `OrdemServicoMapper` (antes em `OrdemServicoService`) — os três serviços que a
+> Fase 4 decompõe. **Pendência incremental:** os `convertToDTO` simples de
+> `ContaPagarService`/`ContaReceberService`/`ParcelaService` e as conversões em
+> construtores de DTO (`VendaDTO`, `CompraDTO`, ...) seguem onde estão — são
+> autocontidos e migram quando esses módulos forem tocados.
+
 ### Fase 4 — SRP nos serviços grandes *(risco médio/alto)*
 1. `VendaService` → extrai `FaturamentoService` (parcelas/contas a receber) e mappers.
 2. `ProjetoService` e `OrdemServicoService` → mesmo recorte.
