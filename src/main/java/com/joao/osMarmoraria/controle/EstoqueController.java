@@ -1,9 +1,10 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.EstoqueReservado;
 import com.joao.osMarmoraria.domain.MovimentacaoEstoque;
 import com.joao.osMarmoraria.services.EstoqueService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +16,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/estoque")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class EstoqueController {
 
-    @Autowired
-    private EstoqueService estoqueService;
+    private final EstoqueService estoqueService;
 
     @GetMapping("/disponivel/{produtoId}")
     public ResponseEntity<Map<String, Object>> consultarEstoqueDisponivel(@PathVariable Integer produtoId) {

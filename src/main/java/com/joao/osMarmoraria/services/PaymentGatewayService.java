@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.PaymentProvider;
 import com.joao.osMarmoraria.domain.PaymentTransaction;
 import com.joao.osMarmoraria.domain.Parcela;
@@ -13,7 +15,6 @@ import com.joao.osMarmoraria.repository.PaymentProviderRepository;
 import com.joao.osMarmoraria.repository.PaymentTransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,18 +31,16 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class PaymentGatewayService {
     
     private static final Logger logger = LoggerFactory.getLogger(PaymentGatewayService.class);
     
-    @Autowired
-    private PaymentTransactionRepository paymentTransactionRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
     
-    @Autowired
-    private PaymentProviderRepository paymentProviderRepository;
+    private final PaymentProviderRepository paymentProviderRepository;
     
-    @Autowired
-    private ParcelaService parcelaService;
+    private final ParcelaService parcelaService;
     
     /**
      * Map of registered payment gateway implementations

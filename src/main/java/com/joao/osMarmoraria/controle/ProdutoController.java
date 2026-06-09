@@ -1,9 +1,10 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.Produto;
 import com.joao.osMarmoraria.dtos.ProdutoDTO;
 import com.joao.osMarmoraria.services.ProdutoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -16,9 +17,9 @@ import java.util.List;
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/produto")
+@RequiredArgsConstructor
 public class ProdutoController {
-    @Autowired
-    private ProdutoService produtoService;
+    private final ProdutoService produtoService;
 
     @GetMapping("{id}")
     public ResponseEntity<ProdutoDTO> findById(@PathVariable Integer id) {

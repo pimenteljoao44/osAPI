@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +12,6 @@ import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.*;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
@@ -20,34 +21,26 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 @Service
+@RequiredArgsConstructor
 public class FuncionarioService {
 
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
+    private final FuncionarioRepository funcionarioRepository;
 
-    @Autowired
-    private PessoaRepository pessoaRepository;
+    private final PessoaRepository pessoaRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository; // Injetando UsuarioRepository
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ServicoRepository servicoRepository; // Injetando ServicoRepository
+    private final ServicoRepository servicoRepository;
 
-    @Autowired
-    private OrdemServicoRepository ordemServicoRepository; // Injetando OrdemServicoRepository
+    private final OrdemServicoRepository ordemServicoRepository;
 
-    @Autowired
-    private CompraRepository compraRepository; // Injetando CompraRepository
+    private final CompraRepository compraRepository;
 
-    @Autowired
-    private VendaRepository vendaRepository; // Injetando VendaRepository
+    private final VendaRepository vendaRepository;
 
-    @Autowired
-    private EstadoRepository estadoRepository;
+    private final EstadoRepository estadoRepository;
 
-    @Autowired
-    private CidadeRepository cidadeRepository;
+    private final CidadeRepository cidadeRepository;
 
     public Funcionario findById(Integer id) {
         Optional<Funcionario> obj = funcionarioRepository.findById(id);

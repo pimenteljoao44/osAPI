@@ -1,11 +1,12 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.dtos.InstallmentRequestDTO;
 import com.joao.osMarmoraria.dtos.ParcelaDTO;
 import com.joao.osMarmoraria.repository.ParcelaRepository;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +20,10 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ParcelaService {
 
-    @Autowired
-    private ParcelaRepository parcelaRepository;
+    private final ParcelaRepository parcelaRepository;
 
     /**
      * Gera parcelas a partir de uma ContaReceber já existente.

@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
@@ -8,7 +10,6 @@ import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,34 +23,26 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class VendaService {
 
-    @Autowired
-    private VendaRepository vendaRepository;
+    private final VendaRepository vendaRepository;
 
-    @Autowired
-    private ItemVendaRepository itemVendaRepository;
+    private final ItemVendaRepository itemVendaRepository;
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ProjetoRepository projetoRepository;
 
-    @Autowired
-    private OrdemServicoService ordemServicoService;
+    private final OrdemServicoService ordemServicoService;
 
-    @Autowired
-    private ParcelaService parcelaService;
+    private final ParcelaService parcelaService;
 
-    @Autowired
-    private ContaReceberRepository contaReceberRepository;
+    private final ContaReceberRepository contaReceberRepository;
 
-    @Autowired
-    private EstoqueService estoqueService;
+    private final EstoqueService estoqueService;
 
     @Transactional(readOnly = true)
     public Venda findById(Integer id) {

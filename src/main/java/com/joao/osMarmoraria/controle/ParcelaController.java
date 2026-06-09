@@ -1,8 +1,9 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.dtos.ParcelaDTO;
 import com.joao.osMarmoraria.services.ParcelaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +16,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/parcelas")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class ParcelaController {
     
-    @Autowired
-    private ParcelaService parcelaService;
+    private final ParcelaService parcelaService;
     
     @GetMapping
     public ResponseEntity<List<ParcelaDTO>> listarTodas() {

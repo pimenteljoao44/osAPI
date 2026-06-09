@@ -1,10 +1,11 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.TipoMovimentacao;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,22 +15,18 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class EstoqueService {
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private MovimentacaoEstoqueRepository movimentacaoRepository;
+    private final MovimentacaoEstoqueRepository movimentacaoRepository;
 
-    @Autowired
-    private EstoqueReservadoRepository estoqueReservadoRepository;
+    private final EstoqueReservadoRepository estoqueReservadoRepository;
 
-    @Autowired
-    private ProjetoItemRepository projetoItemRepository;
+    private final ProjetoItemRepository projetoItemRepository;
 
-    @Autowired
-    private ItemOrdemServicoRepository itemOrdemServicoRepository;
+    private final ItemOrdemServicoRepository itemOrdemServicoRepository;
 
     // Métodos de Reserva de Estoque
 

@@ -1,8 +1,9 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.dtos.ContaReceberDTO;
 import com.joao.osMarmoraria.services.ContaReceberService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,10 @@ import java.util.List;
 @RequestMapping("/api/contas-receber")
 @CrossOrigin(origins = "*")
 @Validated
+@RequiredArgsConstructor
 public class ContaReceberController {
 
-    @Autowired
-    private ContaReceberService contaReceberService;
+    private final ContaReceberService contaReceberService;
 
     @GetMapping
     public ResponseEntity<List<ContaReceberDTO>> listarTodas() {

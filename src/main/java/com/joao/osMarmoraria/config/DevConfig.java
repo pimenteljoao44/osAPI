@@ -1,8 +1,9 @@
 package com.joao.osMarmoraria.config;
 
+import lombok.RequiredArgsConstructor;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +14,10 @@ import com.joao.osMarmoraria.services.DBservice;
 
 @Configuration
 @Profile("dev")
+@RequiredArgsConstructor
 public class DevConfig {
  
-	@Autowired
-	private DBservice  dataBaseService;
+	private final DBservice  dataBaseService;
 	
 	@Value("${spring.jpa.hibernate.ddl-auto}")
 	private String ddl;

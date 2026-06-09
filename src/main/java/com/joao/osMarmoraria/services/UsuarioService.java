@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -8,7 +10,6 @@ import com.joao.osMarmoraria.domain.Projeto;
 import com.joao.osMarmoraria.exceptions.DeletionRestrictedException;
 import com.joao.osMarmoraria.repository.FuncionarioRepository;
 import com.joao.osMarmoraria.repository.ProjetoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,16 +28,14 @@ import javax.validation.Valid;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository repository;
+    private final UsuarioRepository repository;
 
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
+    private final FuncionarioRepository funcionarioRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository; // Injetando ProjetoRepository
+    private final ProjetoRepository projetoRepository;
 
     private Usuario findByLogin(UsuarioDTO objDTO) {
         Usuario obj = repository.findByLogin(objDTO.getLogin());

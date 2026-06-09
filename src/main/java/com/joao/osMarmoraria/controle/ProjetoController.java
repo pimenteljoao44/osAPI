@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
@@ -8,7 +10,6 @@ import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.services.ProjetoService;
 import com.joao.osMarmoraria.services.RelatorioService;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource; // IMPORT NECESSÁRIO
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,13 +32,12 @@ import java.util.Map;
 @RequestMapping("/projetos-personalizados")
 @CrossOrigin(origins = "*")
 @Validated
+@RequiredArgsConstructor
 public class ProjetoController {
 
-    @Autowired
-    private ProjetoService projetoService;
+    private final ProjetoService projetoService;
 
-    @Autowired
-    private RelatorioService relatorioService;
+    private final RelatorioService relatorioService;
 
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 

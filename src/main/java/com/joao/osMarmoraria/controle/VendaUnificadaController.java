@@ -1,8 +1,9 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.services.VendaUnificadaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,10 +17,10 @@ import java.util.Map;
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/api/venda-unificada")
+@RequiredArgsConstructor
 public class VendaUnificadaController {
 
-    @Autowired
-    private VendaUnificadaService vendaUnificadaService;
+    private final VendaUnificadaService vendaUnificadaService;
 
     // ========== OPERAÇÕES CRUD ==========
 

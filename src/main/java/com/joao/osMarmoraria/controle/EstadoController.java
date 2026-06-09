@@ -1,9 +1,10 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.Estado;
 import com.joao.osMarmoraria.dtos.EstadoDTO;
 import com.joao.osMarmoraria.services.EstadoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -16,9 +17,9 @@ import java.util.List;
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/api/estado")
+@RequiredArgsConstructor
 public class EstadoController {
-    @Autowired
-    private EstadoService estadoService;
+    private final EstadoService estadoService;
 
     @GetMapping("{id}")
     public ResponseEntity<EstadoDTO> findById(@PathVariable Integer id) {

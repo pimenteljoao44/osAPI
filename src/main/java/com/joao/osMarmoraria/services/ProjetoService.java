@@ -1,11 +1,12 @@
 package com.joao.osMarmoraria.services;
+
+import lombok.RequiredArgsConstructor;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.TipoProjeto;
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,25 +24,20 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ProjetoService {
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ProjetoRepository projetoRepository;
 
-    @Autowired
-    private ProjetoItemRepository projetoItemRepository;
+    private final ProjetoItemRepository projetoItemRepository;
 
-    @Autowired
-    private PecaRepository pecaRepository;
+    private final PecaRepository pecaRepository;
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public List<ProjetoDTO> listarProjetosAprovadosPorCliente(Integer clienteId) {
         return projetoRepository.findProjetosAprovadosByCliente(clienteId)

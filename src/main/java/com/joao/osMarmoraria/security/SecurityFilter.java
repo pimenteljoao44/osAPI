@@ -3,7 +3,6 @@ package com.joao.osMarmoraria.security;
 import com.joao.osMarmoraria.repository.UsuarioRepository;
 import com.joao.osMarmoraria.services.TokenService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.GrantedAuthority; // Importar GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority; // Importar SimpleGrantedAuthority
+
+import lombok.RequiredArgsConstructor;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -21,11 +22,11 @@ import java.util.Collection; // Importar Collection
 import java.util.stream.Collectors; // Importar Collectors
 
 @Component
+@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
-    @Autowired
-    TokenService tokenService;
-    @Autowired
-    UsuarioRepository userRepository;
+
+    private final TokenService tokenService;
+    private final UsuarioRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

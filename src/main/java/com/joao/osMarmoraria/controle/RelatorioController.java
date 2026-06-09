@@ -1,8 +1,9 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.services.RelatorioService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,10 +18,10 @@ import java.util.Map;
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/relatorios")
+@RequiredArgsConstructor
 public class RelatorioController {
 
-    @Autowired
-    private RelatorioService relatorioService;
+    private final RelatorioService relatorioService;
 
     @PostMapping("/gerar/relatorioDeVendasResumido")
     public ResponseEntity<byte[]> gerarRelatorioDeVendasResumido(@RequestBody Map<String, Object> parametros) {

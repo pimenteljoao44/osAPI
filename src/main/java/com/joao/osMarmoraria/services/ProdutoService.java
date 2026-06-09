@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.UnidadeDeMedida;
 import com.joao.osMarmoraria.dtos.ProdutoDTO;
@@ -15,7 +17,6 @@ import com.joao.osMarmoraria.repository.ProjetoMaterialRepository;
 import com.joao.osMarmoraria.repository.EstoqueReservadoRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -24,36 +25,27 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProdutoService {
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private FornecedorRepository fornecedorRepository;
+    private final FornecedorRepository fornecedorRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
-    @Autowired
-    private ProjetoItemRepository projetoItemRepository; // Injetando ProjetoItemRepository
+    private final ProjetoItemRepository projetoItemRepository;
 
-    @Autowired
-    private ProjetoMaterialRepository projetoMaterialRepository; // Injetando ProjetoMaterialRepository
+    private final ProjetoMaterialRepository projetoMaterialRepository;
 
-    @Autowired
-    private ItemCompraRepository itemCompraRepository; // Injetando ItemCompraRepository
+    private final ItemCompraRepository itemCompraRepository;
 
-    @Autowired
-    private ItemOrdemServicoRepository itemOrdemServicoRepository; // Injetando ItemOrdemServicoRepository
+    private final ItemOrdemServicoRepository itemOrdemServicoRepository;
 
-    @Autowired
-    private ItemVendaRepository itemVendaRepository; // Injetando ItemVendaRepository
+    private final ItemVendaRepository itemVendaRepository;
 
-    @Autowired
-    private EstoqueReservadoRepository estoqueReservadoRepository; // Injetando EstoqueReservadoRepository
+    private final EstoqueReservadoRepository estoqueReservadoRepository;
 
-    @Autowired
-    private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository; // Injetando MovimentacaoEstoqueRepository
+    private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
     public List<Produto> findAll() {
         return produtoRepository.findAll();

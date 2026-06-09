@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
 import com.joao.osMarmoraria.dtos.CompraDTO;
@@ -8,7 +10,6 @@ import com.joao.osMarmoraria.dtos.InstallmentRequestDTO;
 import com.joao.osMarmoraria.dtos.ItemCompraDTO;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,28 +20,22 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class CompraService {
 
-    @Autowired
-    private CompraRepository compraRepository;
+    private final CompraRepository compraRepository;
 
-    @Autowired
-    private ItemCompraRepository itemRepository;
+    private final ItemCompraRepository itemRepository;
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private FornecedorRepository fornecedorRepository;
+    private final FornecedorRepository fornecedorRepository;
 
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
+    private final FuncionarioRepository funcionarioRepository;
 
-    @Autowired
-    private ContaPagarService contaPagarService;
+    private final ContaPagarService contaPagarService;
 
-    @Autowired
-    private ParcelaService parcelaService;
+    private final ParcelaService parcelaService;
 
     @Transactional(readOnly = true)
     public Compra findById(Integer id) {

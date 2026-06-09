@@ -8,7 +8,7 @@ import com.joao.osMarmoraria.services.RandomPasswordGeneratorService;
 import com.joao.osMarmoraria.services.TokenService;
 import com.joao.osMarmoraria.services.UsuarioService;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,28 +20,21 @@ import javax.validation.Valid;
 @CrossOrigin("*")
 @RestController
 @RequestMapping("auth")
+@RequiredArgsConstructor
 public class AuthController {
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private UsuarioRepository repository;
 
-    @Autowired
-    private UsuarioService usuarioService;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    private TokenService tokenService;
+    private final UsuarioRepository repository;
 
-    @Autowired
-    private EmailService emailService;
+    private final UsuarioService usuarioService;
 
-    @Autowired
-    private RandomPasswordGeneratorService randomPasswordGeneratorService;
+    private final TokenService tokenService;
 
-    @Autowired
-    public AuthController(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
+    private final EmailService emailService;
+
+    private final RandomPasswordGeneratorService randomPasswordGeneratorService;
+
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.senha());

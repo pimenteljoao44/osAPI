@@ -1,9 +1,10 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.Fornecedor;
 import com.joao.osMarmoraria.dtos.FornecedorDTO;
 import com.joao.osMarmoraria.services.FornecedorService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -16,10 +17,10 @@ import java.util.List;
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/fornecedores")
+@RequiredArgsConstructor
 public class FornecedorController {
 
-    @Autowired
-    private FornecedorService service;
+    private final FornecedorService service;
 
     @GetMapping(value="{id}")
     public ResponseEntity<FornecedorDTO> findById(@PathVariable Integer id){

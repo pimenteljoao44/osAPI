@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.Status;
 import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
@@ -9,7 +11,6 @@ import com.joao.osMarmoraria.dtos.OrdemServicoDTO;
 import com.joao.osMarmoraria.dtos.AgendamentoDTO;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,25 +24,20 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class OrdemServicoService {
 
-    @Autowired
-    private OrdemServicoRepository ordemServicoRepository;
+    private final OrdemServicoRepository ordemServicoRepository;
 
-    @Autowired
-    private ItemOrdemServicoRepository itemOrdemServicoRepository;
+    private final ItemOrdemServicoRepository itemOrdemServicoRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ProjetoRepository projetoRepository;
 
-    @Autowired
-    private ProjetoItemRepository projetoItemRepository;
+    private final ProjetoItemRepository projetoItemRepository;
 
-    @Autowired
-    private ProjetoService projetoService;
+    private final ProjetoService projetoService;
 
-    @Autowired
-    private EstoqueService estoqueService;
+    private final EstoqueService estoqueService;
 
     // CRUD Operations
     public List<OrdemServicoDTO> listarTodas() {

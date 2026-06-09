@@ -1,12 +1,13 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.dtos.ContaReceberDTO;
 import com.joao.osMarmoraria.repository.ContaReceberRepository;
 import com.joao.osMarmoraria.repository.ProjetoRepository;
 import com.joao.osMarmoraria.repository.VendaRepository;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,16 +20,14 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ContaReceberService {
 
-    @Autowired
-    private ContaReceberRepository contaReceberRepository;
+    private final ContaReceberRepository contaReceberRepository;
 
-    @Autowired
-    private VendaRepository vendaRepository;
+    private final VendaRepository vendaRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ProjetoRepository projetoRepository;
 
     // CRUD Operations
     public List<ContaReceberDTO> listarTodas() {

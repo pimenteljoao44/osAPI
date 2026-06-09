@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,30 +12,24 @@ import java.util.List;
 
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.joao.osMarmoraria.domain.enums.Prioridade;
 import com.joao.osMarmoraria.domain.enums.Status;
 @Service
+@RequiredArgsConstructor
 public class DBservice {
-	@Autowired
-	private FuncionarioRepository funcionarioRepository;
+	private final FuncionarioRepository funcionarioRepository;
 
-	@Autowired
-	private ClienteRepository clienteRepository;
+	private final ClienteRepository clienteRepository;
 
-	@Autowired
-	private OrdemServicoRepository osRepository;
+	private final OrdemServicoRepository osRepository;
 
-	@Autowired
-	private EnderecoRepository enderecoRepository;
+	private final EnderecoRepository enderecoRepository;
 
-	@Autowired
-	private FornecedorRepository fornecedorRepository;
+	private final FornecedorRepository fornecedorRepository;
 
-	@Autowired
-	private ProdutoRepository produtoRepository;
+	private final ProdutoRepository produtoRepository;
 
 	public void instanciaDB() {
 

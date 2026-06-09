@@ -1,12 +1,13 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.Compra;
 import com.joao.osMarmoraria.domain.ContaPagar;
 import com.joao.osMarmoraria.dtos.ContaPagarDTO;
 import com.joao.osMarmoraria.repository.CompraRepository;
 import com.joao.osMarmoraria.repository.ContaPagarRepository;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +20,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ContaPagarService {
 
-    @Autowired
-    private ContaPagarRepository contaPagarRepository;
+    private final ContaPagarRepository contaPagarRepository;
 
-    @Autowired
-    private CompraRepository compraRepository;
+    private final CompraRepository compraRepository;
 
     public List<ContaPagarDTO> listarTodas() {
         return contaPagarRepository.findAllWithDetails().stream()

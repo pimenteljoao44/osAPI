@@ -1,9 +1,10 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.Grupo;
 import com.joao.osMarmoraria.dtos.GrupoDTO;
 import com.joao.osMarmoraria.services.GrupoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -16,10 +17,10 @@ import java.util.List;
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/grupo")
+@RequiredArgsConstructor
 public class GrupoController {
 
-    @Autowired
-    private GrupoService grupoService;
+    private final GrupoService grupoService;
 
     @GetMapping("{id}")
     public ResponseEntity<GrupoDTO> findById(@PathVariable Integer id) {

@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.PaymentProvider;
 import com.joao.osMarmoraria.domain.PaymentTransaction;
 import com.joao.osMarmoraria.domain.enums.PaymentMethod;
@@ -10,7 +12,6 @@ import com.joao.osMarmoraria.services.PaymentGatewayService;
 import com.joao.osMarmoraria.repository.PaymentTransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -32,15 +33,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/payment-gateway")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class PaymentGatewayController {
     
     private static final Logger logger = LoggerFactory.getLogger(PaymentGatewayController.class);
     
-    @Autowired
-    private PaymentGatewayService paymentGatewayService;
+    private final PaymentGatewayService paymentGatewayService;
     
-    @Autowired
-    private PaymentTransactionRepository paymentTransactionRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
     
     /**
      * Process a payment

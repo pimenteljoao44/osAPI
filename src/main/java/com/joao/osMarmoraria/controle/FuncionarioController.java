@@ -1,10 +1,11 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,10 +27,10 @@ import javax.validation.Valid;
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/funcionarios")
+@RequiredArgsConstructor
 public class FuncionarioController {
 	
-	@Autowired
-	private FuncionarioService service;
+	private final FuncionarioService service;
 
 	@GetMapping(value="{id}")
 	public ResponseEntity<FuncionarioDTO> findById(@PathVariable Integer id){

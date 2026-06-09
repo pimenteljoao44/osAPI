@@ -1,9 +1,10 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.Cidade;
 import com.joao.osMarmoraria.dtos.CidadeDTO;
 import com.joao.osMarmoraria.services.CidadeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -16,9 +17,9 @@ import java.util.List;
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/api/cidade")
+@RequiredArgsConstructor
 public class CidadeController {
-    @Autowired
-    private CidadeService cidadeService;
+    private final CidadeService cidadeService;
 
     @GetMapping("{id}")
     public ResponseEntity<CidadeDTO> findById(@PathVariable Integer id) {

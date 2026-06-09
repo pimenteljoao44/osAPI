@@ -1,10 +1,11 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.ProjetoMedida;
 import com.joao.osMarmoraria.domain.enums.UnidadeDeMedida;
 import com.joao.osMarmoraria.repository.ProjetoMedidaRepository;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,10 +14,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProjetoMedidaService {
 
-    @Autowired
-    private ProjetoMedidaRepository projetoMedidaRepository;
+    private final ProjetoMedidaRepository projetoMedidaRepository;
 
     @Transactional(readOnly = true)
     public ProjetoMedida findById(Integer id) {
