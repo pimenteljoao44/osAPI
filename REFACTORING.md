@@ -222,6 +222,14 @@ caracterização entra antes.
 - **Aceitação:** OWASP A05 (Security Misconfiguration) e A07 (Identification and
   Authentication Failures) endereçados; nada sensível no repositório.
 
+> **Status: ✅ CONCLUÍDA.** Sessão `STATELESS` (API JWT pura, sem estado de
+> sessão no servidor); CORS por configuração (`app.cors.allowed-origins` por
+> ambiente — dev default `localhost:4200`, prod obrigatório via env) e os 20
+> `@CrossOrigin("*")` espalhados nos controllers foram removidos — a política
+> vive num único lugar; `validateToken` lança `TokenInvalidoException` com a
+> causa real em vez de devolver `""` silencioso (o filtro segue sem autenticar
+> e o motivo fica no log). Segredos por env já resolvidos na Fase 0.
+
 ### Fase 7 — API e documentação *(risco baixo)*
 1. `springdoc-openapi` (Swagger UI) com anotações nos controllers.
 2. Actuator (health/info) para observabilidade básica.

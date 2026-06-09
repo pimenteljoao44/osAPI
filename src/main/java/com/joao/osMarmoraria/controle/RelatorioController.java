@@ -16,7 +16,6 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
-@CrossOrigin("*")
 @RestController
 @RequestMapping("/relatorios")
 @RequiredArgsConstructor

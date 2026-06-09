@@ -17,7 +17,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contas-pagar" )
-@CrossOrigin(origins = "*") // Lembre-se que em produção é melhor restringir a origem
 @RequiredArgsConstructor
 public class ContaPagarController {
 

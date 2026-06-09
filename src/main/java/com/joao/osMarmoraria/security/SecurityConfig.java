@@ -1,5 +1,6 @@
 package com.joao.osMarmoraria.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,10 +32,21 @@ public class SecurityConfig {
 
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
+    /**
+     * Origens autorizadas a consumir a API, definidas por ambiente
+     * (contrato em .env.example). Nunca "*": curinga combinado com
+     * allowCredentials permitiria a qualquer site fazer requisições
+     * autenticadas em nome do usuário logado.
+     */
+    @Value("${app.cors.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // API autenticada por JWT a cada requisição: sem sessão no servidor
+        // (STATELESS) não há estado para fixar nem cookie de sessão para roubar.
         http.cors().and().csrf().disable().sessionManagement().sessionCreationPolicy(
-                        SessionCreationPolicy.IF_REQUIRED)
+                        SessionCreationPolicy.STATELESS)
                 .and().authorizeRequests(authorize ->
                         authorize.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/login").permitAll()
@@ -188,7 +200,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("*"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

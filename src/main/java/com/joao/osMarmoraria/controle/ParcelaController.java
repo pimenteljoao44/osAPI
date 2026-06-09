@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/parcelas")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class ParcelaController {
     

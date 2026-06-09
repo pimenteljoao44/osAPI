@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-@CrossOrigin("*")
 @RestController
 @RequestMapping(value = "/venda")
 @RequiredArgsConstructor

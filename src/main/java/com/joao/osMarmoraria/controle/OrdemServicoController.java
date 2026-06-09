@@ -21,7 +21,6 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/os")
-@CrossOrigin(origins = "*")
 @Validated
 @RequiredArgsConstructor
 public class OrdemServicoController {

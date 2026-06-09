@@ -17,7 +17,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contas-receber")
-@CrossOrigin(origins = "*")
 @Validated
 @RequiredArgsConstructor
 public class ContaReceberController {

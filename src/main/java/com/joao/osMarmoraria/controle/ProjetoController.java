@@ -31,7 +31,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/projetos-personalizados")
-@CrossOrigin(origins = "*")
 @Validated
 @RequiredArgsConstructor
 @Slf4j

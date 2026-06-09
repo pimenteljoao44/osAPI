@@ -32,7 +32,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/payment-gateway")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PaymentGatewayController {
     
