@@ -18,6 +18,7 @@ Thumbs.db
 *.jar
 *.war
 
-# Configurações locais
-application.properties
-application.yml
+# Segredos locais (o contrato versionado é o .env.example;
+# os application*.properties do projeto não contêm segredos e SÃO versionados)
+.env
+*.local.properties
