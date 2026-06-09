@@ -7,7 +7,6 @@ import com.joao.osMarmoraria.dtos.PecaDTO;
 import com.joao.osMarmoraria.dtos.ProjetoDTO;
 import com.joao.osMarmoraria.dtos.ProjetoItemDTO;
 import com.joao.osMarmoraria.dtos.RecorteDTO;
-import com.joao.osMarmoraria.repository.ProdutoRepository;
 import com.joao.osMarmoraria.repository.ProjetoItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,16 +20,15 @@ import java.util.stream.Collectors;
  * montagem do DTO (que depende de consultas a itens e produtos) do fluxo de
  * negócio.
  *
- * <p>Nota de performance: {@code itemToDto} ainda re-busca o produto por id,
- * mesmo com o fetch join de {@code findByProjetoIdWithProduto} — N+1
- * catalogado para correção na Fase 5 do REFACTORING.md.</p>
+ * <p>Os itens chegam com o produto já carregado pelo fetch join de
+ * {@code findByProjetoIdWithProduto} — uma única consulta para todos os
+ * itens, sem N+1.</p>
  */
 @Component
 @RequiredArgsConstructor
 public class ProjetoMapper {
 
     private final ProjetoItemRepository projetoItemRepository;
-    private final ProdutoRepository produtoRepository;
 
     public ProjetoDTO toDto(Projeto projeto) {
         if (projeto == null) {
@@ -106,8 +104,10 @@ public class ProjetoMapper {
             throw new IllegalArgumentException("ID do Produto não pode ser nulo para o item de projeto.");
         }
 
-        Produto produto = produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado para o ID: " + produtoId));
+        Produto produto = item.getProduto();
+        if (produto == null) {
+            throw new RuntimeException("Produto não encontrado para o ID: " + produtoId);
+        }
 
         ProjetoItemDTO dto = new ProjetoItemDTO();
         dto.setId(item.getId());

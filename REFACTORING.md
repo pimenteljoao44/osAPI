@@ -203,6 +203,17 @@ caracterização entra antes.
    checking → menos memória e CPU por requisição), transação obrigatória onde há escrita.
 - **Aceitação:** zero force-init; N+1 catalogados eliminados (verificável ligando `show-sql` em dev).
 
+> **Status: ✅ CONCLUÍDA.** `findByIdWithDetails` agora honra o nome (fetch joins
+> de cliente/pessoa, usuário de criação e itens+produto, com DISTINCT — só uma
+> coleção pode ser fetch-joinada; `pecas` segue lazy dentro da transação); o
+> bloco de ~40 linhas de força-inicialização em `efetuarVendaProjeto` foi
+> deletado, junto com o import morto de `org.hibernate.Hibernate`;
+> `ProjetoMapper.itemToDto` usa o produto do fetch join (fim da re-busca por
+> id); as 4 consultas de lista de venda-projeto ganharam fetch join de
+> cliente/pessoa (fim dos 2 selects por linha); `readOnly = true` nas leituras
+> de `VendaService`/`ProjetoService` e `efetivarVenda` ganhou a transação que
+> faltava.
+
 ### Fase 6 — Hardening de segurança *(risco médio)*
 1. `SessionCreationPolicy.STATELESS`.
 2. CORS por configuração (`app.cors.allowed-origins` por ambiente), nunca `*` com credenciais.

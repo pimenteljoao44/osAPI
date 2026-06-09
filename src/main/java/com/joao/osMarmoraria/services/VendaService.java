@@ -12,7 +12,6 @@ import com.joao.osMarmoraria.mapper.VendaProjetoMapper;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ContasReceberJaGeradasException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +49,7 @@ public class VendaService {
                 .orElseThrow(() -> new ObjectNotFoundException("Venda não encontrada! ID: " + id));
     }
 
+    @Transactional(readOnly = true)
     public List<Venda> findAll() {
         return vendaRepository.findAll();
     }
@@ -199,6 +199,7 @@ public class VendaService {
         return vendaRepository.save(venda);
     }
 
+    @Transactional
     public void efetivarVenda(Integer vendaId) {
         Venda venda = findById(vendaId);
         venda.efetuarVenda();
@@ -360,46 +361,8 @@ public class VendaService {
         }
 
         Venda finalVenda = venda;
-        Projeto projeto = projetoRepository.findById(venda.getProjetoId())
+        Projeto projeto = projetoRepository.findByIdWithDetails(venda.getProjetoId())
                 .orElseThrow(() -> new ObjectNotFoundException("Projeto não encontrado! ID: " + finalVenda.getProjetoId()));
-
-        if (venda.getCliente() != null) {
-            venda.getCliente().getCliId(); // força inicialização
-            venda.getCliente().getPessoa().getNome();
-            if (venda.getCliente().getPessoa() != null) {
-                venda.getCliente().getPessoa().getId();
-                venda.getCliente().getPessoa().getNome();
-            }
-
-        }
-
-        if (projeto.getCliente() != null) {
-            projeto.getCliente().getCliId();
-            projeto.getCliente().getPessoa().getNome();
-            if (projeto.getCliente().getPessoa() != null) {
-                projeto.getCliente().getPessoa().getId();
-                projeto.getCliente().getPessoa().getNome();
-            }
-        }
-
-        if (projeto.getTipoProjeto() != null) {
-            projeto.getTipoProjeto();
-            projeto.getTipoProjeto().getDescricao();
-        }
-
-        // 4. Itens do projeto
-        if (projeto.getItens() != null) {
-            for (ProjetoItem item : projeto.getItens()) {
-                item.getId();
-                item.getQuantidade();
-                item.getValorUnitario();
-                if (item.getProduto() != null) {
-                    item.getProduto().getProdId();
-                    item.getProduto().getNome();
-                }
-            }
-        }
-
 
         venda.setDataFechamento(new Date());
         venda = vendaRepository.save(venda);

@@ -19,7 +19,22 @@ import java.util.Optional;
 @Repository
 public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
 
-    @Query("SELECT p FROM Projeto p WHERE p.id = :id")
+    /**
+     * Carrega o projeto com as associações que os mappers consomem
+     * (cliente/pessoa, usuário de criação, itens com produto) numa única
+     * consulta. Só {@code itens} pode ser fetch-joinado entre as coleções —
+     * duas listas na mesma query causariam MultipleBagFetchException;
+     * {@code pecas} permanece lazy e é carregada dentro da transação quando
+     * necessária. O DISTINCT colapsa as linhas multiplicadas pelo join da
+     * coleção de volta numa única entidade.
+     */
+    @Query("SELECT DISTINCT p FROM Projeto p " +
+            "LEFT JOIN FETCH p.cliente c " +
+            "LEFT JOIN FETCH c.pessoa " +
+            "LEFT JOIN FETCH p.usuarioCriacao " +
+            "LEFT JOIN FETCH p.itens i " +
+            "LEFT JOIN FETCH i.produto " +
+            "WHERE p.id = :id")
     Optional<Projeto> findByIdWithDetails(@Param("id") Integer id);
 
     @Query(value = "SELECT p FROM Projeto p LEFT JOIN FETCH p.cliente",

@@ -44,22 +44,26 @@ public class ProjetoService {
 
     private final ProjetoMapper projetoMapper;
 
+    @Transactional(readOnly = true)
     public List<ProjetoDTO> listarProjetosAprovadosPorCliente(Integer clienteId) {
         return projetoRepository.findProjetosAprovadosByCliente(clienteId)
                 .stream().map(projetoMapper::toDto).collect(Collectors.toList());
 
     }
 
+    @Transactional(readOnly = true)
     public Page<ProjetoDTO> listarProjetos(Pageable pageable) {
         return projetoRepository.findAllWithCliente(pageable)
                 .map(projetoMapper::toDto);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProjetoDTO> listarComFiltros(String nome, StatusProjeto status, TipoProjeto tipoProjeto, Integer clienteId, String clienteNome, Pageable pageable) {
         return projetoRepository.findWithFilters(nome, status, tipoProjeto, clienteId, clienteNome, pageable)
                 .map(projetoMapper::toDto);
     }
 
+    @Transactional(readOnly = true)
     public ProjetoDTO buscarPorId(Integer id) {
         Projeto projeto = projetoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado com ID: " + id));

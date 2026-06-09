@@ -27,19 +27,26 @@ public interface VendaRepository extends JpaRepository<Venda, Integer> {
     List<Venda> findByClienteId(@Param("cliId") Integer cliId);
 
 
-    @Query("SELECT v FROM Venda v WHERE v.vendaTipo = :vendaTipo AND v.projetoId IS NOT NULL")
+    // Fetch joins de cliente/pessoa nas consultas de lista: as associações são
+    // EAGER e seriam carregadas de qualquer forma — sem o fetch join, o Hibernate
+    // dispara 2 selects extras POR LINHA do resultado (N+1).
+    @Query("SELECT v FROM Venda v LEFT JOIN FETCH v.cliente c LEFT JOIN FETCH c.pessoa " +
+            "WHERE v.vendaTipo = :vendaTipo AND v.projetoId IS NOT NULL")
     List<Venda> findByVendaTipoAndProjetoIdIsNotNull(@Param("vendaTipo") VendaTipo vendaTipo);
 
     @Query("SELECT v FROM Venda v WHERE v.vendaTipo = :vendaTipo AND v.projetoId IS NULL")
     List<Venda> findByVendaTipoAndProjetoIdIsNull(@Param("vendaTipo") VendaTipo vendaTipo);
 
-    @Query("SELECT v FROM Venda v WHERE v.cliente.cliId = :clienteId AND v.vendaTipo = :vendaTipo AND v.projetoId IS NOT NULL")
+    @Query("SELECT v FROM Venda v LEFT JOIN FETCH v.cliente c LEFT JOIN FETCH c.pessoa " +
+            "WHERE c.cliId = :clienteId AND v.vendaTipo = :vendaTipo AND v.projetoId IS NOT NULL")
     List<Venda> findByClienteIdAndVendaTipoAndProjetoIdIsNotNull(@Param("clienteId") Integer clienteId, @Param("vendaTipo") VendaTipo vendaTipo);
 
-    @Query("SELECT v FROM Venda v WHERE v.vendaTipo = :vendaTipo AND v.dataFechamento IS NULL AND v.projetoId IS NOT NULL")
+    @Query("SELECT v FROM Venda v LEFT JOIN FETCH v.cliente c LEFT JOIN FETCH c.pessoa " +
+            "WHERE v.vendaTipo = :vendaTipo AND v.dataFechamento IS NULL AND v.projetoId IS NOT NULL")
     List<Venda> findByVendaTipoAndDataFechamentoIsNullAndProjetoIdIsNotNull(@Param("vendaTipo") VendaTipo vendaTipo);
 
-    @Query("SELECT v FROM Venda v WHERE v.vendaTipo = :vendaTipo AND v.dataFechamento IS NOT NULL AND v.projetoId IS NOT NULL")
+    @Query("SELECT v FROM Venda v LEFT JOIN FETCH v.cliente c LEFT JOIN FETCH c.pessoa " +
+            "WHERE v.vendaTipo = :vendaTipo AND v.dataFechamento IS NOT NULL AND v.projetoId IS NOT NULL")
     List<Venda> findByVendaTipoAndDataFechamentoIsNotNullAndProjetoIdIsNotNull(@Param("vendaTipo") VendaTipo vendaTipo);
 
     @Query("SELECT v FROM Venda v WHERE v.projetoId = :projetoId AND v.vendaTipo = :vendaTipo")
