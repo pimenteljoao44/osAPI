@@ -51,6 +51,10 @@ public class SecurityConfig {
                         authorize.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/login").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/recovery").permitAll()
+
+                                // Documentação da API e health check (sem dados sensíveis)
+                                .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                                .antMatchers("/actuator/health").permitAll()
                                 .antMatchers(HttpMethod.POST, "/auth/register").hasAnyRole("ADMIN", "GERENTE")
                                 .antMatchers(HttpMethod.GET, "/localidades/**").permitAll()
 

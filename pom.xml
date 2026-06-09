@@ -74,10 +74,15 @@
 			<artifactId>postgresql</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<version>8.0.33</version>
-			<scope>runtime</scope>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- Documentação OpenAPI/Swagger UI. A linha 1.6.x é a compatível com
+		     Spring Boot 2.x (a 2.x do springdoc exige Boot 3 / jakarta.*). -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.6.15</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
