@@ -24,11 +24,18 @@ A análise cobriu os 196 arquivos Java do projeto. Os achados estão ordenados p
 `git clone` → rodar. Hoje isso é impossível sem conhecimento tribal. *Reprodutibilidade é
 pré-requisito de profissionalismo* — vem antes de qualquer elegância de código.
 
-### 1.2 Não existe nenhum teste 🔴
+### 1.2 A suíte de testes existe, mas não roda num clone limpo 🔴
 
-`src/test` está vazio. Qualquer refatoração sem rede de proteção é um salto sem corda.
-Consequência prática: as fases abaixo começam criando um **teste de fumaça** (o contexto
-Spring sobe com H2) e cada fase só fecha com build + testes verdes.
+Há 5 classes de teste (~22 casos), porém a suíte estava **vermelha por configuração**:
+o perfil `test` não definia `api.security.token.secret` nem `spring.mail.*` — as 8
+integrações de pagamento falhavam com *placeholder não resolvido* antes de executar
+qualquer asserção; `UsuarioServiceTest.deleteWithSucess` quebrava com NPE por mock
+ausente (sintoma direto da injeção por campo: o teste não é avisado pelo compilador
+de que o serviço ganhou uma dependência nova); e `OsMarmorariaApplicationTests`
+chamava `main()` de verdade — subia a aplicação inteira contra o PostgreSQL local,
+passando ou falhando conforme a máquina. Testes que dependem do ambiente não são
+rede de proteção: são loteria. A Fase 0 conserta a configuração, substitui o boot
+real por um **teste de fumaça** com H2 e deixa a suíte 100% verde e auto-contida.
 
 ### 1.3 Smells transversais de Clean Code 🟠
 
@@ -212,6 +219,9 @@ Conceitos da formação aplicados de forma concreta (não decorativa):
    para servir outros domínios (ex.: app de transporte: cliente ↔ empresa ↔ transportadora).
 4. **Conformidade fiscal (NF-e)** — módulo isolado, conforme extensão descrita no Notion.
 5. **Cobertura de testes de integração** dos fluxos de negócio (venda completa, OS, faturamento).
+6. **Reconciliar `PaymentIntegrationTest` com a API real** — a suíte de pagamentos foi
+   escrita contra URLs que não existem (`/api/compras`, `/api/parcelas`); está em
+   quarentena (`@Disabled`) desde a Fase 0 com a causa documentada no próprio arquivo.
 
 ## 7. Convenção de commits
 
