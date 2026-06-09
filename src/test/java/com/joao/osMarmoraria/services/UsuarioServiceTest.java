@@ -8,6 +8,7 @@ import com.joao.osMarmoraria.domain.enums.NivelAcesso;
 import com.joao.osMarmoraria.dtos.CidadeDTO;
 import com.joao.osMarmoraria.dtos.EstadoDTO;
 import com.joao.osMarmoraria.dtos.UsuarioDTO;
+import com.joao.osMarmoraria.repository.ProjetoRepository;
 import com.joao.osMarmoraria.repository.UsuarioRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
@@ -36,6 +37,8 @@ class UsuarioServiceTest {
     private UsuarioService service;
     @Mock
     private UsuarioRepository repository;
+    @Mock
+    private ProjetoRepository projetoRepository;
 
     private Usuario usuario;
 
@@ -133,6 +136,7 @@ class UsuarioServiceTest {
     @Test
     void deleteWithSucess() {
         when(repository.findById(anyInt())).thenReturn(optionalUsuario);
+        when(projetoRepository.existsByUsuarioCriacao_Id(anyInt())).thenReturn(false);
         doNothing().when(repository).deleteById(anyInt());
         service.delete(1);
         verify(repository,times(1)).deleteById(anyInt());
