@@ -126,6 +126,11 @@ caracterização entra antes.
    propriedade ausente, erro de mapeamento JPA.
 - **Aceitação:** clone limpo roda em ≤ 3 comandos documentados; 1 teste verde no CI local.
 
+> **Status: ✅ CONCLUÍDA.** Perfis base/dev/prod com env vars; `.env.example`;
+> docker-compose alinhado ao Postgres; `ApplicationContextSmokeTest` (perfil `h2`);
+> suíte corrigida e verde (15 testes; `PaymentIntegrationTest` em quarentena
+> documentada — ver §6.6).
+
 ### Fase 1 — Fundamentos de Clean Code *(risco baixo)*
 1. Injeção por construtor em todos os `@Service`/`@Component`/`@Controller`
    (Lombok `@RequiredArgsConstructor` + campos `final`). 142 pontos.
@@ -136,6 +141,11 @@ caracterização entra antes.
   assinatura — honestidade; (2) `final` garante imutabilidade pós-construção; (3) testes
   unitários viram `new Service(mock1, mock2)` sem mágica de reflexão.
 
+> **Status: ✅ CONCLUÍDA.** 142 pontos migrados em 48 classes (script
+> `tools/migrate-constructor-injection.ps1` + 10 correções manuais); SLF4J nos 25
+> `System.out`/`printStackTrace`; código morto removido; `DIAS_ENTRE_PARCELAS` extraída.
+> Contexto Spring sobe inteiro — prova de ausência de ciclos de dependência.
+
 ### Fase 2 — Erros como contrato *(risco baixo)*
 1. Hierarquia de exceções de negócio (`RegraDeNegocioException` e filhas específicas,
    ex.: `ContasReceberJaGeradasException`).
@@ -143,6 +153,13 @@ caracterização entra antes.
 3. Consolidar os dois `@ControllerAdvice` num único handler com respostas padronizadas
    (404 para não-encontrado, 409 para conflito de regra, 400 para validação).
 - **Aceitação:** nenhuma comparação de string de exceção; um único handler; contrato de erro uniforme.
+
+> **Status: ✅ CONCLUÍDA.** Criadas `RegraDeNegocioException` (→ 409) e filhas
+> `ContasReceberJaGeradasException` / `ContasPagarJaGeradasException`;
+> `DeletionRestrictedException` entrou na hierarquia e perdeu o `@ResponseStatus`
+> conflitante; `GlobalExceptionHandler` deletado — `ResourceExceptionHandler` é o
+> handler único (404/409/400 com envelope `StandardError`); zero
+> `getMessage().contains(...)` no projeto.
 
 ### Fase 3 — Camada de mapeamento *(risco médio)*
 1. Mappers dedicados (`@Component`, escritos à mão — avaliado MapStruct, mas a maioria das
