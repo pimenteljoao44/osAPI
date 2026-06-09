@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
@@ -24,7 +25,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VendaService {
+
+    /** Intervalo, em dias, entre o fechamento da venda e cada vencimento de parcela. */
+    private static final int DIAS_ENTRE_PARCELAS = 30;
 
     private final VendaRepository vendaRepository;
 
@@ -143,10 +148,10 @@ public class VendaService {
 
         boolean permiteParcelamento = venda.getFormaPagamento().permiteParcelamento();
         Integer numeroParcelas = permiteParcelamento && venda.getNumeroParcelas() != null ? venda.getNumeroParcelas() : 1;
-        Integer intervaloDias = 30; // Intervalo padrão
         BigDecimal valorTotal = venda.getTotal().subtract(venda.getDesconto() != null ? venda.getDesconto() : BigDecimal.ZERO);
 
-        List<Parcela> parcelas = gerarParcelas(valorTotal, numeroParcelas, LocalDate.now().plusDays(30), intervaloDias);
+        LocalDate primeiroVencimento = LocalDate.now().plusDays(DIAS_ENTRE_PARCELAS);
+        List<Parcela> parcelas = gerarParcelas(valorTotal, numeroParcelas, primeiroVencimento, DIAS_ENTRE_PARCELAS);
 
         salvarContasReceber(venda, parcelas);
     }
@@ -330,8 +335,8 @@ public class VendaService {
         try {
             estoqueService.reservarMaterialParaVenda(venda.getVenId(), projeto.getId());
         } catch (Exception e) {
-            // Log do erro, mas não falha a venda
-            System.err.println("Erro ao reservar materiais para venda " + venda.getVenId() + ": " + e.getMessage());
+            // O erro é registrado, mas não impede a venda
+            log.error("Erro ao reservar materiais para venda {}", venda.getVenId(), e);
         }
 
         return convertVendaToProjetoDTO(venda, projeto);
@@ -453,7 +458,6 @@ public class VendaService {
                         Produto produtoCopia = new Produto();
                         produtoCopia.setProdId(item.getProduto().getProdId());
                         produtoCopia.setNome(item.getProduto().getNome());
-                        produtoCopia.setNome(item.getProduto().getNome());
                         itemCopia.setProduto(produtoCopia);
                     }
                     itens.add(itemCopia);
@@ -525,7 +529,6 @@ public class VendaService {
                 if (item.getProduto() != null) {
                     item.getProduto().getProdId();
                     item.getProduto().getNome();
-                    item.getProduto().getNome();
                 }
             }
         }
@@ -565,26 +568,4 @@ public class VendaService {
         return "Ordem de Serviço " + os.getNumero() + " gerada com sucesso!";
     }
 
-    @Transactional
-    public String gerarContaReceberParaVendaProjeto(Integer vendaId) {
-        VendaProjetoDTO vendaProjeto = buscarVendaProjetoPorId(vendaId);
-        if (!"VENDIDO".equals(vendaProjeto.getStatus())) {
-            throw new IllegalStateException("Venda deve estar efetivada para gerar conta a receber");
-        }
-        if (vendaProjeto.getContaReceberGerada()) {
-            throw new IllegalStateException("Conta a receber já foi gerada para esta venda");
-        }
-        try {
-            ContaReceberDTO contaReceber = new ContaReceberDTO();
-            contaReceber.setProjetoId(vendaProjeto.getProjetoId());
-            contaReceber.setValor(vendaProjeto.getValorFinal());
-            contaReceber.setDataVencimento(vendaProjeto.getDataPrevistaConclusao());
-            contaReceber.setStatus("PENDENTE");
-            contaReceber.setObservacoes("Conta gerada automaticamente da venda de projeto");
-
-            return "Conta a receber de projeto gerada com sucesso"; // Placeholder
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar conta a receber: " + e.getMessage());
-        }
-    }
 }
