@@ -236,6 +236,16 @@ caracterização entra antes.
 3. `README.md` completo: arquitetura, como rodar, decisões de refatoração e aprendizados.
 - **Aceitação:** Swagger reflete a API real; README permite subir o projeto do zero.
 
+> **Status: ✅ CONCLUÍDA.** springdoc-openapi 1.6.x (linha compatível com Boot 2)
+> com Swagger UI em `/swagger-ui.html` e esquema bearer-JWT (botão Authorize
+> funcional); Actuator expondo somente `health`/`info`; rotas de documentação e
+> health liberadas no `SecurityConfig`; driver MySQL sem uso removido do pom;
+> `README.md` com stack, como rodar em 3 comandos, arquitetura, decisões de
+> refatoração e roadmap. **Pendência incremental:** anotações `@Operation`/
+> `@ApiResponse` por endpoint — a UI já documenta rotas, parâmetros e modelos
+> automaticamente a partir dos mappings; descrições ricas entram conforme os
+> controllers forem tocados.
+
 ---
 
 ## 4. Riscos e mitigação
