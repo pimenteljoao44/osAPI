@@ -8,6 +8,7 @@ import com.joao.osMarmoraria.domain.ItemVenda;
 import com.joao.osMarmoraria.dtos.CompraDTO;
 import com.joao.osMarmoraria.dtos.VendaDTO;
 import com.joao.osMarmoraria.dtos.VendaProjetoDTO;
+import com.joao.osMarmoraria.services.FaturamentoService;
 import com.joao.osMarmoraria.services.VendaService;
 import com.joao.osMarmoraria.services.ContaReceberService;
 import com.joao.osMarmoraria.services.OrdemServicoService;
@@ -34,6 +35,8 @@ public class VendaController {
 	private final ContaReceberService contaReceberService;
 
 	private final OrdemServicoService ordemServicoService;
+
+	private final FaturamentoService faturamentoService;
 
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<VendaDTO> findById(@PathVariable Integer id) {
@@ -139,7 +142,7 @@ public class VendaController {
 	public ResponseEntity<Map<String, Object>> gerarContaReceber(@PathVariable Integer id) {
 		try {
 			// Usar o novo método de geração de contas parceladas
-			vendaService.gerarContasReceberParceladas(id);
+			faturamentoService.gerarContasReceberParceladas(id);
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);

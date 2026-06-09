@@ -18,9 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,9 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class VendaService {
-
-    /** Intervalo, em dias, entre o fechamento da venda e cada vencimento de parcela. */
-    private static final int DIAS_ENTRE_PARCELAS = 30;
 
     private final VendaRepository vendaRepository;
 
@@ -44,11 +38,9 @@ public class VendaService {
 
     private final OrdemServicoService ordemServicoService;
 
-    private final ParcelaService parcelaService;
-
-    private final ContaReceberRepository contaReceberRepository;
-
     private final EstoqueService estoqueService;
+
+    private final FaturamentoService faturamentoService;
 
     private final VendaProjetoMapper vendaProjetoMapper;
 
@@ -107,7 +99,7 @@ public class VendaService {
             }
 
             try {
-                gerarContasReceberParceladas(venda.getVenId());
+                faturamentoService.gerarContasReceberParceladas(venda.getVenId());
                 sucessos.add("Contas a receber e parcelas geradas com sucesso");
             } catch (ContasReceberJaGeradasException e) {
                 // Reprocessamento é idempotente: contas existentes não são erro.
@@ -134,70 +126,6 @@ public class VendaService {
         resultado.put("message", success ? "Venda processada com sucesso!" : String.join(", ", erros));
 
         return resultado;
-    }
-
-    @Transactional
-    public void gerarContasReceberParceladas(Integer vendaId) {
-        Venda venda = findById(vendaId);
-        if (venda.getDataFechamento() == null) {
-            throw new IllegalStateException("Venda deve estar efetivada para gerar contas a receber");
-        }
-
-        if (!contaReceberRepository.findByVenda(venda).isEmpty()) {
-            throw new ContasReceberJaGeradasException(vendaId);
-        }
-
-        boolean permiteParcelamento = venda.getFormaPagamento().permiteParcelamento();
-        Integer numeroParcelas = permiteParcelamento && venda.getNumeroParcelas() != null ? venda.getNumeroParcelas() : 1;
-        BigDecimal valorTotal = venda.getTotal().subtract(venda.getDesconto() != null ? venda.getDesconto() : BigDecimal.ZERO);
-
-        LocalDate primeiroVencimento = LocalDate.now().plusDays(DIAS_ENTRE_PARCELAS);
-        List<Parcela> parcelas = gerarParcelas(valorTotal, numeroParcelas, primeiroVencimento, DIAS_ENTRE_PARCELAS);
-
-        salvarContasReceber(venda, parcelas);
-    }
-
-    private void salvarContasReceber(Venda venda, List<Parcela> parcelas) {
-        for (Parcela parcela : parcelas) {
-            ContaReceber conta = new ContaReceber();
-            conta.setVenda(venda);
-            conta.setDescricao(String.format("Venda #%d - Parcela %d/%d", venda.getVenId(), parcela.getNumeroParcela(), parcelas.size()));
-            conta.setValor(parcela.getValorParcela());
-            conta.setDataVencimento(parcela.getDataVencimento());
-            conta.setStatus("PENDENTE");
-            conta.setDataCriacao(LocalDateTime.now());
-
-            ContaReceber contaSalva = contaReceberRepository.save(conta);
-
-            parcela.setContaReceber(contaSalva);
-            parcelaService.salvar(parcela);
-        }
-    }
-
-    private List<Parcela> gerarParcelas(BigDecimal valorTotal, int numeroParcelas, LocalDate dataVencimentoInicial, int intervaloDias) {
-        List<Parcela> parcelas = new ArrayList<>();
-        if (numeroParcelas <= 0) numeroParcelas = 1;
-
-        BigDecimal valorParcelaBase = valorTotal.divide(BigDecimal.valueOf(numeroParcelas), 2, RoundingMode.DOWN);
-        BigDecimal valorRestante = valorTotal.subtract(valorParcelaBase.multiply(BigDecimal.valueOf(numeroParcelas)));
-
-        for (int i = 1; i <= numeroParcelas; i++) {
-            BigDecimal valorDaParcela = valorParcelaBase;
-            if (i == numeroParcelas) {
-                valorDaParcela = valorDaParcela.add(valorRestante); // Adiciona o resto na última parcela
-            }
-
-            LocalDate dataVencimento = dataVencimentoInicial.plusDays((long) (i - 1) * intervaloDias);
-
-            Parcela p = new Parcela();
-            p.setNumeroParcela(i);
-            p.setTotalParcelas(numeroParcelas);
-            p.setValorParcela(valorDaParcela);
-            p.setDataVencimento(dataVencimento);
-            p.setStatus("PENDENTE");
-            parcelas.add(p);
-        }
-        return parcelas;
     }
 
     public Venda fromDTO(VendaDTO objDTO) {
@@ -480,7 +408,7 @@ public class VendaService {
         projeto = projetoRepository.save(projeto);
 
         try {
-            gerarContasReceberParceladas(venda.getVenId());
+            faturamentoService.gerarContasReceberParceladas(venda.getVenId());
         } catch (ContasReceberJaGeradasException e) {
             // Contas a receber já existiam; a efetivação da venda segue normalmente.
         }

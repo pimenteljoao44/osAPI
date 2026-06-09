@@ -185,6 +185,16 @@ caracterização entra antes.
    seria mudança de comportamento às cegas).
 - **Aceitação:** nenhum serviço com mais de um motivo claro para mudar; alvo ~250 linhas.
 
+> **Status: ✅ FATIA PRINCIPAL CONCLUÍDA.** `FaturamentoService` extraído
+> (contas a receber + regra de parcelamento; `VendaController` e os fluxos
+> internos delegam a ele). Tamanhos (linhas não vazias): `VendaService` 510→370,
+> `ProjetoService` 508→422, `OrdemServicoService` 363→322.
+> **Pendências para fases futuras:** (a) consolidar o faturamento duplicado do
+> `VendaUnificadaService` — as regras divergem (à vista 7 dias × parcelas
+> mensais) e unificar **muda comportamento**: exige teste de integração antes;
+> (b) alvo ~250 linhas — próximos candidatos são o cálculo de orçamento e a
+> máquina de estados de status do `ProjetoService`.
+
 ### Fase 5 — Performance JPA *(risco médio)*
 1. `findByIdWithDetails` honesto: `LEFT JOIN FETCH` de cliente/pessoa/itens/produto.
 2. Apagar o bloco "força inicialização" — a query certa torna o hack desnecessário.
