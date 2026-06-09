@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.Status;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class OrdemServicoService {
 
     private final OrdemServicoRepository ordemServicoRepository;
@@ -288,8 +290,8 @@ public class OrdemServicoService {
         try {
             estoqueService.baixarEstoqueOrdemServico(id);
         } catch (Exception e) {
-            // Log do erro, mas não falha a conclusão da OS
-            System.err.println("Erro ao baixar estoque para OS " + id + ": " + e.getMessage());
+            // O erro é registrado, mas não impede a conclusão da OS
+            log.error("Erro ao baixar estoque para OS {}", id, e);
         }
 
         // Atualizar status do projeto relacionado

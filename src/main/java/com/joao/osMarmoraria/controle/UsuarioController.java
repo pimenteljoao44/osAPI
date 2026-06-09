@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping(value = "/usuarios")
 @RequiredArgsConstructor
+@Slf4j
 public class UsuarioController {
 
 	private final UsuarioService service;
@@ -70,7 +72,7 @@ public class UsuarioController {
 			service.updatePassword(id, newPassword);
 			return ResponseEntity.noContent().build();
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Erro ao atualizar a senha do usuário {}", id, e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}

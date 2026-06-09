@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.TipoProjeto;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class ProjetoService {
 
     private final ProjetoRepository projetoRepository;
@@ -166,7 +168,7 @@ public class ProjetoService {
         }
 
         projeto.setStatus(novoStatus);
-        System.out.println("STATUS DO PROJETO ATUALIZADO COM SUCESSO!");
+        log.debug("Status do projeto {} atualizado: {} -> {}", id, statusAtual, novoStatus);
 
         switch (novoStatus) {
             case APROVADO:

@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.joao.osMarmoraria.domain.ItemCompra;
 import com.joao.osMarmoraria.domain.ItemVenda;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(value = "/venda")
 @RequiredArgsConstructor
+@Slf4j
 public class VendaController {
 
 	private final VendaService vendaService;
@@ -47,8 +49,7 @@ public class VendaController {
 					.collect(Collectors.toList());
 			return ResponseEntity.ok().body(list);
 		} catch (RuntimeException e) {
-			// printa o erro na requisição no console
-			System.out.println(e.getMessage());
+			log.error("Erro ao listar vendas", e);
 			return ResponseEntity.badRequest().body(null);
 		}
 	}

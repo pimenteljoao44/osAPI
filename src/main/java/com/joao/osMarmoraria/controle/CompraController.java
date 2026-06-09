@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.joao.osMarmoraria.domain.ItemCompra;
 import com.joao.osMarmoraria.dtos.CompraDTO;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(value = "/compra")
 @RequiredArgsConstructor
+@Slf4j
 public class CompraController {
 
 	private final CompraService compraService;
@@ -46,7 +48,7 @@ public class CompraController {
 					.buildAndExpand(newObj.getComprId()).toUri();
 			return ResponseEntity.created(uri).body(newObj);
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			log.error("Erro ao criar compra", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(null);
 		}

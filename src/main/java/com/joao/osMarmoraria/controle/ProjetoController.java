@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -33,6 +34,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 @Validated
 @RequiredArgsConstructor
+@Slf4j
 public class ProjetoController {
 
     private final ProjetoService projetoService;
@@ -45,17 +47,13 @@ public class ProjetoController {
     @PostMapping("/orcamento-pdf")
     public ResponseEntity<byte[]> gerarOrcamentoPDF(@Valid @RequestBody OrcamentoPDFDTO orcamento) {
         try {
-            // --- LOG DE DEPURAÇÃO ADICIONADO ---
-            // Este bloco irá imprimir na consola os dados exatos recebidos do front-end.
-            System.out.println("==========================================================");
-            System.out.println("=== DADOS RECEBIDOS PARA GERAR PDF DO ORÇAMENTO ===");
-            System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(orcamento));
-
-            if (orcamento.getItens() == null || orcamento.getItens().isEmpty()) {
-                System.err.println("AVISO: A lista de itens do orçamento está vazia ou nula. O PDF será gerado em branco.");
+            if (log.isDebugEnabled()) {
+                log.debug("Dados recebidos para gerar PDF do orçamento: {}",
+                        objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(orcamento));
             }
-            System.out.println("==========================================================");
-            // --- FIM DO LOG DE DEPURAÇÃO ---
+            if (orcamento.getItens() == null || orcamento.getItens().isEmpty()) {
+                log.warn("Lista de itens do orçamento vazia ou nula; o PDF será gerado em branco.");
+            }
 
             Map<String, Object> parametros = new HashMap<>();
             parametros.put("clienteNome", orcamento.getClienteNome());
@@ -86,8 +84,7 @@ public class ProjetoController {
 
             return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
         } catch (Throwable t) {
-            System.err.println("ERRO GRAVE AO GERAR ORÇAMENTO PDF: " + t.getMessage());
-            t.printStackTrace();
+            log.error("Erro ao gerar orçamento em PDF", t);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

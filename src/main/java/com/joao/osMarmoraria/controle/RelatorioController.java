@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.services.RelatorioService;
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/relatorios")
 @RequiredArgsConstructor
+@Slf4j
 public class RelatorioController {
 
     private final RelatorioService relatorioService;
@@ -34,8 +36,7 @@ public class RelatorioController {
 
             return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("Erro ao gerar o relatório: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Erro ao gerar o relatório", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -51,8 +52,7 @@ public class RelatorioController {
 
             return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("Erro ao gerar o relatório: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Erro ao gerar o relatório", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -73,8 +73,7 @@ public class RelatorioController {
 
             return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("Erro ao gerar o relatório: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Erro ao gerar o relatório", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -97,8 +96,7 @@ public class RelatorioController {
 
             return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("Erro ao gerar o relatório: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Erro ao gerar o relatório", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -121,8 +119,7 @@ public class RelatorioController {
 
             return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("Erro ao gerar o relatório: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Erro ao gerar o relatório", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -143,8 +140,7 @@ public class RelatorioController {
 
             return new ResponseEntity<>(pdfRelatorio, headers, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("Erro ao gerar o relatório: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Erro ao gerar o relatório", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
