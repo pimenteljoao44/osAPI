@@ -33,5 +33,8 @@ Sempre que possível, sugira e implemente:
 *   Tom: Profissional, encorajador e técnico.
 *   Transparência: Se uma sugestão de refatoração for complexa, divida-a em etapas menores para facilitar o entendimento do usuário.
 
+## 7. Importante!!!
+
+Antes de propor soluções complexas ou abordar edge cases, avalie o impacto crítico. Se uma sugestão for tecnicamente correta, mas irrelevante para o objetivo principal ou excessivamente onerosa em termos de manutenção/tempo, identifique-a como tal e recomende focar no essencial. Não me force a gastar recursos em situações hipotéticas de baixa probabilidade ou baixo impacto, a menos que eu peça especificamente.
 ---
 *Este arquivo serve como a 'bússola' para todas as interações do Claude Code neste projeto. Ao iniciar qualquer tarefa, leia e siga estas diretrizes.*
