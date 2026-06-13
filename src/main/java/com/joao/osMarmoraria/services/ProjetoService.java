@@ -359,9 +359,21 @@ public class ProjetoService {
 
     private void salvarItens(Integer projetoId, List<ProjetoItemDTO> itensDTO) {
         for (ProjetoItemDTO itemDTO : itensDTO) {
+            // Valida o produto AQUI (fail fast, antes de persistir): se o id for
+            // inválido, evita um item com FK pendente e devolve 404 com mensagem
+            // clara em vez de um 500 lá na frente, no mapeamento do DTO.
+            Produto produto = produtoRepository.findById(itemDTO.getProdutoId())
+                    .orElseThrow(() -> new ObjectNotFoundException(
+                            "Produto não encontrado para o item do projeto. ID: " + itemDTO.getProdutoId()));
+
             ProjetoItem item = new ProjetoItem();
             item.setProjetoId(projetoId);
             item.setProdutoId(itemDTO.getProdutoId());
+            // A associação `produto` é read-only (insertable/updatable=false), mas
+            // precisa ser populada em memória: dentro desta mesma transação o
+            // ProjetoMapper relê os itens, e o cache de 1º nível devolve ESTA
+            // instância — sem isso, item.getProduto() viria nulo e o mapper falharia.
+            item.setProduto(produto);
             item.setQuantidade(itemDTO.getQuantidade());
             item.setValorUnitario(itemDTO.getValorUnitario());
             item.setObservacoes(itemDTO.getObservacoes());
