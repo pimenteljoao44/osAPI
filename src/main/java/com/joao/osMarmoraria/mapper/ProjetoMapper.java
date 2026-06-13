@@ -104,16 +104,18 @@ public class ProjetoMapper {
             throw new IllegalArgumentException("ID do Produto não pode ser nulo para o item de projeto.");
         }
 
-        Produto produto = item.getProduto();
-        if (produto == null) {
-            throw new RuntimeException("Produto não encontrado para o ID: " + produtoId);
-        }
-
         ProjetoItemDTO dto = new ProjetoItemDTO();
         dto.setId(item.getId());
         dto.setProjetoId(item.getProjetoId());
-        dto.setProdutoId(produto.getProdId());
-        dto.setProdutoNome(produto.getNome());
+        dto.setProdutoId(produtoId);
+
+        // O produto pode ter sido removido depois de entrar no projeto (a FK não
+        // tem cascade). Nesse caso degradamos com nome nulo em vez de derrubar
+        // toda a listagem de projetos com um 500 — quem grava (salvarItens) é que
+        // valida a existência do produto, com falha rápida e mensagem clara.
+        Produto produto = item.getProduto();
+        dto.setProdutoNome(produto != null ? produto.getNome() : null);
+
         dto.setQuantidade(item.getQuantidade());
         dto.setValorUnitario(item.getValorUnitario());
         dto.setValorTotal(item.getValorTotal());
