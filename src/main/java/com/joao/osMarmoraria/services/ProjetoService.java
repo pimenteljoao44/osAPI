@@ -7,6 +7,7 @@ import com.joao.osMarmoraria.domain.ProjetoItem;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.TipoProjeto;
 import com.joao.osMarmoraria.dtos.*;
+import com.joao.osMarmoraria.mapper.ProjetoMapper;
 import com.joao.osMarmoraria.repository.ProdutoRepository;
 import com.joao.osMarmoraria.repository.ProjetoItemRepository;
 import com.joao.osMarmoraria.repository.ProjetoRepository;
@@ -35,21 +36,23 @@ public class ProjetoService {
 
     private final ProdutoRepository produtoRepository;
 
+    private final ProjetoMapper projetoMapper;
+
     // CRUD Operations
     public Page<ProjetoDTO> listarProjetos(Pageable pageable) {
         return projetoRepository.findAllWithCliente(pageable)
-                .map(this::convertToDTO);
+                .map(projetoMapper::toDto);
     }
 
     public Page<ProjetoDTO> listarComFiltros(String nome, StatusProjeto status, TipoProjeto tipoProjeto, Integer clienteId, Pageable pageable) {
         return projetoRepository.findWithFilters(nome, status, tipoProjeto, clienteId, pageable)
-                .map(this::convertToDTO);
+                .map(projetoMapper::toDto);
     }
 
     public ProjetoDTO buscarPorId(Integer id) {
         Projeto projeto = projetoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado com ID: " + id));
-        return convertToDTO(projeto);
+        return projetoMapper.toDto(projeto);
     }
 
     @Transactional
@@ -74,7 +77,7 @@ public class ProjetoService {
 
         projeto = projetoRepository.save(projeto);
 
-        return convertToDTO(projetoRepository.findByIdWithDetails(projeto.getId())
+        return projetoMapper.toDto(projetoRepository.findByIdWithDetails(projeto.getId())
                 .orElseThrow(() -> new RuntimeException("Projeto não encontrado após criação")));
     }
 
@@ -111,7 +114,7 @@ public class ProjetoService {
         projetoExistente.recalcularValorTotal();
 
         projetoExistente = projetoRepository.save(projetoExistente);
-        return convertToDTO(projetoRepository.findByIdWithDetails(projetoExistente.getId()).get());
+        return projetoMapper.toDto(projetoRepository.findByIdWithDetails(projetoExistente.getId()).get());
     }
 
     public void excluirProjeto(Integer id) {
@@ -150,7 +153,7 @@ public class ProjetoService {
         }
 
         projeto = projetoRepository.save(projeto);
-        return convertToDTO(projeto);
+        return projetoMapper.toDto(projeto);
     }
 
     // Cálculo de Orçamento
@@ -215,7 +218,7 @@ public class ProjetoService {
     // Relatórios
     public List<ProjetoDTO> obterProjetosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         List<Projeto> projetos = projetoRepository.findByPeriodo(dataInicio, dataFim);
-        return projetos.stream().map(this::convertToDTO).collect(Collectors.toList());
+        return projetos.stream().map(projetoMapper::toDto).collect(Collectors.toList());
     }
 
     // Métodos auxiliares privados
@@ -298,60 +301,6 @@ public class ProjetoService {
 
     private String obterAplicacaoProduto(Produto produto, TipoProjeto tipoProjeto) {
         return "Aplicação em " + tipoProjeto.getDescricao().toLowerCase();
-    }
-
-    // Conversão DTO
-    private ProjetoDTO convertToDTO(Projeto projeto) {
-        ProjetoDTO dto = new ProjetoDTO();
-        dto.setId(projeto.getId());
-        dto.setNome(projeto.getNome());
-        dto.setDescricao(projeto.getDescricao());
-        dto.setClienteId(projeto.getClienteId());
-        dto.setCliente(projeto.getCliente());
-        dto.setTipoProjeto(projeto.getTipoProjeto());
-        dto.setStatus(projeto.getStatus());
-        dto.setDataInicio(projeto.getDataInicio());
-        dto.setDataPrevista(projeto.getDataPrevista());
-        dto.setDataFinalizacao(projeto.getDataFinalizacao());
-        dto.setValorTotal(projeto.getValorTotal());
-        dto.setValorMaoObra(projeto.getValorMaoObra());
-        dto.setMargemLucro(projeto.getMargemLucro());
-        dto.setObservacoes(projeto.getObservacoes());
-        dto.setDataCriacao(projeto.getDataCriacao());
-        dto.setDataAtualizacao(projeto.getDataAtualizacao());
-        dto.setUsuarioCriacao(projeto.getUsuarioCriacao());
-
-        // Medidas
-        if (projeto.getProfundidade() != null || projeto.getLargura() != null || projeto.getAltura() != null) {
-            MedidasProjetoDTO medidas = new MedidasProjetoDTO();
-            medidas.setProfundidade(projeto.getProfundidade());
-            medidas.setLargura(projeto.getLargura());
-            medidas.setAltura(projeto.getAltura());
-            medidas.setArea(projeto.getArea());
-            medidas.setPerimetro(projeto.getPerimetro());
-            medidas.setObservacoes(projeto.getObservacoesMedidas());
-            dto.setMedidas(medidas);
-        }
-
-        // Itens
-        List<ProjetoItem> itens = projetoItemRepository.findByProjetoIdWithProduto(projeto.getId());
-        List<ProjetoItemDTO> itensDTO = itens.stream().map(this::convertItemToDTO).collect(Collectors.toList());
-        dto.setItens(itensDTO);
-
-        return dto;
-    }
-
-    private ProjetoItemDTO convertItemToDTO(ProjetoItem item) {
-        ProjetoItemDTO dto = new ProjetoItemDTO();
-        dto.setId(item.getId());
-        dto.setProjetoId(item.getProjetoId());
-        dto.setProdutoId(item.getProdutoId());
-        dto.setProduto(item.getProduto());
-        dto.setQuantidade(item.getQuantidade());
-        dto.setValorUnitario(item.getValorUnitario());
-        dto.setValorTotal(item.getValorTotal());
-        dto.setObservacoes(item.getObservacoes());
-        return dto;
     }
 
     private Projeto convertToEntity(ProjetoDTO dto) {

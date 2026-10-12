@@ -8,6 +8,7 @@ import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.dtos.ItemOrdemServicoDTO;
 import com.joao.osMarmoraria.dtos.OrdemServicoDTO;
+import com.joao.osMarmoraria.mapper.OrdemServicoMapper;
 import com.joao.osMarmoraria.repository.*;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
@@ -35,23 +36,25 @@ public class OrdemServicoService {
 
 	private final ProjetoService projetoService;
 
+	private final OrdemServicoMapper ordemServicoMapper;
+
 	// CRUD Operations
 	public List<OrdemServicoDTO> listarTodas() {
 		return ordemServicoRepository.findAll().stream()
-				.map(this::convertToDTO)
+				.map(ordemServicoMapper::toDto)
 				.collect(Collectors.toList());
 	}
 
 	public OrdemServicoDTO buscarPorId(Integer id) {
 		OrdemServico ordemServico = ordemServicoRepository.findByIdWithDetails(id)
 				.orElseThrow(() -> new ObjectNotFoundException("Ordem de serviço não encontrada com ID: " + id));
-		return convertToDTO(ordemServico);
+		return ordemServicoMapper.toDto(ordemServico);
 	}
 
 	public OrdemServicoDTO buscarPorNumero(String numero) {
 		OrdemServico ordemServico = ordemServicoRepository.findByNumero(numero)
 				.orElseThrow(() -> new ObjectNotFoundException("Ordem de serviço não encontrada com número: " + numero));
-		return convertToDTO(ordemServico);
+		return ordemServicoMapper.toDto(ordemServico);
 	}
 
 	public OrdemServicoDTO gerarPorProjeto(Integer projetoId) {
@@ -116,7 +119,7 @@ public class OrdemServicoService {
 		// Atualizar status do projeto para APROVADO
 		projetoService.atualizarStatus(projetoId, StatusProjeto.APROVADO);
 
-		return convertToDTO(ordemServicoRepository.findByIdWithDetails(ordemServico.getId()).get());
+		return ordemServicoMapper.toDto(ordemServicoRepository.findByIdWithDetails(ordemServico.getId()).get());
 	}
 
 	public OrdemServicoDTO atualizarOrdemServico(Integer id, OrdemServicoDTO ordemServicoDTO) {
@@ -131,7 +134,7 @@ public class OrdemServicoService {
 		ordemExistente.setInstrucoesTecnicas(ordemServicoDTO.getInstrucoesTecnicas());
 
 		ordemExistente = ordemServicoRepository.save(ordemExistente);
-		return convertToDTO(ordemExistente);
+		return ordemServicoMapper.toDto(ordemExistente);
 	}
 
 	// Operações de Status
@@ -147,7 +150,7 @@ public class OrdemServicoService {
 			projetoService.atualizarStatus(ordemServico.getProjetoId(), StatusProjeto.EM_PRODUCAO);
 		}
 
-		return convertToDTO(ordemServico);
+		return ordemServicoMapper.toDto(ordemServico);
 	}
 
 	public OrdemServicoDTO pausarExecucao(Integer id) {
@@ -156,7 +159,7 @@ public class OrdemServicoService {
 
 		ordemServico.pausarExecucao();
 		ordemServico = ordemServicoRepository.save(ordemServico);
-		return convertToDTO(ordemServico);
+		return ordemServicoMapper.toDto(ordemServico);
 	}
 
 	public OrdemServicoDTO retornarExecucao(Integer id) {
@@ -165,7 +168,7 @@ public class OrdemServicoService {
 
 		ordemServico.retornarExecucao();
 		ordemServico = ordemServicoRepository.save(ordemServico);
-		return convertToDTO(ordemServico);
+		return ordemServicoMapper.toDto(ordemServico);
 	}
 
 	public OrdemServicoDTO concluirExecucao(Integer id) {
@@ -180,7 +183,7 @@ public class OrdemServicoService {
 			projetoService.atualizarStatus(ordemServico.getProjetoId(), StatusProjeto.PRONTO);
 		}
 
-		return convertToDTO(ordemServico);
+		return ordemServicoMapper.toDto(ordemServico);
 	}
 
 	public OrdemServicoDTO cancelarExecucao(Integer id) {
@@ -189,25 +192,25 @@ public class OrdemServicoService {
 
 		ordemServico.cancelarExecucao();
 		ordemServico = ordemServicoRepository.save(ordemServico);
-		return convertToDTO(ordemServico);
+		return ordemServicoMapper.toDto(ordemServico);
 	}
 
 	// Consultas específicas
 	public List<OrdemServicoDTO> buscarPorStatus(StatusOrdemServico status) {
 		return ordemServicoRepository.findByStatus(status).stream()
-				.map(this::convertToDTO)
+				.map(ordemServicoMapper::toDto)
 				.collect(Collectors.toList());
 	}
 
 	public List<OrdemServicoDTO> buscarPorCliente(Integer clienteId) {
 		return ordemServicoRepository.findByClienteId(clienteId).stream()
-				.map(this::convertToDTO)
+				.map(ordemServicoMapper::toDto)
 				.collect(Collectors.toList());
 	}
 
 	public List<OrdemServicoDTO> buscarPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
 		return ordemServicoRepository.findByPeriodo(dataInicio, dataFim).stream()
-				.map(this::convertToDTO)
+				.map(ordemServicoMapper::toDto)
 				.collect(Collectors.toList());
 	}
 
@@ -220,47 +223,4 @@ public class OrdemServicoService {
 		return numero;
 	}
 
-	// Conversão DTO
-	private OrdemServicoDTO convertToDTO(OrdemServico ordemServico) {
-		OrdemServicoDTO dto = new OrdemServicoDTO();
-		dto.setId(ordemServico.getId());
-		dto.setNumero(ordemServico.getNumero());
-		dto.setProjetoId(ordemServico.getProjetoId());
-		dto.setProjeto(ordemServico.getProjeto());
-		dto.setClienteId(ordemServico.getClienteId());
-		dto.setCliente(ordemServico.getCliente());
-		dto.setDataEmissao(ordemServico.getDataEmissao());
-		dto.setDataPrevistaInicio(ordemServico.getDataPrevistaInicio());
-		dto.setDataPrevistaConclusao(ordemServico.getDataPrevistaConclusao());
-		dto.setDataInicio(ordemServico.getDataInicio());
-		dto.setDataConclusao(ordemServico.getDataConclusao());
-		dto.setStatus(ordemServico.getStatus());
-		dto.setResponsavel(ordemServico.getResponsavel());
-		dto.setObservacoes(ordemServico.getObservacoes());
-		dto.setInstrucoesTecnicas(ordemServico.getInstrucoesTecnicas());
-		dto.setValorTotal(ordemServico.getValorTotal());
-		dto.setDataCriacao(ordemServico.getDataCriacao());
-		dto.setDataAtualizacao(ordemServico.getDataAtualizacao());
-		dto.setUsuarioCriacao(ordemServico.getUsuarioCriacao());
-
-		// Itens
-		List<ItemOrdemServico> itens = itemOrdemServicoRepository.findByOrdemServicoIdWithProduto(ordemServico.getId());
-		List<ItemOrdemServicoDTO> itensDTO = itens.stream().map(this::convertItemToDTO).collect(Collectors.toList());
-		dto.setItens(itensDTO);
-
-		return dto;
-	}
-
-	private ItemOrdemServicoDTO convertItemToDTO(ItemOrdemServico item) {
-		ItemOrdemServicoDTO dto = new ItemOrdemServicoDTO();
-		dto.setId(item.getId());
-		dto.setOrdemServicoId(item.getOrdemServicoId());
-		dto.setProdutoId(item.getProdutoId());
-		dto.setProduto(item.getProduto());
-		dto.setQuantidade(item.getQuantidade());
-		dto.setValorUnitario(item.getValorUnitario());
-		dto.setValorTotal(item.getValorTotal());
-		dto.setObservacoes(item.getObservacoes());
-		return dto;
-	}
 }

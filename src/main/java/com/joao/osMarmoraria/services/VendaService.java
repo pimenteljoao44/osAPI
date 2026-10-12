@@ -8,6 +8,7 @@ import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.services.exceptions.GeracaoDuplicadaException;
 import com.joao.osMarmoraria.domain.enums.VendaTipo;
 import com.joao.osMarmoraria.dtos.*;
+import com.joao.osMarmoraria.mapper.VendaProjetoMapper;
 import com.joao.osMarmoraria.repository.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,8 @@ public class VendaService {
     private final ContaReceberService contaReceberService;
 
     private final OrdemServicoService ordemServicoService;
+
+    private final VendaProjetoMapper vendaProjetoMapper;
 
     @Transactional(readOnly = true)
     public Venda findById(Integer id) {
@@ -206,7 +209,7 @@ public class VendaService {
         projeto.setStatus(StatusProjeto.VENDIDO);
         projetoRepository.save(projeto);
 
-        return convertVendaToProjetoDTO(venda, projeto);
+        return vendaProjetoMapper.toDto(venda, projeto);
     }
 
     @Transactional(readOnly = true)
@@ -218,7 +221,7 @@ public class VendaService {
         List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
         Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
 
-        return convertVendaToProjetoDTO(venda, projeto);
+        return vendaProjetoMapper.toDto(venda, projeto);
     }
 
     @Transactional(readOnly = true)
@@ -228,7 +231,7 @@ public class VendaService {
                 .map(venda -> {
                     List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
                     Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
-                    return convertVendaToProjetoDTO(venda, projeto);
+                    return vendaProjetoMapper.toDto(venda, projeto);
                 })
                 .collect(Collectors.toList());
     }
@@ -252,7 +255,7 @@ public class VendaService {
         List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
         Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
 
-        return convertVendaToProjetoDTO(venda, projeto);
+        return vendaProjetoMapper.toDto(venda, projeto);
     }
 
     @Transactional
@@ -265,7 +268,7 @@ public class VendaService {
         List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(venda.getCliente().getCliId(), StatusProjeto.VENDIDO);
         Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
 
-        return convertVendaToProjetoDTO(venda, projeto);
+        return vendaProjetoMapper.toDto(venda, projeto);
     }
 
     @Transactional(readOnly = true)
@@ -275,7 +278,7 @@ public class VendaService {
                 .map(venda -> {
                     List<Projeto> projetos = projetoRepository.findByClienteIdAndStatus(clienteId, StatusProjeto.VENDIDO);
                     Projeto projeto = projetos.isEmpty() ? null : projetos.get(0);
-                    return convertVendaToProjetoDTO(venda, projeto);
+                    return vendaProjetoMapper.toDto(venda, projeto);
                 })
                 .collect(Collectors.toList());
     }
@@ -321,41 +324,5 @@ public class VendaService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar conta a receber: " + e.getMessage());
         }
-    }
-
-    private VendaProjetoDTO convertVendaToProjetoDTO(Venda venda, Projeto projeto) {
-        VendaProjetoDTO dto = new VendaProjetoDTO();
-        dto.setId(venda.getVenId());
-        dto.setClienteId(venda.getCliente().getCliId());
-        dto.setCliente(venda.getCliente());
-        dto.setDataVenda(venda.getDataAbertura().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-
-        if (venda.getDataFechamento() != null) {
-            dto.setDataEfetivacao(venda.getDataFechamento().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-        }
-
-        dto.setValorTotal(venda.getTotal());
-        dto.setDesconto(venda.getDesconto());
-        dto.setValorFinal(venda.getTotal().subtract(venda.getDesconto()));
-        dto.setFormaPagamento(venda.getFormaPagamento().name());
-        dto.setStatus(venda.getDataFechamento() != null ? "VENDIDO" : "ORCAMENTO");
-
-        // Informações do cliente
-        dto.setNomeCliente(venda.getCliente().getPessoa().getNome());
-
-        // Informações do projeto
-        if (projeto != null) {
-            dto.setProjetoId(projeto.getId());
-            dto.setProjeto(projeto);
-            dto.setNomeProjeto(projeto.getNome());
-            dto.setTipoProjeto(projeto.getTipoProjeto().getDescricao());
-            dto.setDataPrevistaConclusao(projeto.getDataPrevista());
-
-            // Verificar se pode gerar OS e conta a receber
-            dto.setPodeGerarOS("VENDIDO".equals(dto.getStatus()) && !dto.getOrdemServicoGerada());
-            dto.setPodeGerarContaReceber("VENDIDO".equals(dto.getStatus()) && !dto.getContaReceberGerada());
-        }
-
-        return dto;
     }
 }
