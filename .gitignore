@@ -18,6 +18,6 @@ Thumbs.db
 *.jar
 *.war
 
-# Configurações locais
-application.properties
-application.yml
+# Segredos locais (nunca versionar) — contrato documentado em .env.example
+.env
+.env.local

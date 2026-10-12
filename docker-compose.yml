@@ -1,14 +1,25 @@
-version: '2.4'
+# Infraestrutura local de desenvolvimento.
+# Sobe o PostgreSQL ja alinhado aos defaults do perfil dev
+# (application-dev.properties): banco "marmoraria", usuario/senha postgres.
+#
+#   docker compose up -d
 services:
   db:
-    image: mysql
-    container_name: marmoraria
+    image: postgres:16-alpine
+    container_name: marmoraria-db
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      POSTGRES_DB: marmoraria
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - marmoraria_data:/var/lib/mysql/
+      - marmoraria_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d marmoraria"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   marmoraria_data:
