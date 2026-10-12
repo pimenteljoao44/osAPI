@@ -2,8 +2,10 @@ package com.joao.osMarmoraria.security;
 
 import com.joao.osMarmoraria.repository.UsuarioRepository;
 import com.joao.osMarmoraria.services.TokenService;
+import com.joao.osMarmoraria.services.exceptions.TokenInvalidoException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
@@ -26,12 +29,17 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = recoverToken(request);
         if (token != null) {
-            String login = tokenService.validateToken(token);
-            UserDetails user = userRepository.findByLogin(login);
+            try {
+                String login = tokenService.validateToken(token);
+                UserDetails user = userRepository.findByLogin(login);
 
-            if (user != null) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (user != null) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (TokenInvalidoException e) {
+                log.debug("Token JWT rejeitado: {}", e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+                // Segue sem autenticar; o entry point do Spring Security responde 401.
             }
         }
         filterChain.doFilter(request, response);

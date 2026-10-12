@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.joao.osMarmoraria.domain.Usuario;
+import com.joao.osMarmoraria.services.exceptions.TokenInvalidoException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,13 @@ public class TokenService {
         }
     }
 
+    /**
+     * Valida o token e devolve o login (subject) nele contido.
+     *
+     * @throws TokenInvalidoException se a assinatura, o emissor ou a
+     *         expiração não passarem — a causa original (expirado, assinatura
+     *         inválida etc.) fica preservada para o log do chamador.
+     */
     public String validateToken(String token){
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -40,7 +48,7 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception){
-            return "";
+            throw new TokenInvalidoException("Token JWT inválido", exception);
         }
     }
 
