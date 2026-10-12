@@ -1,8 +1,9 @@
 package com.joao.osMarmoraria.config;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -12,13 +13,14 @@ import com.joao.osMarmoraria.services.DBservice;
 
 @Configuration
 @Profile("test")
+@RequiredArgsConstructor
 public class TestConfig {
  
-	@Autowired
-	private DBservice  dataBaseService;
+	private final DBservice  dataBaseService;
 	
 	@Bean
-	public void instanciaDB() {
-		
+	public boolean instanciaDB() {
+
+		return false;
 	}
 }

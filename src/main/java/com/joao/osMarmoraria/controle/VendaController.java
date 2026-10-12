@@ -1,12 +1,13 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.ItemCompra;
 import com.joao.osMarmoraria.domain.ItemVenda;
 import com.joao.osMarmoraria.dtos.CompraDTO;
 import com.joao.osMarmoraria.dtos.VendaDTO;
 import com.joao.osMarmoraria.services.VendaService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -19,10 +20,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping(value = "/venda")
+@RequiredArgsConstructor
 public class VendaController {
 
-	@Autowired
-	private VendaService vendaService;
+	private final VendaService vendaService;
 
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<VendaDTO> findById(@PathVariable Integer id) {

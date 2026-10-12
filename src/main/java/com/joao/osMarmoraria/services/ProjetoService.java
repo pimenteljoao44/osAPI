@@ -1,4 +1,6 @@
 package com.joao.osMarmoraria.services;
+
+import lombok.RequiredArgsConstructor;
 import com.joao.osMarmoraria.domain.Produto;
 import com.joao.osMarmoraria.domain.Projeto;
 import com.joao.osMarmoraria.domain.ProjetoItem;
@@ -8,7 +10,6 @@ import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.ProdutoRepository;
 import com.joao.osMarmoraria.repository.ProjetoItemRepository;
 import com.joao.osMarmoraria.repository.ProjetoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,16 +26,14 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ProjetoService {
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ProjetoRepository projetoRepository;
 
-    @Autowired
-    private ProjetoItemRepository projetoItemRepository;
+    private final ProjetoItemRepository projetoItemRepository;
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
     // CRUD Operations
     public Page<ProjetoDTO> listarProjetos(Pageable pageable) {

@@ -1,11 +1,12 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,10 +28,10 @@ import jakarta.validation.Valid;
 @Slf4j
 @RestController
 @RequestMapping(value = "/usuarios")
+@RequiredArgsConstructor
 public class UsuarioController {
 
-	@Autowired
-	private UsuarioService service;
+	private final UsuarioService service;
 	
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<UsuarioDTO> findById(@PathVariable Integer id){

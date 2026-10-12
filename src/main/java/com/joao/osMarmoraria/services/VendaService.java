@@ -1,12 +1,13 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
 import com.joao.osMarmoraria.domain.enums.VendaTipo;
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,28 +21,22 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class VendaService {
 
-    @Autowired
-    private VendaRepository vendaRepository;
+    private final VendaRepository vendaRepository;
 
-    @Autowired
-    private ItemVendaRepository itemVendaRepository;
+    private final ItemVendaRepository itemVendaRepository;
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ProjetoRepository projetoRepository;
 
-    @Autowired
-    private ContaReceberService contaReceberService;
+    private final ContaReceberService contaReceberService;
 
-    @Autowired
-    private OrdemServicoService ordemServicoService;
+    private final OrdemServicoService ordemServicoService;
 
     @Transactional(readOnly = true)
     public Venda findById(Integer id) {

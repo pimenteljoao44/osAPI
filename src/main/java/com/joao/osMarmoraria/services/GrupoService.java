@@ -1,11 +1,12 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.Grupo;
 import com.joao.osMarmoraria.domain.Produto;
 import com.joao.osMarmoraria.dtos.GrupoDTO;
 import com.joao.osMarmoraria.repository.GrupoRepository;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +15,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class GrupoService {
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
 
     public List<Grupo> findAll(){return grupoRepository.findAll();}
 

@@ -1,7 +1,8 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import net.sf.jasperreports.engine.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
@@ -11,13 +12,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class RelatorioService {
 
-    @Autowired
-    private ResourceLoader resourceLoader;
+    private final ResourceLoader resourceLoader;
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
     public byte[] gerarRelatorioDeVendasResumido(Map<String, Object> parametros) throws Exception {
         JasperReport jasperReport = JasperCompileManager.compileReport(

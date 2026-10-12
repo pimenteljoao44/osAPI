@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
@@ -11,7 +13,6 @@ import com.joao.osMarmoraria.domain.enums.StatusOrdemServico;
 import com.joao.osMarmoraria.dtos.OrdemServicoDTO;
 
 import com.joao.osMarmoraria.services.OrdemServicoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +25,10 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/os")
 @Validated
+@RequiredArgsConstructor
 public class OrdemServicoController {
 
-    @Autowired
-    private OrdemServicoService ordemServicoService;
+    private final OrdemServicoService ordemServicoService;
 
     @GetMapping
     public ResponseEntity<List<OrdemServicoDTO>> listarTodas() {

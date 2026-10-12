@@ -1,10 +1,11 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.ItemCompra;
 import com.joao.osMarmoraria.dtos.CompraDTO;
 import com.joao.osMarmoraria.services.CompraService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +21,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping(value = "/compra")
+@RequiredArgsConstructor
 public class CompraController {
 
-	@Autowired
-	private CompraService compraService;
+	private final CompraService compraService;
 
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<CompraDTO> findById(@PathVariable Integer id) {

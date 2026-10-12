@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.TipoPessoa;
 import com.joao.osMarmoraria.dtos.*;
@@ -10,7 +12,6 @@ import com.joao.osMarmoraria.repository.PessoaRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -20,20 +21,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class FornecedorService {
-    @Autowired
-    private FornecedorRepository fornecedorRepository;
-    @Autowired
-    private PessoaRepository pessoaRepository;
+    private final FornecedorRepository fornecedorRepository;
+    private final PessoaRepository pessoaRepository;
 
-    @Autowired
-    private EstadoRepository estadoRepository;
+    private final EstadoRepository estadoRepository;
 
-    @Autowired
-    private CidadeRepository cidadeRepository;
+    private final CidadeRepository cidadeRepository;
 
-    @Autowired
-    private EstadoService estadoService;
+    private final EstadoService estadoService;
     public List<Fornecedor> findAll(){return fornecedorRepository.findAll();}
 
     public Fornecedor findById(Integer id){
