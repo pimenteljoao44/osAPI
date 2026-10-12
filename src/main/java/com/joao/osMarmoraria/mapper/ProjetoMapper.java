@@ -7,9 +7,11 @@ import com.joao.osMarmoraria.dtos.ProjetoDTO;
 import com.joao.osMarmoraria.dtos.ProjetoItemDTO;
 import com.joao.osMarmoraria.repository.ProjetoItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -18,11 +20,19 @@ import java.util.stream.Collectors;
  *
  * <p>Extraído do {@code ProjetoService} (que orquestrava criação/atualização/
  * transição de status do projeto E montava a representação de API na mesma
- * classe — SRP violado). Relocação pura, comportamento preservado: ainda
- * busca os itens com fetch join via {@code findByProjetoIdWithProduto} —
- * continua havendo uma query por chamada a {@code toDto}, catalogado para a
- * Fase 5 (performance) junto dos demais pontos de N+1, fora do escopo desta
- * extração.</p>
+ * classe — SRP violado).</p>
+ *
+ * <p>Performance: {@code toDto} evita a query de itens quando o
+ * {@code Projeto} já veio com {@code itens} carregados por fetch join (caso
+ * de {@code buscarPorId}/{@code criarProjeto}/{@code atualizarProjeto}, que
+ * usam {@code findByIdWithDetails}) — reaproveita a coleção já inicializada
+ * em vez de refazer o select. Quando a coleção ainda está lazy (caso das
+ * listagens paginadas, que não podem fetch-joinar uma coleção junto com
+ * paginação), cai no fallback de uma query por projeto; {@link #toDtoList}
+ * resolve esse caso em lote (uma única query {@code IN} para todos os
+ * projetos da página) e deve ser preferido no lugar de
+ * {@code .map(projetoMapper::toDto)} sempre que a chamada processar uma
+ * coleção de projetos.</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -31,6 +41,41 @@ public class ProjetoMapper {
     private final ProjetoItemRepository projetoItemRepository;
 
     public ProjetoDTO toDto(Projeto projeto) {
+        ProjetoDTO dto = montarCamposBasicos(projeto);
+
+        List<ProjetoItem> itens = Hibernate.isInitialized(projeto.getItens())
+                ? projeto.getItens()
+                : projetoItemRepository.findByProjetoIdWithProduto(projeto.getId());
+        dto.setItens(itens.stream().map(this::itemToDto).collect(Collectors.toList()));
+
+        return dto;
+    }
+
+    /**
+     * Monta os DTOs de uma coleção de projetos buscando os itens de todos
+     * eles em uma única query {@code IN}, em vez de uma query por projeto
+     * (evita N+1 em listagens paginadas, onde a coleção {@code itens} não
+     * pode vir fetch-joinada junto da paginação).
+     */
+    public List<ProjetoDTO> toDtoList(List<Projeto> projetos) {
+        if (projetos.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> projetoIds = projetos.stream().map(Projeto::getId).collect(Collectors.toList());
+        Map<Integer, List<ProjetoItem>> itensPorProjeto = projetoItemRepository
+                .findByProjetoIdInWithProduto(projetoIds).stream()
+                .collect(Collectors.groupingBy(ProjetoItem::getProjetoId));
+
+        return projetos.stream().map(projeto -> {
+            ProjetoDTO dto = montarCamposBasicos(projeto);
+            List<ProjetoItem> itens = itensPorProjeto.getOrDefault(projeto.getId(), List.of());
+            dto.setItens(itens.stream().map(this::itemToDto).collect(Collectors.toList()));
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    private ProjetoDTO montarCamposBasicos(Projeto projeto) {
         ProjetoDTO dto = new ProjetoDTO();
         dto.setId(projeto.getId());
         dto.setNome(projeto.getNome());
@@ -60,9 +105,6 @@ public class ProjetoMapper {
             medidas.setObservacoes(projeto.getObservacoesMedidas());
             dto.setMedidas(medidas);
         }
-
-        List<ProjetoItem> itens = projetoItemRepository.findByProjetoIdWithProduto(projeto.getId());
-        dto.setItens(itens.stream().map(this::itemToDto).collect(Collectors.toList()));
 
         return dto;
     }

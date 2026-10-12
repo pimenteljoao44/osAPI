@@ -12,6 +12,7 @@ import com.joao.osMarmoraria.repository.ProdutoRepository;
 import com.joao.osMarmoraria.repository.ProjetoItemRepository;
 import com.joao.osMarmoraria.repository.ProjetoRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,16 +40,19 @@ public class ProjetoService {
     private final ProjetoMapper projetoMapper;
 
     // CRUD Operations
+    @Transactional(readOnly = true)
     public Page<ProjetoDTO> listarProjetos(Pageable pageable) {
-        return projetoRepository.findAllWithCliente(pageable)
-                .map(projetoMapper::toDto);
+        Page<Projeto> page = projetoRepository.findAllWithCliente(pageable);
+        return new PageImpl<>(projetoMapper.toDtoList(page.getContent()), pageable, page.getTotalElements());
     }
 
+    @Transactional(readOnly = true)
     public Page<ProjetoDTO> listarComFiltros(String nome, StatusProjeto status, TipoProjeto tipoProjeto, Integer clienteId, Pageable pageable) {
-        return projetoRepository.findWithFilters(nome, status, tipoProjeto, clienteId, pageable)
-                .map(projetoMapper::toDto);
+        Page<Projeto> page = projetoRepository.findWithFilters(nome, status, tipoProjeto, clienteId, pageable);
+        return new PageImpl<>(projetoMapper.toDtoList(page.getContent()), pageable, page.getTotalElements());
     }
 
+    @Transactional(readOnly = true)
     public ProjetoDTO buscarPorId(Integer id) {
         Projeto projeto = projetoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Projeto não encontrado com ID: " + id));
@@ -157,6 +161,7 @@ public class ProjetoService {
     }
 
     // Cálculo de Orçamento
+    @Transactional(readOnly = true)
     public CalculoOrcamentoDTO calcularOrcamento(ProjetoDTO projetoDTO) {
         CalculoOrcamentoDTO calculo = new CalculoOrcamentoDTO();
 
@@ -195,6 +200,7 @@ public class ProjetoService {
     }
 
     // Materiais Sugeridos
+    @Transactional(readOnly = true)
     public List<MaterialSugeridoDTO> obterMateriaisSugeridos(TipoProjeto tipoProjeto, MedidasProjetoDTO medidas) {
         List<MaterialSugeridoDTO> materiais = new ArrayList<>();
 
@@ -216,9 +222,10 @@ public class ProjetoService {
     }
 
     // Relatórios
+    @Transactional(readOnly = true)
     public List<ProjetoDTO> obterProjetosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         List<Projeto> projetos = projetoRepository.findByPeriodo(dataInicio, dataFim);
-        return projetos.stream().map(projetoMapper::toDto).collect(Collectors.toList());
+        return projetoMapper.toDtoList(projetos);
     }
 
     // Métodos auxiliares privados
