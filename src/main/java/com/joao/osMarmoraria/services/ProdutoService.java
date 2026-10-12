@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.domain.*;
 
 import com.joao.osMarmoraria.dtos.ProdutoDTO;
@@ -9,7 +11,6 @@ import com.joao.osMarmoraria.repository.OsRepository;
 import com.joao.osMarmoraria.repository.ProdutoRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +19,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProdutoService {
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private FornecedorRepository fornecedorRepository;
+    private final FornecedorRepository fornecedorRepository;
 
-    @Autowired
-    private OsRepository osRepository;
+    private final OsRepository osRepository;
 
-    @Autowired
-    private GrupoRepository grupoRepository;
+    private final GrupoRepository grupoRepository;
     public List<Produto> findAll(){return produtoRepository.findAll();}
 
     public Produto findById(Integer id){

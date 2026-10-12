@@ -62,7 +62,7 @@ public class Usuario implements UserDetails {
     public Usuario(String login, String senha, String email, Integer nivelAcesso) {
         this.login = login;
         this.senha = senha;
-        this.senha = senha;
+        this.email = email;
         this.nivelAcesso = nivelAcesso;
     }
 

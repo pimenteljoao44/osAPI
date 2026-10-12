@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,25 +15,21 @@ import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
 
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @Service
+@RequiredArgsConstructor
 public class ClienteService {
 
-	@Autowired
-	private ClienteRepository clienteRepository;
+	private final ClienteRepository clienteRepository;
 
-	@Autowired
-	private PessoaRepository pessoaRepository;
+	private final PessoaRepository pessoaRepository;
 
-	@Autowired
-	private CidadeRepository cidadeRepository;
+	private final CidadeRepository cidadeRepository;
 
-	@Autowired
-	private EstadoRepository estadoRepository;
+	private final EstadoRepository estadoRepository;
 
 	public List<Cliente> findAll() {
 		return clienteRepository.findAll();

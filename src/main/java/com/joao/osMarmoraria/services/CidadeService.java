@@ -6,7 +6,7 @@ import com.joao.osMarmoraria.dtos.CidadeDTO;
 import com.joao.osMarmoraria.repository.CidadeRepository;
 import com.joao.osMarmoraria.repository.EstadoRepository;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.Valid;
@@ -15,12 +15,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CidadeService {
-    @Autowired
-    CidadeRepository cidadeRepository;
+    private final CidadeRepository cidadeRepository;
 
-    @Autowired
-    EstadoRepository estadoRepository;
+    private final EstadoRepository estadoRepository;
 
     public Cidade findById(Integer id) {
         Optional<Cidade> obj = cidadeRepository.findById(id);

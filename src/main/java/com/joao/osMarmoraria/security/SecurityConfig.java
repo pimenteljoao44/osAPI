@@ -1,6 +1,7 @@
 package com.joao.osMarmoraria.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,10 +36,10 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private SecurityFilter securityFilter;
+    private final SecurityFilter securityFilter;
 
     /** Origens permitidas para CORS — configuráveis via {@code app.cors.allowed-origins}. */
     @Value("${app.cors.allowed-origins:http://localhost:4200}")

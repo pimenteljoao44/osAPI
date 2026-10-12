@@ -7,7 +7,7 @@ import com.joao.osMarmoraria.repository.CidadeRepository;
 import com.joao.osMarmoraria.repository.EstadoRepository;
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.Valid;
@@ -16,12 +16,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class EstadoService {
-    @Autowired
-    EstadoRepository estadoRepository;
+    private final EstadoRepository estadoRepository;
 
-    @Autowired
-    CidadeRepository cidadeRepository;
+    private final CidadeRepository cidadeRepository;
 
     public Estado findById(Integer id) {
         Optional<Estado> obj = estadoRepository.findById(id);

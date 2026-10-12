@@ -1,5 +1,7 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +11,6 @@ import com.joao.osMarmoraria.domain.enums.TipoPessoa;
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
@@ -19,22 +20,18 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @Service
+@RequiredArgsConstructor
 public class FuncionarioService {
 
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
+    private final FuncionarioRepository funcionarioRepository;
 
-    @Autowired
-    private PessoaRepository pessoaRepository;
+    private final PessoaRepository pessoaRepository;
 
-    @Autowired
-    private UsuarioService usuarioService;
+    private final UsuarioService usuarioService;
 
-    @Autowired
-    private EstadoRepository estadoRepository;
+    private final EstadoRepository estadoRepository;
 
-    @Autowired
-    private CidadeRepository cidadeRepository;
+    private final CidadeRepository cidadeRepository;
 
     public Funcionario findById(Integer id) {
         Optional<Funcionario> obj = funcionarioRepository.findById(id);

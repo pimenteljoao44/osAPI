@@ -1,8 +1,9 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import com.joao.osMarmoraria.dtos.ContaPagarDTO;
 import com.joao.osMarmoraria.services.ContaPagarService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat; // 1. Importe a anotação correta
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contas-pagar" )
+@RequiredArgsConstructor
 public class ContaPagarController {
 
-    @Autowired
-    private ContaPagarService contaPagarService;
+    private final ContaPagarService contaPagarService;
 
     @GetMapping
     public ResponseEntity<List<ContaPagarDTO>> listarTodas() {

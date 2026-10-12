@@ -14,9 +14,11 @@ import java.util.List;
 
 @Repository
 public interface VendaRepository extends JpaRepository<Venda,Integer> {
-    List<Venda> findByVendaTipo(VendaTipo vendaTipo);
 
-    @Query("SELECT v FROM Venda v WHERE v.cliente.id = :clienteId AND v.vendaTipo = :vendaTipo")
+    @Query("SELECT v FROM Venda v JOIN FETCH v.cliente c JOIN FETCH c.pessoa WHERE v.vendaTipo = :vendaTipo")
+    List<Venda> findByVendaTipo(@Param("vendaTipo") VendaTipo vendaTipo);
+
+    @Query("SELECT v FROM Venda v JOIN FETCH v.cliente c JOIN FETCH c.pessoa WHERE c.cliId = :clienteId AND v.vendaTipo = :vendaTipo")
     List<Venda> findByClienteIdAndVendaTipo(@Param("clienteId") Integer clienteId, @Param("vendaTipo") VendaTipo vendaTipo);
 
 }

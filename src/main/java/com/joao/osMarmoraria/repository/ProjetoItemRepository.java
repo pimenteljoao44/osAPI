@@ -18,6 +18,9 @@ public interface ProjetoItemRepository extends JpaRepository<ProjetoItem, Intege
     @Query("SELECT pi FROM ProjetoItem pi LEFT JOIN FETCH pi.produto WHERE pi.projetoId = :projetoId")
     List<ProjetoItem> findByProjetoIdWithProduto(@Param("projetoId") Integer projetoId);
 
+    @Query("SELECT pi FROM ProjetoItem pi LEFT JOIN FETCH pi.produto WHERE pi.projetoId IN :projetoIds")
+    List<ProjetoItem> findByProjetoIdInWithProduto(@Param("projetoIds") List<Integer> projetoIds);
+
     void deleteByProjetoId(Integer projetoId);
 
     @Query("SELECT SUM(pi.valorTotal) FROM ProjetoItem pi WHERE pi.projetoId = :projetoId")

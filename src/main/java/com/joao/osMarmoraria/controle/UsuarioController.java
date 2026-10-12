@@ -1,10 +1,12 @@
 package com.joao.osMarmoraria.controle;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,12 +25,13 @@ import com.joao.osMarmoraria.services.UsuarioService;
 
 import jakarta.validation.Valid;
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/usuarios")
+@RequiredArgsConstructor
 public class UsuarioController {
 
-	@Autowired
-	private UsuarioService service;
+	private final UsuarioService service;
 	
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<UsuarioDTO> findById(@PathVariable Integer id){
@@ -67,7 +70,7 @@ public class UsuarioController {
 			service.updatePassword(id, newPassword);
 			return ResponseEntity.noContent().build();
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Erro ao atualizar senha do usuário {}", id, e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}

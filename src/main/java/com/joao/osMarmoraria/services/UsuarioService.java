@@ -1,11 +1,12 @@
 package com.joao.osMarmoraria.services;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Optional;
 
 import com.joao.osMarmoraria.domain.Funcionario;
 import com.joao.osMarmoraria.repository.FuncionarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +25,12 @@ import jakarta.validation.Valid;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository repository;
+    private final UsuarioRepository repository;
 
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
+    private final FuncionarioRepository funcionarioRepository;
 
     private Usuario findByLogin(UsuarioDTO objDTO) {
         Usuario obj = repository.findByLogin(objDTO.getLogin());
@@ -100,7 +100,9 @@ public class UsuarioService {
         newObj.setEmail(obj.getEmail());
         newObj.setNivelAcesso(NivelAcesso.toEnum(obj.getNivelAcesso().getCod()));
         newObj.setFuncionario(obj.getFuncionario());
-        Funcionario funcionario = findFuncionarioById(obj.getFuncionario().getId());
+        Funcionario funcionario = obj.getFuncionario() != null
+                ? findFuncionarioById(obj.getFuncionario().getId())
+                : null;
         if (funcionario != null) {
             funcionarioRepository.save(funcionario);
             newObj.setFuncionario(funcionario);
