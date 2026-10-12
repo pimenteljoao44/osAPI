@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import com.joao.osMarmoraria.domain.*;
 import com.joao.osMarmoraria.domain.enums.FormaPagamento;
 import com.joao.osMarmoraria.domain.enums.StatusProjeto;
+import com.joao.osMarmoraria.services.exceptions.GeracaoDuplicadaException;
 import com.joao.osMarmoraria.domain.enums.VendaTipo;
 import com.joao.osMarmoraria.dtos.*;
 import com.joao.osMarmoraria.repository.*;
@@ -288,7 +289,7 @@ public class VendaService {
         }
 
         if (vendaProjeto.getOrdemServicoGerada()) {
-            throw new RuntimeException("Ordem de serviço já foi gerada para esta venda");
+            throw new GeracaoDuplicadaException("Ordem de serviço já foi gerada para esta venda");
         }
 
         try {
@@ -304,7 +305,7 @@ public class VendaService {
         VendaProjetoDTO vendaProjeto = buscarVendaProjetoPorId(vendaId);
 
         if (vendaProjeto.getContaReceberGerada()) {
-            throw new RuntimeException("Conta a receber já foi gerada para esta venda");
+            throw new GeracaoDuplicadaException("Conta a receber já foi gerada para esta venda");
         }
 
         try {

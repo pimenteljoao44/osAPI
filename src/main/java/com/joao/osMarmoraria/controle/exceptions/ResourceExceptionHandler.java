@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.joao.osMarmoraria.services.exceptions.DataIntegratyViolationException;
 import com.joao.osMarmoraria.services.exceptions.ObjectNotFoundException;
+import com.joao.osMarmoraria.services.exceptions.RegraDeNegocioException;
 import com.joao.osMarmoraria.services.exceptions.ValidationError;
 
 @ControllerAdvice
@@ -28,6 +29,14 @@ public class ResourceExceptionHandler {
 				HttpStatus.BAD_REQUEST.value(),e.getMessage());
 		
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(RegraDeNegocioException.class)
+	private ResponseEntity<StandardError> regraDeNegocio(RegraDeNegocioException e){
+		StandardError error = new StandardError(System.currentTimeMillis(),
+				HttpStatus.CONFLICT.value(), e.getMessage());
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
