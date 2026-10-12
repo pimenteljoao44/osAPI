@@ -3,6 +3,7 @@ package com.joao.osMarmoraria.controle;
 import com.joao.osMarmoraria.domain.ItemCompra;
 import com.joao.osMarmoraria.dtos.CompraDTO;
 import com.joao.osMarmoraria.services.CompraService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/compra")
 public class CompraController {
@@ -45,7 +47,7 @@ public class CompraController {
 					.buildAndExpand(newObj.getComprId()).toUri();
 			return ResponseEntity.created(uri).body(newObj);
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			log.error("Erro ao criar compra", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(null);
 		}
