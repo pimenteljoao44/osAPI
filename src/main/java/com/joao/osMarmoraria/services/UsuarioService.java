@@ -100,7 +100,9 @@ public class UsuarioService {
         newObj.setEmail(obj.getEmail());
         newObj.setNivelAcesso(NivelAcesso.toEnum(obj.getNivelAcesso().getCod()));
         newObj.setFuncionario(obj.getFuncionario());
-        Funcionario funcionario = findFuncionarioById(obj.getFuncionario().getId());
+        Funcionario funcionario = obj.getFuncionario() != null
+                ? findFuncionarioById(obj.getFuncionario().getId())
+                : null;
         if (funcionario != null) {
             funcionarioRepository.save(funcionario);
             newObj.setFuncionario(funcionario);
